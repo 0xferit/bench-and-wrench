@@ -57,6 +57,15 @@ class WebsiteBuildTests(unittest.TestCase):
         self.assertIn("&lt;img src=x onerror=alert(1)&gt;", page)
         self.assertNotIn("<img src=x", page)
 
+    def test_crawler_policy_is_published_at_the_site_root(self):
+        policy = "User-agent: ExampleCrawler\nAllow: /field-notes\n"
+        (self.root / "site/robots.txt").write_text(policy)
+        result = self.build()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        output = self.root / "dist/robots.txt"
+        self.assertTrue(output.is_file())
+        self.assertEqual(output.read_text(), policy)
+
     def test_unsafe_link_fails_before_producing_a_page(self):
         path = self.root / "tools/live-gantt.md"
         path.write_text(path.read_text().replace(

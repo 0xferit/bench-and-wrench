@@ -24,4 +24,6 @@ The renderer supports the catalog's paragraphs, second-level sections, flat list
 
 Cloudflare Workers Static Assets serves the public deployment identified in the README. Only the generated `dist/` files are uploaded through the direct-upload interface. There is no Worker module, server process, secret, or runtime binding. Cloudflare owns hostname and routing configuration; HTML paths use automatic trailing-slash handling, and missing assets return a not-found response. These are static documents with fragment navigation, so an application-router fallback would hide broken links.
 
+`site/robots.txt` owns the public crawl policy and is copied to the deployment root. It allows crawlers and explicitly permits search and use as input to artificial intelligence models, including agent browsing. All meaningful page content is server-rendered HTML, so a crawler does not need to execute JavaScript. Cloudflare's zone-level AI bot policies do not apply to this account's `workers.dev` hostname; no unrelated zone protections are changed.
+
 The private ChatGPT Site identity and output directory remain in `.openai/hosting.json`. It is an independent preview snapshot, updated only when explicitly published to that service. Its source repository is a deployment copy, not a second authored collection. The GitHub catalog remains the working source for both hosts.

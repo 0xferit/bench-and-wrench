@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Content-signal: search=yes, ai-input=yes

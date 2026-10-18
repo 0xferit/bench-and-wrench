@@ -159,7 +159,7 @@ def _build(root):
     output = root / "dist"
     output.mkdir(exist_ok=True)
     (output / "index.html").write_text(page)
-    for name in ("style.css", "app.js"):
+    for name in ("style.css", "app.js", "robots.txt"):
         shutil.copy2(root / "site" / name, output / name)
     shutil.copytree(root / "site/assets", output / "assets", dirs_exist_ok=True)
     icon = (root / "site/assets/mark.svg").read_text()

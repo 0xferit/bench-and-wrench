@@ -6,7 +6,8 @@ A personal collection of tools I curate, investigate, and sometimes help maintai
 
 ## On the bench
 
-The first featured tool is [Live Gantt](tools/live-gantt.md): a local view of development progress and estimated milestone completion in Claude Code.
+- [Live Gantt](tools/live-gantt.md): development progress and estimated milestone completion in Claude Code.
+- [Linear Work Tree](tools/linear-work-tree.md): initiatives, projects, milestones, and assigned issues in one navigable hierarchy.
 
 ## What the labels mean
 

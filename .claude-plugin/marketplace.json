@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "bench-and-wrench",
+  "description": "Curated tools and skills for software development.",
+  "owner": {
+    "name": "Ferit",
+    "url": "https://bench-and-wrench.0xferit.workers.dev/"
+  },
+  "plugins": [
+    {
+      "name": "live-gantt",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/alkindilabs/live-gantt.git",
+        "ref": "live-gantt--v0.5.0",
+        "sha": "b8cac41a817e398fcd9eb64f3b27e578f61a86c0"
+      }
+    }
+  ]
+}

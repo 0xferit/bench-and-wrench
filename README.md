@@ -25,6 +25,44 @@ This repository holds the collection and its website. Individual tools keep thei
 
 For how the collection is organized, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
+## Install the marketplace
+
+**Ferit's Bench and Wrench** is also an installable plugin marketplace. Its identifier is `bench-and-wrench`; Claude requires a name without spaces or apostrophes. Codex displays the full title.
+
+In Claude Code, run:
+
+```text
+/plugin marketplace add 0xferit/bench-and-wrench
+/plugin install live-gantt@bench-and-wrench
+```
+
+In the Codex command-line interface, run:
+
+```sh
+codex plugin marketplace add 0xferit/bench-and-wrench
+codex plugin add live-gantt@bench-and-wrench
+```
+
+Start a new session after installation. Live Gantt's task planning and timeline read **Claude Code sessions**. Installing its skills in Codex does not add tracking of Codex tasks. See the [Live Gantt field notes](tools/live-gantt.md) for requirements and limitations.
+
+Live Gantt is the first installable entry, fetched from its upstream release at a pinned commit. Linear Work Tree remains a hosted website, not an installable plugin. Adding this marketplace does not install every entry automatically or submit it to either provider's official directory.
+
+### Maintaining the marketplace
+
+Edit [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) to add a plugin or update its release. Keep upstream sources pinned to full commit hashes, and keep their authorship and licenses intact. Review an update before changing the pin; marketplace refreshes must not silently select a moving upstream branch.
+
+For an original skill package, commit its source, skill instructions, and host manifests in this repository, then add its relative source path to the catalog. Give it a version, an explicit license, and a description of when to use it. Publish only skills intended for other people; local agent settings and private workflows do not belong here. The [Claude packaging guide](https://code.claude.com/docs/en/plugins) and [Codex packaging guide](https://developers.openai.com/plugins/build/plugins) describe the supported manifests and directory layout.
+
+Regenerate the Codex catalog after changing entries or the README title:
+
+```sh
+python3 -B scripts/build_marketplace.py
+python3 -B scripts/build_marketplace.py --check
+claude plugin validate . --strict
+```
+
+Commit the source and generated catalog together. [.agents/plugins/marketplace.json](.agents/plugins/marketplace.json) is generated; do not edit it directly. Users receive catalog updates with `/plugin marketplace update bench-and-wrench` in Claude Code or `codex plugin marketplace upgrade bench-and-wrench` in Codex. Update installed plugins through the host's plugin controls.
+
 ## Website
 
 The website is generated from the catalog entries above. Edit the Markdown entries to update the tool descriptions, assessments, and links.

@@ -12,6 +12,12 @@ Tool implementations, releases, installation instructions, licenses, and support
 
 An entry must state whether the relationship is curation, maintenance, authorship, or a combination. Maintenance and authorship claims need a defined scope and supporting source or contribution links; curation alone carries neither claim.
 
+## Plugin marketplace
+
+The repository is an installable marketplace for Claude Code and Codex. `.claude-plugin/marketplace.json` owns the marketplace identifier and plugin sources. External plugins are fetched directly from their upstream repositories at full commit hashes, keeping reviewed code stable until an explicit catalog update. Original packages can live inside this repository with relative sources. A catalog entry does not imply support for every host's runtime: Live Gantt still reads Claude Code sessions when its skills are installed in Codex.
+
+`scripts/build_marketplace.py` derives `.agents/plugins/marketplace.json` from that catalog and the README title. The generated file adds Codex's display name and opt-in installation policy. It is tracked so a fresh clone works without a build step. Its check mode detects drift without rewriting files. The two host formats exist because Claude's catalog has no marketplace display-name field and Codex has its own presentation and installation-policy fields; their plugin identities and source pins have one authored definition.
+
 ## Website
 
 The build in `scripts/build.py` reads the tool order from the README and the assessments from the linked catalog entries. It combines those records with the layout in `site/template.html` and emits the static site into `dist/`. Generated output is ignored by Git and can be recreated without installing dependencies.

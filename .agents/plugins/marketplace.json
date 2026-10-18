@@ -1,0 +1,22 @@
+{
+  "name": "bench-and-wrench",
+  "interface": {
+    "displayName": "Ferit's Bench and Wrench"
+  },
+  "plugins": [
+    {
+      "name": "live-gantt",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/alkindilabs/live-gantt.git",
+        "ref": "live-gantt--v0.5.0",
+        "sha": "b8cac41a817e398fcd9eb64f3b27e578f61a86c0"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

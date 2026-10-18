@@ -21,6 +21,26 @@ A tool can have more than one label. Inclusion alone does not imply authorship o
 
 Tools that address a concrete development problem and have a reason to exist in a working developer's kit. An entry should make it easier to decide whether to use the tool, not just repeat its feature list.
 
-This repository holds the collection and will be home to its website. Individual tools keep their source, releases, installation instructions, and issue trackers upstream.
+This repository holds the collection and its website. Individual tools keep their source, releases, installation instructions, and issue trackers upstream.
 
 For how the collection is organized, see [ARCHITECTURE.md](ARCHITECTURE.md).
+
+## Website
+
+The website is generated from the catalog entries above. Edit the Markdown entries to update the tool descriptions, assessments, and links.
+
+Build with Python's standard library, then serve the generated page locally:
+
+```sh
+python3 -B scripts/build.py
+python3 -m http.server 4794 --bind 127.0.0.1 --directory dist
+```
+
+Run the boundary checks with:
+
+```sh
+python3 -B -m unittest discover -s tests
+node --check site/app.js
+```
+
+The Site starts private. Its hosting identity and static output directory are recorded in [.openai/hosting.json](.openai/hosting.json).

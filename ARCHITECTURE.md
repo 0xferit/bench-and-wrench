@@ -20,4 +20,8 @@ The renderer supports the catalog's paragraphs, second-level sections, flat list
 
 `site/style.css` owns the palette. The build derives the browser theme color and favicon colors from those tokens. Illustrations are explicitly labeled examples, not live tool data. The small browser script only controls the illustrative tree and derives its illustrated progress bar from the displayed value. There is no backend, authentication flow, analytics, or runtime connection to either featured tool.
 
-The private Site identity and static output directory live in `.openai/hosting.json`. Publishing pushes the same source commit to the Site's source repository and packages its generated output. The GitHub catalog remains the working source; the Site repository is a deployment copy, not a second authored collection. Changing Site access is separate from deploying a new version.
+## Hosting
+
+Cloudflare Workers Static Assets serves the public deployment identified in the README. Only the generated `dist/` files are uploaded through the direct-upload interface. There is no Worker module, server process, secret, or runtime binding. Cloudflare owns hostname and routing configuration; HTML paths use automatic trailing-slash handling, and missing assets return a not-found response. These are static documents with fragment navigation, so an application-router fallback would hide broken links.
+
+The private ChatGPT Site identity and output directory remain in `.openai/hosting.json`. It is an independent preview snapshot, updated only when explicitly published to that service. Its source repository is a deployment copy, not a second authored collection. The GitHub catalog remains the working source for both hosts.

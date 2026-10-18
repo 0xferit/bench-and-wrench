@@ -138,6 +138,7 @@ def _build(root):
         "brand_owner": html.escape(brand_owner),
         "brand_name": html.escape(brand_name),
         "curator": html.escape(brand_owner.removesuffix("'s")),
+        "profile_url": "https://github.com/0xferit",
         "theme_color": colors["petrol"],
         "theme_paper": colors["paper"],
         "theme_brass": colors["brass"],

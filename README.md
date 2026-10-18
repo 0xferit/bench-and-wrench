@@ -43,4 +43,10 @@ python3 -B -m unittest discover -s tests
 node --check site/app.js
 ```
 
-The Site starts private. Its hosting identity and static output directory are recorded in [.openai/hosting.json](.openai/hosting.json).
+## Deployment
+
+The public website is [bench-and-wrench.0xferit.workers.dev](https://bench-and-wrench.0xferit.workers.dev/), hosted by the `bench-and-wrench` Worker in the personal Cloudflare account named `Ferit`.
+
+Build and run the checks above before deploying. Upload only the generated `dist/` directory through Cloudflare's [Workers static-assets direct-upload interface](https://developers.cloudflare.com/workers/static-assets/direct-upload/), then attach the completed upload to the existing Worker. The deployment serves static assets without a Worker script. Unknown paths return a not-found response instead of the homepage.
+
+The existing private ChatGPT Site remains a separate preview snapshot. Its identity is recorded in [.openai/hosting.json](.openai/hosting.json); deploying to Cloudflare does not update that preview.

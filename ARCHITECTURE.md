@@ -10,7 +10,7 @@ The catalog uses Markdown so it remains readable directly in the repository. The
 
 Tool implementations, releases, installation instructions, licenses, and support remain in their upstream repositories. This collection links to those authorities. It does not vendor tools or create separate release streams merely by featuring them.
 
-An entry must state whether the relationship is curation, maintenance, authorship, or a combination. Maintenance and authorship claims need a defined scope and supporting source or contribution links; curation alone carries neither claim.
+An entry states whether its relationship is Built, meaning I author and maintain the tool, or Curated. A Built entry links to its source; a Curated entry claims neither authorship nor maintenance.
 
 ## Plugin marketplace
 

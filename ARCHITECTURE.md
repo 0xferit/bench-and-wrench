@@ -24,7 +24,7 @@ The build in `scripts/build.py` reads the tool order from the README and the ass
 
 The renderer supports the catalog's paragraphs, second-level sections, flat lists, and inline links, emphasis, and code. It escapes authored text and rejects executable link schemes before writing a page. It is deliberately a small catalog renderer rather than a general Markdown engine. Boundary checks exercise the command against temporary catalogs, including a new tool and invalid input.
 
-`site/style.css` owns the palette. The build derives the browser theme color and favicon colors from those tokens. Illustrations are explicitly labeled examples, not live tool data. The small browser script only controls the illustrative tree and derives its illustrated progress bar from the displayed value. There is no backend, authentication flow, analytics, or runtime connection to either featured tool.
+`site/style.css` owns the palette: its first `:root` block is the light palette, and a `prefers-color-scheme` block redefines the same tokens for dark mode. The build derives the browser theme color and favicon colors from the light palette only, because the favicon cannot follow the viewer's theme. The one typeface, Archivo, is self-hosted under `site/assets/fonts` with its Open Font License text, so the page makes no third-party requests. Illustrations are explicitly labeled examples, not live tool data. The small browser script only controls the illustrative tree and derives its illustrated progress bar from the displayed value. There is no backend, authentication flow, analytics, or runtime connection to either featured tool.
 
 ## Hosting
 

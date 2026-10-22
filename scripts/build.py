@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 INLINE_TOKEN = re.compile(r"\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|`([^`]+)`")
 CATALOG_LINK = re.compile(r"^- \[([^\]]+)\]\((tools/[a-z0-9-]+\.md)\):", re.MULTILINE)
 SECTION_HEADING = re.compile(r"^## (.+)$", re.MULTILINE)
+LIGHT_PALETTE = re.compile(r":root\s*\{([^}]*)\}")
 
 
 def _inline(text):
@@ -100,10 +101,10 @@ def _tool_exhibit(root, path):
         if remaining:
             notes.append(f'<section class="note-section"><h4>{html.escape(heading)}</h4>{_render(remaining)}</section>')
     return title, slug, f'''
-<article class="tool-exhibit exhibit-{slug}" id="{slug}">
-  <header class="exhibit-header"><div class="tool-heading"><p class="section-label">On the bench</p><h3>{html.escape(title)}</h3></div><span class="relationship">{html.escape(relation)}</span></header>
-  <div class="exhibit-body">{illustration}<div class="tool-copy"><div class="tool-intro">{intro}</div><div class="tool-reason"><p class="section-label">Why it earns a place</p><p>{_inline(reason)}</p></div><div class="tool-caveat"><p class="section-label">Keep in mind</p><p>{_inline(caveat)}</p></div><div class="tool-actions"><a class="button button-petrol" href="{html.escape(primary[1], quote=True)}">{html.escape(action)}</a></div></div></div>
-  <details class="field-notes" id="notes-{slug}"><summary><span>Read the field notes</span><span class="notes-hint">Fit, limits, and sources</span></summary><div class="notes-grid">{''.join(notes)}</div></details>
+<article class="tool-plate" id="{slug}">
+  <header class="plate-header"><h3>{html.escape(title)}</h3><span class="relationship relationship-{html.escape(relation.lower())}">{html.escape(relation)}</span></header>
+  <div class="plate-body">{illustration}<div class="tool-copy"><div class="tool-intro">{intro}</div><h4>Why it earns a place</h4><p>{_inline(reason)}</p><div class="tool-caveat"><h4>Keep in mind</h4><p>{_inline(caveat)}</p></div><p class="tool-actions"><a class="button" href="{html.escape(primary[1], quote=True)}">{html.escape(action)}</a></p></div></div>
+  <details class="field-notes" id="notes-{slug}"><summary><span>Field notes</span><span class="notes-hint">Fit, limits, and sources</span></summary><div class="notes-grid">{''.join(notes)}</div></details>
 </article>'''
 
 
@@ -130,26 +131,28 @@ def _build(root):
             if match is None:
                 raise ValueError("Unrecognized relationship label")
             label, description = match.groups()
-            legend.append(f"<div><h4>{html.escape(label)}</h4><p>{_inline(description)}</p></div>")
+            legend.append(f"<div><dt>{html.escape(label)}</dt><dd>{_inline(description)}</dd></div>")
     styles = (root / "site/style.css").read_text()
-    colors = dict(re.findall(r"--([a-z-]+):\s*(#[0-9a-fA-F]+);", styles))
+    light_palette = LIGHT_PALETTE.search(styles)
+    if light_palette is None:
+        raise ValueError("site/style.css must define its light palette in a :root block")
+    colors = dict(re.findall(r"--([a-z-]+):\s*(#[0-9a-fA-F]+);", light_palette.group(1)))
     brand_owner, _, brand_name = title.partition(" ")
     values = {
         "brand_owner": html.escape(brand_owner),
         "brand_name": html.escape(brand_name),
-        "curator": html.escape(brand_owner.removesuffix("'s")),
         "profile_url": "https://github.com/0xferit",
-        "theme_color": colors["petrol"],
+        "theme_color": colors["board"],
         "theme_paper": colors["paper"],
-        "theme_brass": colors["brass"],
+        "theme_accent": colors["paint"],
         "title": html.escape(title),
         "description": html.escape(intro_paragraphs[0], quote=True),
         "tagline": _inline(intro_paragraphs[0]),
         "intro": _inline(intro_paragraphs[1]),
         "exhibits": "\n".join(exhibit for _, _, exhibit in exhibits),
-        "tool_index": "".join(f'<a href="#{slug}">{html.escape(name)}</a>' for name, slug, _ in exhibits),
+        "tool_index": ", ".join(f'<a href="#{slug}">{html.escape(name)}</a>' for name, slug, _ in exhibits),
         "criteria": _render(sections["What belongs here"][:1]),
-        "legend": '<div class="legend-grid">' + "".join(legend) + "</div>",
+        "legend": '<dl class="legend">' + "".join(legend) + "</dl>",
     }
     template = (root / "site/template.html").read_text()
     missing = set(re.findall(r"{{(\w+)}}", template)) - values.keys()

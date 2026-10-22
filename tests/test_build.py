@@ -66,6 +66,18 @@ class WebsiteBuildTests(unittest.TestCase):
         self.assertTrue(output.is_file())
         self.assertEqual(output.read_text(), policy)
 
+    def test_theme_and_favicon_colours_come_from_the_light_palette(self):
+        (self.root / "site/style.css").write_text(
+            ":root { --board: #101010; --paper: #f0f0f0; --paint: #a00000; }\n"
+            "@media (prefers-color-scheme: dark) { :root { --board: #000000; --paper: #202020; --paint: #ff0000; } }\n"
+        )
+        result = self.build()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('name="theme-color" content="#101010"', (self.root / "dist/index.html").read_text())
+        icon = (self.root / "dist/assets/mark.svg").read_text()
+        for colour in ("#101010", "#f0f0f0", "#a00000"):
+            self.assertIn(f'fill="{colour}"', icon)
+
     def test_unsafe_link_fails_before_producing_a_page(self):
         path = self.root / "tools/live-gantt.md"
         path.write_text(path.read_text().replace(

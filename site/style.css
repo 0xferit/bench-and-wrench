@@ -96,6 +96,9 @@ body {
 }
 body::before { position: fixed; inset: 0; z-index: -1; background: var(--grain); opacity: var(--grain-opacity); content: ""; pointer-events: none; }
 body::after { position: fixed; inset: var(--frame); z-index: 190; border: var(--border) solid var(--rule); content: ""; pointer-events: none; }
+html::before, html::after { position: fixed; inset: 0; padding: var(--frame); content: ""; pointer-events: none; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+html::before { z-index: 185; background: var(--paper); }
+html::after { z-index: 186; background: var(--grain); opacity: var(--grain-opacity); }
 img, svg { display: block; max-width: 100%; }
 ul, ol { padding-left: 1.2em; }
 a { color: inherit; text-decoration-thickness: var(--border); text-underline-offset: 0.4rem; }

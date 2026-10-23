@@ -58,7 +58,7 @@ Two families, self-hosted: Archivo and Geist Mono. The page makes no request to 
 {{scale space}}
 
 - The root size is 0.5787037037vw, which is 8.33px on a 1440px screen. At 991px and below it is 1.1990407674vw, and at 767px and below 2.5445292621vw. These three values are the only breakpoints.
-- The page sits inside a fixed frame inset 0.8rem from the window, drawn by a 1px rule. Rows are separated by 1px rules, and cells within a row by 1px rules.
+- The page sits inside a fixed frame inset 0.8rem from the window, drawn by a 1px rule. Content scrolls under the frame: the margin outside the rule is repainted with paper and grain above everything but the skip link, so the sheet ends at the frame line. Rows are separated by 1px rules, and cells within a row by 1px rules.
 - Wide rows divide into quarters: a quarter, a half and a quarter, or four quarters. The first screen is one viewport: the fixed header, a ruler-framed drawing and a title row.
 - The header is fixed. It hides when the reader scrolls down and returns when they scroll up. Below 991px its links collapse behind a Menu cell.
 - A ruler frame has an inset of 1.2rem, 0.9rem tick spacing on every edge and a plus mark at each corner. It frames the one drawing a screen is about.

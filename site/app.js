@@ -381,6 +381,23 @@
     guides.addEventListener('pointerleave', () => guides.classList.remove('active'));
   }
 
+  const band = document.querySelector('[data-band]');
+  const bandSolid = band && band.querySelector('.band-solid');
+  const blot = bandSolid && bandSolid.querySelector('.band-blot');
+  if (blot) {
+    const rest = { cx: blot.getAttribute('cx'), cy: blot.getAttribute('cy') };
+    const moveBlot = (cx, cy) => {
+      blot.setAttribute('cx', cx);
+      blot.setAttribute('cy', cy);
+    };
+    band.addEventListener('pointermove', (event) => {
+      if (event.pointerType !== 'mouse' || !DESKTOP.matches) return;
+      const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(bandSolid.getScreenCTM().inverse());
+      moveBlot(point.x, point.y);
+    });
+    band.addEventListener('pointerleave', () => moveBlot(rest.cx, rest.cy));
+  }
+
   const sizeFill = (button) => {
     const bg = button.querySelector('.btn-fill-bg');
     const { width, height } = button.getBoundingClientRect();

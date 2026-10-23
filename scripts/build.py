@@ -34,13 +34,23 @@ STATEMENT_DRAWING_FRAME = f'{SPANNER_VIEW} x="20%" width="60%" height="100%"'
 STATEMENT_DRAWING = (
     '<svg class="statement-drawing" aria-hidden="true"><defs>'
     '<pattern id="statement-hatch" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path class="statement-hatch" d="M1.5 0V3"/></pattern>'
-    '<filter id="ink-ragged"><feTurbulence type="fractalNoise" baseFrequency="0.045 0.055" numOctaves="4" seed="5" result="noise"/>'
-    '<feDisplacementMap in="SourceGraphic" in2="noise" scale="100" xChannelSelector="R" yChannelSelector="G"/>'
-    '<feGaussianBlur stdDeviation="1.8"/><feComponentTransfer><feFuncA type="linear" slope="2.2" intercept="-0.6"/></feComponentTransfer></filter>'
     '<mask id="statement-ink" maskUnits="userSpaceOnUse"><path class="statement-ink-edge" fill="#fff" filter="url(#ink-ragged)"/></mask></defs>'
     f'<svg {STATEMENT_DRAWING_FRAME}>{SPANNER_PATHS}</svg>'
     f'<g mask="url(#statement-ink)"><svg {STATEMENT_DRAWING_FRAME} fill="url(#statement-hatch)">{SPANNER_PATHS}<path d="M60 41l82 1v16l-82 1z" stroke="none"/></svg></g></svg>'
 )
+RULER_FRAME = (
+    '<div class="ruler" aria-hidden="true"><i class="ruler-edge ruler-top"></i><i class="ruler-edge ruler-bottom"></i><i class="ruler-edge ruler-left"></i>'
+    '<i class="ruler-edge ruler-right"></i><i class="plus top left"></i><i class="plus top right"></i><i class="plus bot left"></i><i class="plus bot right"></i></div>'
+)
+WORDMARK_WIDTH = 1000
+WORDMARK_HEIGHT = 220
+WORDMARK_TEXT_LENGTH = 940
+WORDMARK_FONT_SIZE = 100
+WORDMARK_CAP_HEIGHT = 70
+WORDMARK_LINE_GAP = 40
+WORDMARK_TICK = 12
+BLOT_RADIUS = 150
+BLOT_REST = -400
 DESIGN_SOURCE = "DESIGN.md"
 DESIGN_PAGE = "design-system.html"
 
@@ -271,7 +281,7 @@ def _scale(palette, family):
 def _specimen(root, name):
     if not SPECIMEN_NAME.fullmatch(name):
         raise ValueError(f"Invalid specimen name: {name}")
-    source = (root / "site/specimens" / f"{name}.html").read_text().replace("{{arrow}}", ARROW_ICON)
+    source = (root / "site/specimens" / f"{name}.html").read_text().replace("{{arrow}}", ARROW_ICON).replace("{{ruler}}", RULER_FRAME)
     return (f'<figure class="specimen"><div class="specimen-live">{source}</div>'
             f'<pre class="specimen-code"><code>{html.escape(source.strip())}</code></pre></figure>')
 
@@ -341,6 +351,33 @@ def _relationship_labels(sections):
     return items
 
 
+def _balanced_lines(title):
+    words = title.upper().split()
+    splits = [(" ".join(words[:at]), " ".join(words[at:])) for at in range(1, len(words))]
+    return min(splits, key=lambda lines: max(len(line) for line in lines)) if splits else tuple(words)
+
+
+def _wordmark(title):
+    lines = _balanced_lines(title)
+    block = len(lines) * WORDMARK_CAP_HEIGHT + (len(lines) - 1) * WORDMARK_LINE_GAP
+    first_baseline = (WORDMARK_HEIGHT - block) / 2 + WORDMARK_CAP_HEIGHT
+    text = "".join(
+        f'<text x="{WORDMARK_WIDTH / 2:g}" y="{first_baseline + index * (WORDMARK_CAP_HEIGHT + WORDMARK_LINE_GAP):g}" font-size="{WORDMARK_FONT_SIZE}" '
+        f'text-anchor="middle" textLength="{WORDMARK_TEXT_LENGTH}" lengthAdjust="spacing">{html.escape(line)}</text>'
+        for index, line in enumerate(lines)
+    )
+    width, height, tick = WORDMARK_WIDTH, WORDMARK_HEIGHT, WORDMARK_TICK
+    marks = (
+        f'<path d="M0 {tick}V0H{tick}M{width - tick} 0H{width}V{tick}M{width} {height - tick}V{height}H{width - tick}M{tick} {height}H0V{height - tick}'
+        f'M{width / 2 - tick:g} {height / 2:g}h{2 * tick}M{width / 2:g} {height / 2 - tick:g}v{2 * tick}"/>'
+    )
+    frame = f'viewBox="0 0 {width} {height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"'
+    return (
+        f'<svg class="band-sketch" {frame}>{text}{marks}</svg>'
+        f'<svg class="band-solid" {frame}><defs><mask id="band-ink"><circle class="band-blot" r="{BLOT_RADIUS}" cx="{BLOT_REST}" cy="{BLOT_REST}" fill="#fff" filter="url(#ink-ragged)"/></mask></defs>{text}</svg>'
+    )
+
+
 def _strip_item(name, slug, relation):
     return (
         f'<a class="statement-strip-item" href="#{slug}"><span class="txt-mono txt-14">{html.escape(name)}</span>'
@@ -378,6 +415,8 @@ def _build(root):
         "intro": _inline(intro_paragraphs[1]),
         "statement_drawing": STATEMENT_DRAWING,
         "cta_drawing": SPANNER_GLYPH,
+        "ruler": RULER_FRAME,
+        "wordmark": _wordmark(title),
         "hero_drawing": (root / "site/illustrations/hero-spanner.svg").read_text(),
         "exhibits": "\n".join(row for _, _, _, row, _ in exhibits),
         "field_notes": "\n".join(notes for _, _, _, _, notes in exhibits),

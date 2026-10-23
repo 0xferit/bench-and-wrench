@@ -341,6 +341,7 @@ main > section + section, main + .footer { border-top: var(--border) solid var(-
 
 .faq-item { position: relative; padding: 2.4rem 3.2rem; }
 .faq-item + .faq-item > .line-top { display: none; }
+.faq-item:last-child > .line-bottom { display: none; }
 .js .faq-item { cursor: pointer; }
 .faq-details summary { display: flex; align-items: center; gap: 1.6rem; list-style: none; cursor: pointer; }
 .faq-details summary::-webkit-details-marker { display: none; }

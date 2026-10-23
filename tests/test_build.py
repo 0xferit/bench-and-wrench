@@ -57,6 +57,15 @@ class WebsiteBuildTests(unittest.TestCase):
         self.assertIn("linear-work-tree", fragments)
         self.assertEqual(fragments - targets, set())
 
+    def test_every_asset_a_page_links_is_published(self):
+        result = self.build()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for name in ("index.html", "design-system.html"):
+            page = (self.root / "dist" / name).read_text()
+            assets = set(re.findall(r'(?:href|src)="(assets/[^"#]+)', page))
+            self.assertIn("assets/favicon-dark-32.png", assets)
+            self.assertEqual({path for path in assets if not (self.root / "dist" / path).is_file()}, set())
+
     def test_raw_markup_is_rendered_as_text(self):
         path = self.root / "tools/live-gantt.md"
         path.write_text(path.read_text().replace(

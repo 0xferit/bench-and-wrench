@@ -707,17 +707,29 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
   .cta-main-title { margin-bottom: 0.8rem; }
   .cta-main-sub { max-width: 28rem; margin-bottom: 2.4rem; }
   .cta-deco { grid-template-columns: 6rem minmax(0, 1fr) 6rem; }
+  .footer-left { flex-direction: column; }
   .footer-title-wrap { padding: 2rem 1.5rem; }
-  .footer-note { padding: 2rem 1.5rem; }
+  .footer-note { padding: 2rem 1.5rem; border-left: 0; border-top: var(--border) solid var(--rule); }
   .footer-menu { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .footer-menu-item { padding: 2rem 1.6rem; }
-  .footer-info { grid-template-columns: minmax(0, 1fr); }
-  .footer-info-item + .footer-info-item { border-left: 0; border-top: var(--border) solid var(--rule); }
+  .footer-menu-item:first-child { grid-column: 1 / -1; border-bottom: var(--border) solid var(--rule); }
+  .footer-menu-item:first-child .footer-link-wrap { flex-direction: row; flex-wrap: wrap; column-gap: 3.2rem; width: 100%; }
+  .footer-menu-item:first-child .footer-link { width: calc(50% - 1.6rem); }
+  .footer-menu-item:nth-child(2) { border-left: 0; }
+  .footer-link-wrap { gap: 1rem; }
+  .footer-info { grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none; }
+  .footer-info-item { min-height: 14rem; justify-content: space-between; padding: 2rem 1.6rem; }
+  .footer-info-item:first-child { grid-column: 1 / -1; grid-row: auto; border-bottom: var(--border) solid var(--rule); }
+  .footer-info-item:nth-child(2) { border-left: 0; }
+  .footer-info-item:nth-child(3) { border-top: 0; }
   .footer-copyright-wrap { flex-direction: column; }
   .footer-copyright { padding: 1.2rem 1.6rem; text-align: center; border-right: 0; }
   .footer-copyright p { font-size: 1rem; }
+  .footer-copyright p { max-width: 22rem; margin: 0 auto; }
+  .footer-policy { display: grid; grid-template-columns: 0.8fr 1fr 0.8fr; }
   .footer-policy-item { flex: 1; padding: 1.5rem 0.5rem; border-top: var(--border) solid var(--rule); }
-  .footer-logo { min-height: 0; padding: 3.2rem 0; border-left: 0; }
+  .footer-policy-item:first-child { border-left: 0; }
+  .footer-logo { grid-column: 1 / -1; min-height: 0; padding: 3.2rem 0; border-left: 0; border-top: var(--border) solid var(--rule); }
   .footer-logo .mark { width: 12rem; height: 12rem; }
   .page-head { grid-template-columns: minmax(0, 1fr); }
   .page-head-copy { border-left: 0; padding-top: 0; }

@@ -153,7 +153,8 @@ button { color: inherit; font: inherit; cursor: pointer; background: none; borde
 .plus.left { left: -0.2rem; }
 .plus.right { right: -0.2rem; }
 
-.arrow { width: 2rem; height: 2rem; fill: none; stroke: currentColor; stroke-width: 1.2; }
+.arrow { width: 2rem; height: 2rem; fill: none; stroke: currentColor; stroke-width: 1.5; }
+.arrow-solid { width: 2rem; height: 2rem; align-self: flex-end; fill: currentColor; }
 .swap { display: grid; overflow: hidden; }
 .swap > * { grid-area: 1 / 1; transition: transform 0.48s var(--ease-fill); }
 .swap > :last-child { transform: translateY(100%); }
@@ -206,7 +207,7 @@ button { color: inherit; font: inherit; cursor: pointer; background: none; borde
 .header-menu-item[aria-current="page"] { color: var(--muted); pointer-events: none; }
 .header-menu-item[aria-current="page"]::before { position: absolute; top: 50%; right: 1.2rem; z-index: 3; width: 0.6rem; height: 0.6rem; background: var(--ink); content: ""; transform: translateY(-50%); }
 .cell-button { position: relative; display: flex; flex: none; flex-direction: column; justify-content: space-between; padding: 1.2rem var(--cell-button-right, 1rem) 0.4rem 1.2rem; }
-.cell-button .slide, .cell-button > .arrow { align-self: flex-end; }
+.cell-button .slide { align-self: flex-end; }
 .header-cta { width: 20rem; }
 .header-cta:not(.only-mb) { --cell-button-right: 0.4rem; }
 .header-cta.only-mb { display: none; color: var(--brand); }
@@ -537,6 +538,7 @@ section + section, .row + .row, main + .footer { border-top: var(--border) solid
   .header-cta.only-mb { display: flex; width: 100%; }
   .header-cta.only-mb > .line-v { display: none; }
   .txt-mono.txt-10 { font-size: 0.8rem; }
+  .arrow { width: 1.6rem; height: 1.6rem; }
   .heading.h3 { font-size: var(--step-h6); line-height: 1.1; }
   .heading.mb-h2 { font-size: var(--step-h4); line-height: 1; }
   .heading.mb-h3 { font-size: var(--step-h6); line-height: 1.1; }

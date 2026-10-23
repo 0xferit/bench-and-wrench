@@ -73,7 +73,7 @@ Every button is one `.btn-fill` component. The base is an accent block that fill
 
 ### Button
 
-The primary action. One per cell. The label says what happens, and the arrow cell is separated by a dotted rule. On hover the ink dissolves in as a block of pixels, the label swaps upward and the arrow passes through.
+The primary action. One per cell. The label says what happens, and the arrow cell is separated by a dotted rule. On hover the ink dissolves in as a block of pixels, the label swaps upward and the arrow passes through. The arrow is a 1.5-unit stroke on a 20-unit grid, 2rem square and 1.6rem on phones; the phone menu's GitHub cell uses a filled arrow instead, as it has no hover.
 
 {{specimen button}}
 

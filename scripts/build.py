@@ -20,7 +20,8 @@ DIRECTIVE = re.compile(r"\{\{(.+)\}\}")
 SPECIMEN_NAME = re.compile(r"[a-z][a-z0-9-]*")
 REPOSITORY_URL = "https://github.com/0xferit/bench-and-wrench"
 PROFILE_URL = "https://github.com/0xferit"
-ARROW_ICON = '<svg class="arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 10h15M11 4l6 6-6 6"/></svg>'
+ARROW_ICON = '<svg class="arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 10H16.25M11.85 5.6L16.25 10L11.85 14.4"/></svg>'
+ARROW_SOLID_ICON = '<svg class="arrow-solid" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 9.13H14.14L11.23 6.22 12.47 4.98 17.49 10 12.47 15.02 11.23 13.78 14.14 10.88H2Z"/></svg>'
 SPANNER_GLYPH = (
     '<svg viewBox="0 0 204 100" aria-hidden="true"><circle cx="36" cy="50" r="26"/>'
     '<path d="M36 38l10.4 6v12L36 62l-10.4-6V44z"/><path d="M60 41l82 1M60 59l82-1"/>'
@@ -349,6 +350,7 @@ def _build(root):
         "profile_url": PROFILE_URL,
         "repository_url": REPOSITORY_URL,
         "arrow": ARROW_ICON,
+        "arrow_solid": ARROW_SOLID_ICON,
         "theme_paper": palette.colour("light", "paper"),
         "theme_paper_dark": palette.colour("dark", "paper"),
         "theme_ink": palette.colour("light", "ink"),

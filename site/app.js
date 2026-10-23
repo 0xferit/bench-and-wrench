@@ -45,6 +45,8 @@
   const LOADER_SPLIT_MS = 800;
   const HEADER_FADE_MS = 1000;
   const LOADED_AT_MS = 7200;
+  const PAGE_MARK_MS = 800;
+  const PAGE_OPEN_MS = 800;
   const easeOutCubic = (share) => 1 - (1 - share) ** 3;
   const easeOutQuart = (share) => 1 - (1 - share) ** 4;
   const REVEAL_TRIGGERS = [
@@ -65,6 +67,7 @@
   const REVEAL_STATES = ['rv-pending', 'rv-start', ...Object.keys(REVEAL_EFFECTS).map((effect) => `rv-${effect}`)];
 
   const clamp01 = (value) => Math.min(1, Math.max(0, value));
+  const token = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
   const scroller = { current: scrollY, target: scrollY, frame: 0, last: 0, anchor: null };
   const smoothScrolling = () => FINE_POINTER.matches && !REDUCED_MOTION.matches && !document.documentElement.classList.contains('is-loading');
@@ -256,8 +259,6 @@
   const heroDrawing = heroSection && heroSection.querySelector('.drawing');
   if (loader && heroDrawing && !REDUCED_MOTION.matches) {
     const root = document.documentElement;
-    const styles = getComputedStyle(root);
-    const token = (name) => styles.getPropertyValue(name).trim();
     const sheet = loader.querySelector('.loading-sheet');
     const image = loader.querySelector('.loading-img');
     const content = loader.querySelector('.loading-content');
@@ -348,6 +349,26 @@
     document.addEventListener('keydown', finish, { once: true });
   } else if (loader) {
     loader.classList.add('loaded');
+  }
+
+  const [navigation] = performance.getEntriesByType('navigation');
+  const arrivedFromElsewhere = !document.referrer || new URL(document.referrer).origin !== location.origin;
+  if (!loader && !REDUCED_MOTION.matches && navigation && navigation.type === 'navigate' && arrivedFromElsewhere) {
+    const cover = document.createElement('div');
+    cover.className = 'page-mark';
+    cover.setAttribute('aria-hidden', 'true');
+    cover.innerHTML = '<svg viewBox="0 0 40 40"><use href="assets/mark.svg#mark"/></svg>';
+    document.documentElement.append(cover);
+    document.body.style.clipPath = 'inset(50%)';
+    const opened = () => document.body.style.removeProperty('clip-path');
+    cover.querySelector('svg').animate(
+      [{ strokeDashoffset: 1, stroke: token('--rule') }, { strokeDashoffset: 0, stroke: token('--brand') }],
+      { duration: PAGE_MARK_MS, easing: token('--ease-out-quad'), fill: 'forwards' },
+    ).finished.then(() => {
+      cover.remove();
+      opened();
+      document.body.animate([{ clipPath: 'inset(50%)' }, { clipPath: 'inset(0%)' }], { duration: PAGE_OPEN_MS, easing: token('--ease-out-quad') });
+    }, opened);
   }
 
   const progress = document.querySelector('.demo-progress-value');
@@ -574,7 +595,7 @@
   }
 
   for (const list of document.querySelectorAll('.faq-list')) {
-    const easing = getComputedStyle(document.documentElement).getPropertyValue('--ease-swing').trim();
+    const easing = token('--ease-swing');
     const opened = new Map();
     const slides = new Map();
     const isOpening = (details) => (slides.has(details) ? opened.get(details) : details.open);

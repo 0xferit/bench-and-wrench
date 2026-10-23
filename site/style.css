@@ -206,6 +206,17 @@ button { padding: 0; color: inherit; font: inherit; cursor: pointer; background:
 .loading-progress-text { position: absolute; bottom: 0.7rem; left: 3.2rem; }
 .loading-edge { position: absolute; left: 0; right: 0; height: var(--border); background: var(--brand); visibility: hidden; }
 
+.page-mark { position: fixed; inset: var(--frame); z-index: 189; display: grid; place-items: center; background: var(--paper); }
+.page-mark::before { position: absolute; inset: 0; background: var(--grain); opacity: var(--grain-opacity); content: ""; }
+.page-mark svg { --ink: transparent; --paper: transparent; --brand: transparent; position: relative; width: 8rem; height: 8rem; stroke: var(--rule); stroke-width: 0.6; stroke-dasharray: 1; overflow: visible; }
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  html::view-transition-old(root) { animation: page-close 0.8s var(--ease-in-quad) both; }
+  html::view-transition-new(root) { animation: page-open 0.8s var(--ease-out-quad) 0.8s both; }
+}
+@keyframes page-close { to { clip-path: inset(50%); } }
+@keyframes page-open { from { clip-path: inset(50%); } }
+
 .header { position: fixed; top: var(--frame); left: var(--frame); right: var(--frame); z-index: 100; pointer-events: none; }
 .header.on-hide .header-inner { transform: translateY(-101%); }
 .header.on-hide:has(:focus-visible) .header-inner { transform: none; }

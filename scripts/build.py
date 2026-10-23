@@ -23,10 +23,23 @@ PROFILE_URL = "https://github.com/0xferit"
 ARROW_ICON = '<svg class="arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 10H16.25M11.85 5.6L16.25 10L11.85 14.4"/></svg>'
 WORK_ICON = '<svg class="home-hero-work-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2.5h6L14 8l-3 5.5H5L2 8Z"/><circle cx="8" cy="8" r="2.25"/></svg>'
 ARROW_SOLID_ICON = '<svg class="arrow-solid" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 9.13H14.14L11.23 6.22 12.47 4.98 17.49 10 12.47 15.02 11.23 13.78 14.14 10.88H2Z"/></svg>'
-SPANNER_GLYPH = (
-    '<svg viewBox="0 0 204 100" aria-hidden="true"><circle cx="36" cy="50" r="26"/>'
+SPANNER_PATHS = (
+    '<circle cx="36" cy="50" r="26"/>'
     '<path d="M36 38l10.4 6v12L36 62l-10.4-6V44z"/><path d="M60 41l82 1M60 59l82-1"/>'
-    '<path d="M187 38H164v24h23A26 26 0 1 1 187 38z"/></svg>'
+    '<path d="M187 38H164v24h23A26 26 0 1 1 187 38z"/>'
+)
+SPANNER_VIEW = 'viewBox="0 0 204 100"'
+SPANNER_GLYPH = f'<svg {SPANNER_VIEW} aria-hidden="true">{SPANNER_PATHS}</svg>'
+STATEMENT_DRAWING_FRAME = f'{SPANNER_VIEW} x="20%" width="60%" height="100%"'
+STATEMENT_DRAWING = (
+    '<svg class="statement-drawing" aria-hidden="true"><defs>'
+    '<pattern id="statement-hatch" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path class="statement-hatch" d="M1.5 0V3"/></pattern>'
+    '<filter id="ink-ragged"><feTurbulence type="fractalNoise" baseFrequency="0.045 0.055" numOctaves="4" seed="5" result="noise"/>'
+    '<feDisplacementMap in="SourceGraphic" in2="noise" scale="100" xChannelSelector="R" yChannelSelector="G"/>'
+    '<feGaussianBlur stdDeviation="1.8"/><feComponentTransfer><feFuncA type="linear" slope="2.2" intercept="-0.6"/></feComponentTransfer></filter>'
+    '<mask id="statement-ink" maskUnits="userSpaceOnUse"><path class="statement-ink-edge" fill="#fff" filter="url(#ink-ragged)"/></mask></defs>'
+    f'<svg {STATEMENT_DRAWING_FRAME}>{SPANNER_PATHS}</svg>'
+    f'<g mask="url(#statement-ink)"><svg {STATEMENT_DRAWING_FRAME} fill="url(#statement-hatch)">{SPANNER_PATHS}<path d="M60 41l82 1v16l-82 1z" stroke="none"/></svg></g></svg>'
 )
 DESIGN_SOURCE = "DESIGN.md"
 DESIGN_PAGE = "design-system.html"
@@ -359,7 +372,7 @@ def _build(root):
         "title": html.escape(title),
         "tagline": _inline(intro_paragraphs[0]),
         "intro": _inline(intro_paragraphs[1]),
-        "statement_drawing": SPANNER_GLYPH,
+        "statement_drawing": STATEMENT_DRAWING,
         "hero_drawing": (root / "site/illustrations/hero-spanner.svg").read_text(),
         "exhibits": "\n".join(exhibit for _, _, _, exhibit in exhibits),
         "tool_work_items": "".join(f'<span class="home-hero-work-item txt-mono txt-14">{WORK_ICON}{html.escape(name)}</span>' for name, _, _, _ in exhibits),

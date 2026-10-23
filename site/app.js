@@ -19,6 +19,10 @@
   const SCRUB_SPAN_VIEWPORTS = 0.7;
   const SCRUB_CHAR_DURATION = 0.5;
   const SCRUB_CHAR_STAGGER = 0.03;
+  const INK_START_VIEWPORTS = 0.35;
+  const INK_END_VIEWPORTS = 0.2;
+  const INK_BULGE = 1.25;
+  const INK_MIN_SPAN_PX = 1;
   const STRIP_AUTOPLAY_MS = 3000;
   const STRIP_SPEED_MS = 600;
   const STRIP_STEP_DESKTOP = 3;
@@ -111,6 +115,25 @@
     window.addEventListener('scroll', requestScrub, { passive: true });
     window.addEventListener('resize', requestScrub);
     scrub();
+  }
+
+  const statementMedia = document.querySelector('.statement-media');
+  const inkEdge = statementMedia && statementMedia.querySelector('.statement-ink-edge');
+  if (inkEdge) {
+    let revealFrame = 0;
+    const reveal = () => {
+      revealFrame = 0;
+      const { top, width, height } = statementMedia.getBoundingClientRect();
+      const span = Math.max(height - INK_END_VIEWPORTS * innerHeight, INK_MIN_SPAN_PX);
+      const progress = REDUCED_MOTION.matches ? 1 : clamp01((INK_START_VIEWPORTS * innerHeight - top) / span);
+      const edge = (height * progress).toFixed(1);
+      inkEdge.setAttribute('d', `M0 ${edge} Q${width / 2} ${(INK_BULGE * edge).toFixed(1)} ${width} ${edge} L${width} 0 L0 0Z`);
+    };
+    const requestReveal = () => { if (!revealFrame) revealFrame = requestAnimationFrame(reveal); };
+    window.addEventListener('scroll', requestReveal, { passive: true });
+    window.addEventListener('resize', requestReveal);
+    REDUCED_MOTION.addEventListener('change', requestReveal);
+    reveal();
   }
 
   const strip = document.querySelector('.statement-strip');

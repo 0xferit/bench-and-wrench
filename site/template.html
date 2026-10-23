@@ -6,10 +6,10 @@
   <meta name="description" content="{{description}}">
   <meta name="theme-color" content="{{theme_paper}}" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="{{theme_paper_dark}}" media="(prefers-color-scheme: dark)">
-  <meta property="og:title" content="{{title}}">
+  <meta property="og:title" content="{{page_title}}">
   <meta property="og:description" content="{{description}}">
   <meta property="og:type" content="website">
-  <title>{{title}}</title>
+  <title>{{page_title}}</title>
   <link rel="icon" href="assets/mark.svg" type="image/svg+xml">
   <link rel="preload" href="assets/fonts/archivo-variable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/geist-mono-variable.woff2" as="font" type="font/woff2" crossorigin>
@@ -17,45 +17,17 @@
   <script src="app.js" defer></script>
 </head>
 <body>
-  <a class="skip-link" href="#tools">Skip to the tools</a>
+  <a class="skip-link" href="#main">Skip to the content</a>
   <div class="sheet" id="top">
     <header class="masthead">
-      <a class="brand" href="#top" aria-label="{{title}} home">
+      <a class="brand" href="{{home}}#top" aria-label="{{title}} home">
         <img class="brand-mark" src="assets/mark.svg" width="28" height="28" alt="">
         <span class="brand-name">{{title}}</span>
       </a>
-      <nav class="masthead-nav" aria-label="Main navigation"><a href="#tools">Tools</a><a href="#approach">Approach</a><a class="nav-accent" href="{{profile_url}}">GitHub</a></nav>
+      <nav class="masthead-nav" aria-label="Main navigation"><a href="{{home}}#tools">Tools</a><a href="{{home}}#approach">Approach</a><a href="design-system.html">Design system</a><a class="nav-accent" href="{{profile_url}}">GitHub</a></nav>
     </header>
-    <main>
-      <figure class="hero-drawing">
-        <div class="registered">{{hero_drawing}}</div>
-        <figcaption><span>Fig. 1: A 13 mm combination spanner</span><span>Drawn to scale</span></figcaption>
-      </figure>
-      <section class="hero-row cell-row" aria-labelledby="hero-title">
-        <div class="hero-title cell"><h1 id="hero-title">Good tools.<br>Sound judgment.</h1></div>
-        <div class="hero-copy cell">
-          <p class="label">{{tagline}}</p>
-          <p class="lede">{{intro}}</p>
-          <dl class="spec"><dt>On the bench</dt><dd>{{tool_index}}</dd><dt>Source</dt><dd><a href="{{profile_url}}">GitHub</a></dd></dl>
-          <a class="button" href="#tools"><span class="button-label">See the tools</span><span class="button-icon" aria-hidden="true"></span></a>
-        </div>
-      </section>
-      <section class="section" id="tools" aria-labelledby="tools-title">
-        <div class="section-head cell-row">
-          <div class="cell"><span class="label">Tools</span></div>
-          <div class="cell"><h2 id="tools-title">Tools with a purpose.</h2></div>
-          <div class="cell"><p>What each tool does, when it helps, and what to keep in mind.</p></div>
-        </div>
-        {{exhibits}}
-      </section>
-      <section class="section" id="approach" aria-labelledby="approach-title">
-        <div class="section-head cell-row">
-          <div class="cell"><span class="label">Approach</span></div>
-          <div class="cell"><h2 id="approach-title">A place on the bench is earned.</h2></div>
-          <div class="cell approach-copy">{{criteria}}<p>Useful software deserves a clear explanation. The trade-offs belong beside the recommendation.</p></div>
-        </div>
-        {{legend}}
-      </section>
+    <main id="main">
+      {{main}}
     </main>
     <footer class="site-footer cell-row">
       <div class="cell"><p><strong>{{title}}</strong>. Software tools, with the thinking left in.</p></div>

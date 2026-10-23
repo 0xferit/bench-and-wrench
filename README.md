@@ -66,6 +66,8 @@ Commit the source and generated catalog together. [.agents/plugins/marketplace.j
 
 The website is generated from the catalog entries above. Edit the Markdown entries to update the tool descriptions, assessments, and links.
 
+The site's look is the drawing-sheet design system, documented in [DESIGN.md](DESIGN.md) and published on the site as the design-system page. Its tokens live in `site/style.css`; the build checks the documented contrast pairs against them.
+
 Build with Python's standard library, then serve the generated page locally:
 
 ```sh

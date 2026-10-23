@@ -1,3 +1,4 @@
+import re
 import shutil
 import subprocess
 import sys
@@ -16,7 +17,8 @@ class WebsiteBuildTests(unittest.TestCase):
         self.root = Path(self.directory.name)
         for name in ("site", "scripts", "tools"):
             shutil.copytree(ROOT / name, self.root / name)
-        shutil.copy2(ROOT / "README.md", self.root / "README.md")
+        for name in ("README.md", "DESIGN.md"):
+            shutil.copy2(ROOT / name, self.root / name)
 
     def build(self):
         return subprocess.run(
@@ -68,8 +70,8 @@ class WebsiteBuildTests(unittest.TestCase):
 
     def test_theme_and_favicon_colours_come_from_the_palette_tokens(self):
         (self.root / "site/style.css").write_text(
-            ":root { --paper: #f0f0f0; --ink: #101010; --brand: #a00000; }\n"
-            "@media (prefers-color-scheme: dark) { :root { --paper: #202020; --ink: #ffffff; --brand: #ff0000; } }\n"
+            ":root { --paper: #f0f0f0; --cell: #ffffff; --ink: #101010; --muted: #404040; --rule: #999999; --brand: #a00000; --on-brand: #ffffff; --step-label: 12px; --space-1: 4px; }\n"
+            "@media (prefers-color-scheme: dark) { :root { --paper: #202020; --cell: #282828; --ink: #ffffff; --muted: #cccccc; --brand: #ff6666; --on-brand: #000000; } }\n"
         )
         result = self.build()
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -88,6 +90,63 @@ class WebsiteBuildTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertFalse(stale.exists())
         self.assertTrue((self.root / "dist/index.html").is_file())
+
+    def test_design_system_page_is_generated_from_the_stylesheet_and_specimens(self):
+        result = self.build()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        page = (self.root / "dist/design-system.html").read_text()
+        styles = (self.root / "site/style.css").read_text()
+        self.assertIn("--brand", page)
+        self.assertIn(re.search(r"--brand:\s*(#[0-9a-f]+);", styles).group(1), page)
+        for name in ("button", "window"):
+            source = (self.root / "site/specimens" / f"{name}.html").read_text().split("\n")[0]
+            self.assertIn(source[:40], page)
+        self.assertIn('href="./#tools"', page)
+        self.assertIn('href="design-system.html"', (self.root / "dist/index.html").read_text())
+        self.assertNotIn("{{", page)
+
+    def test_a_contrast_pair_below_its_threshold_fails_before_producing_a_page(self):
+        styles = self.root / "site/style.css"
+        original = styles.read_text()
+        lowered = original.replace("--muted: #5f5f5b;", "--muted: #bbbbb7;")
+        self.assertNotEqual(lowered, original)
+        styles.write_text(lowered)
+        result = self.build()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("--muted on --paper", result.stderr)
+        self.assertIn("below the 4.5:1", result.stderr)
+        self.assertFalse((self.root / "dist/index.html").exists())
+
+    def test_a_dark_palette_that_breaks_a_pair_also_fails(self):
+        styles = self.root / "site/style.css"
+        original = styles.read_text()
+        lowered = original.replace("--ink: #e9e8e1;", "--ink: #3a3a37;")
+        self.assertNotEqual(lowered, original)
+        styles.write_text(lowered)
+        result = self.build()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("in the dark palette", result.stderr)
+
+    def test_a_specimen_name_cannot_leave_the_specimen_directory(self):
+        design = self.root / "DESIGN.md"
+        design.write_text(design.read_text().replace("{{specimen button}}", "{{specimen ../template}}"))
+        result = self.build()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Invalid specimen name", result.stderr)
+
+    def test_a_missing_specimen_reports_its_path(self):
+        design = self.root / "DESIGN.md"
+        design.write_text(design.read_text().replace("{{specimen button}}", "{{specimen retired}}"))
+        result = self.build()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("retired.html", result.stderr)
+
+    def test_specimens_use_only_classes_the_stylesheet_defines(self):
+        styles = (self.root / "site/style.css").read_text()
+        for specimen in sorted((self.root / "site/specimens").glob("*.html")):
+            for attribute in re.findall(r'class="([^"]+)"', specimen.read_text()):
+                for name in attribute.split():
+                    self.assertIn(f".{name}", styles, f"{specimen.name} uses .{name}, which style.css does not define")
 
     def test_unsafe_link_fails_before_producing_a_page(self):
         path = self.root / "tools/live-gantt.md"

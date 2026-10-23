@@ -1,0 +1,29 @@
+<figure class="hero-drawing">
+  <div class="registered">{{hero_drawing}}</div>
+  <figcaption><span>Fig. 1: A 13 mm combination spanner</span><span>Drawn to scale</span></figcaption>
+</figure>
+<section class="hero-row cell-row" aria-labelledby="hero-title">
+  <div class="hero-title cell"><h1 id="hero-title">Good tools.<br>Sound judgment.</h1></div>
+  <div class="hero-copy cell">
+    <p class="label">{{tagline}}</p>
+    <p class="lede">{{intro}}</p>
+    <dl class="spec"><dt>On the bench</dt><dd>{{tool_index}}</dd><dt>Source</dt><dd><a href="{{profile_url}}">GitHub</a></dd></dl>
+    <a class="button" href="#tools"><span class="button-label">See the tools</span><span class="button-icon" aria-hidden="true"></span></a>
+  </div>
+</section>
+<section class="section" id="tools" aria-labelledby="tools-title">
+  <div class="section-head cell-row">
+    <div class="cell"><span class="label">Tools</span></div>
+    <div class="cell"><h2 id="tools-title">Tools with a purpose.</h2></div>
+    <div class="cell"><p>What each tool does, when it helps, and what to keep in mind.</p></div>
+  </div>
+  {{exhibits}}
+</section>
+<section class="section" id="approach" aria-labelledby="approach-title">
+  <div class="section-head cell-row">
+    <div class="cell"><span class="label">Approach</span></div>
+    <div class="cell"><h2 id="approach-title">A place on the bench is earned.</h2></div>
+    <div class="cell approach-copy">{{criteria}}<p>Useful software deserves a clear explanation. The trade-offs belong beside the recommendation.</p></div>
+  </div>
+  {{legend}}
+</section>

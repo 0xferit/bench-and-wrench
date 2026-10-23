@@ -4,48 +4,100 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="{{description}}">
-  <meta name="theme-color" content="{{theme_color}}">
-  <meta property="og:title" content="{{title}}">
+  <meta name="theme-color" content="{{theme_paper}}" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="{{theme_paper_dark}}" media="(prefers-color-scheme: dark)">
+  <meta property="og:title" content="{{page_title}}">
   <meta property="og:description" content="{{description}}">
   <meta property="og:type" content="website">
-  <title>{{title}}</title>
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{page_title}}">
+  <meta name="twitter:description" content="{{description}}">
+  <title>{{page_title}}</title>
   <link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-light-32.png" media="(prefers-color-scheme: light)">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-dark-32.png" media="(prefers-color-scheme: dark)">
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="assets/icon-512.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon-180.png">
+  <link rel="preload" href="assets/fonts/archivo-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/geist-mono-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <script>document.documentElement.classList.add('js')</script>
   <link rel="stylesheet" href="style.css">
   <script src="app.js" defer></script>
 </head>
-<body>
-  <a class="skip-link" href="#tools">Skip to the tools</a>
-  <header class="site-header">
-    <a class="brand" href="#top" aria-label="{{title}} home">
-      <img class="brand-mark" src="assets/mark.svg" width="40" height="40" alt="">
-      <span><span class="brand-owner">{{brand_owner}}</span><span class="brand-name">{{brand_name}}</span></span>
-    </a>
-    <nav aria-label="Main navigation"><a href="#tools">The tools</a><a href="#approach">The approach</a><a href="{{profile_url}}">Find me on GitHub</a></nav>
+<body id="top">
+  {{loader}}
+  <svg width="0" height="0" aria-hidden="true"><filter id="ink-ragged"><feTurbulence type="fractalNoise" baseFrequency="0.045 0.055" numOctaves="4" seed="5" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="100" xChannelSelector="R" yChannelSelector="G"/><feGaussianBlur stdDeviation="1.8"/><feComponentTransfer><feFuncA type="linear" slope="2.2" intercept="-0.6"/></feComponentTransfer></filter></svg>
+  <a class="skip-link" href="#main">Skip to the content</a>
+  <header class="header" data-header>
+    <div class="header-inner">
+      <div class="header-logo"><a class="header-logo-inner" href="{{home}}#top" aria-label="{{title}} home"><svg class="mark" aria-hidden="true"><use href="assets/mark.svg#mark"/></svg><span class="header-logo-name">{{title}}</span></a></div>
+      <div class="header-menu-wrap">
+        <div class="header-menu-inner">
+          <button class="header-menu-btn txt-mono txt-14" type="button" aria-expanded="false" aria-controls="menu"><i class="line line-v line-left line-solid"></i><span>Menu</span><span class="header-menu-btn-ic" aria-hidden="true"><i></i><i></i><i></i></span></button>
+          <nav class="header-menu" id="menu" aria-label="Main navigation">
+            <div class="header-menu-item-wrap">
+              <a class="header-menu-item has-dropdown btn-fill btn-fill-ghost" href="{{home}}#tools"><i class="line line-v line-left line-solid"></i><span class="btn-fill-bg" aria-hidden="true"></span><span class="swap txt-mono txt-14"><span>Tools</span><span aria-hidden="true">Tools</span></span></a>
+              <div class="header-menu-dropdown"><div class="header-menu-dropdown-inner">{{menu_tool_links}}</div></div>
+            </div>
+            <a class="header-menu-item btn-fill btn-fill-ghost" href="{{home}}#approach"><i class="line line-v line-left line-solid"></i><span class="btn-fill-bg" aria-hidden="true"></span><span class="swap txt-mono txt-14"><span>Approach</span><span aria-hidden="true">Approach</span></span></a>
+            <a class="header-menu-item btn-fill btn-fill-ghost" href="design-system.html"{{design_current}}><i class="line line-v line-left line-solid"></i><span class="btn-fill-bg" aria-hidden="true"></span><span class="swap txt-mono txt-14"><span>Design system</span><span aria-hidden="true">Design system</span></span></a>
+            <a class="header-cta only-mb cell-button" href="{{profile_url}}"><i class="line line-v line-left line-solid"></i><span class="swap txt-mono txt-14"><span>GitHub</span><span aria-hidden="true">GitHub</span></span>{{arrow_solid}}<i class="line line-h line-bottom line-solid"></i></a>
+          </nav>
+        </div>
+        <a class="header-cta cell-button btn-fill btn-fill-accent" href="{{profile_url}}"><i class="line line-v line-left line-solid"></i><span class="btn-fill-bg" aria-hidden="true"></span><span class="swap txt-mono txt-14"><span>GitHub</span><span aria-hidden="true">GitHub</span></span><span class="slide">{{arrow}}{{arrow}}</span></a>
+      </div>
+      <i class="line line-h line-bottom line-solid"></i>
+    </div>
   </header>
-  <main id="top">
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-main">
-        <p class="hero-kicker">A working collection by {{curator}}</p>
-        <h1 id="hero-title">Good tools.<br>Sound judgment.</h1>
-        <a class="button button-brass" href="#tools">Explore the bench <span aria-hidden="true">↓</span></a>
-      </div>
-      <div class="hero-side">
-        <span class="bench-symbol" aria-hidden="true"><i></i><i></i><i></i></span>
-        <h2>{{tagline}}</h2>
-        <p>{{intro}}</p>
-        <div class="hero-index"><span>Currently on the bench</span>{{tool_index}}</div>
-      </div>
-    </section>
-    <section class="collection" id="tools" aria-labelledby="tools-title">
-      <div class="section-intro"><h2 id="tools-title">Tools with a purpose.</h2><p>A closer look at what they do, when they help, and what to keep in mind.</p></div>
-      {{exhibits}}
-    </section>
-    <section class="approach" id="approach" aria-labelledby="approach-title">
-      <div class="approach-heading"><p class="section-label">The approach</p><h2 id="approach-title">A place on the<br>bench is earned.</h2></div>
-      <div class="approach-copy">{{criteria}}<p>Useful software deserves a clear explanation. The trade-offs belong beside the recommendation.</p><a class="text-link" href="{{profile_url}}">Find me on GitHub</a></div>
-      <div class="relationship-legend"><h3>What my involvement means</h3>{{legend}}</div>
-    </section>
+  <main id="main">
+    {{main}}
   </main>
-  <footer class="site-footer"><p>{{title}}<span>Software tools, with the thinking left in.</span></p><a href="#top">Back to the top <span aria-hidden="true">↑</span></a></footer>
+  <section class="cta" aria-labelledby="cta-title">
+    <div class="cta-head" aria-hidden="true"><div class="cta-head-item"><span class="txt-mono txt-12">Zone A1</span></div><div class="cta-head-item"><i class="line line-v line-left line-dash"></i><span class="txt-mono txt-12">Zone B1</span></div><div class="cta-head-item"><i class="line line-v line-left line-dash"></i><span class="txt-mono txt-12">Zone C1</span></div><i class="line line-h line-bottom line-dash"></i></div>
+    <div class="cta-main">
+      <div class="cta-main-side"><span class="txt-mono txt-12" aria-hidden="true">Zone A2</span></div>
+      <div class="cta-main-center">
+        <i class="line line-v line-left line-dash"></i>
+        <h2 id="cta-title" class="cta-main-title heading h2 tb-h4 mb-h3">Take what is useful.</h2>
+        <p class="cta-main-sub txt-16 mb-txt-14 txt-reg">Each tool keeps its source, releases and issue tracker with its authors. Start from the tools in this collection, or read its source.</p>
+        <a class="cta-main-btn btn-fill" href="{{repository_url}}"><span class="btn-fill-bg" aria-hidden="true"></span><span class="btn-fill-label swap txt-mono txt-14"><span>Read the source</span><span aria-hidden="true">Read the source</span></span><span class="btn-fill-icon"><span class="slide">{{arrow}}{{arrow}}</span></span></a>
+      </div>
+      <div class="cta-main-side"><i class="line line-v line-left line-dash"></i></div>
+      <i class="line line-h line-bottom line-dash"></i>
+    </div>
+    <div class="cta-deco" aria-hidden="true"><div></div><div class="cta-deco-art"><i class="line line-v line-left line-dash"></i>{{cta_drawing}}</div><div><i class="line line-v line-left line-dash"></i></div></div>
+  </section>
+  <footer class="footer">
+    <div class="footer-grid">
+      <div class="footer-left">
+        <div class="footer-title-wrap"><p class="footer-title heading h4 tb-h5 mb-h3">Software tools, with the thinking left in.</p></div>
+        <div class="footer-note"><p class="footer-label txt-mono txt-14 mb-txt-12">Colophon</p><p class="txt-16 mb-txt-14">Set in Archivo and Geist Mono, both self-hosted. No cookies, no analytics, no third-party requests.</p></div>
+      </div>
+      <div class="footer-content">
+        <div class="footer-menu">
+          <div class="footer-menu-item"><p class="footer-label txt-mono txt-14 mb-txt-12">Tools</p><div class="footer-link-wrap">{{footer_tool_links}}</div></div>
+          <div class="footer-menu-item"><p class="footer-label txt-mono txt-14 mb-txt-12">Collection</p><div class="footer-link-wrap"><a class="footer-link txt-16 mb-txt-14" href="{{home}}#approach">Approach</a><a class="footer-link txt-16 mb-txt-14" href="design-system.html"{{design_current}}>Design system</a></div></div>
+          <div class="footer-menu-item"><p class="footer-label txt-mono txt-14 mb-txt-12">Elsewhere</p><div class="footer-link-wrap"><a class="footer-link txt-16 mb-txt-14" href="{{profile_url}}">GitHub</a><a class="footer-link txt-16 mb-txt-14" href="{{repository_url}}">Repository</a></div></div>
+        </div>
+        <div class="footer-info">
+          <div class="footer-info-item"><p class="footer-info-label txt-mono txt-14 mb-txt-12">Source</p><a class="footer-link footer-info-value txt-16 mb-txt-14" href="{{repository_url}}">0xferit/bench-and-wrench</a></div>
+          <div class="footer-info-item"><p class="footer-info-label txt-mono txt-14 mb-txt-12">Maker</p><a class="footer-link footer-info-value txt-16 mb-txt-14" href="{{profile_url}}">0xferit</a></div>
+          <div class="footer-info-item"><p class="footer-info-label txt-mono txt-14 mb-txt-12">Found a problem</p><a class="footer-link footer-info-value txt-16 mb-txt-14" href="{{repository_url}}/issues">Open an issue</a></div>
+        </div>
+      </div>
+      <div class="footer-logo"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><use href="assets/mark.svg#mark-field"/><use class="footer-logo-path" href="assets/mark.svg#mark-field"/><use href="assets/mark.svg#mark-b"/><use href="assets/mark.svg#mark-counter-top"/><use class="footer-logo-path" href="assets/mark.svg#mark-counter-top"/><use href="assets/mark.svg#mark-counter-bottom"/><use class="footer-logo-path" href="assets/mark.svg#mark-counter-bottom"/><use class="footer-logo-ink" href="assets/mark.svg#mark-slash"/><use class="footer-logo-path" href="assets/mark.svg#mark-slash"/></svg></div>
+    </div>
+    <div class="footer-band" data-band aria-hidden="true"><i class="line line-h line-top line-solid"></i>{{ruler}}<div class="footer-band-art">{{wordmark}}</div></div>
+    <div class="footer-copyright-wrap">
+      <div class="footer-copyright"><p>{{title}}</p></div>
+      <div class="footer-policy">
+        <a class="footer-policy-item txt-16 mb-txt-12" href="{{repository_url}}">Source</a>
+        <a class="footer-policy-item txt-16 mb-txt-12" href="design-system.html">Design system</a>
+        <a class="footer-policy-item txt-16 mb-txt-12" href="#top">Back to top</a>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>

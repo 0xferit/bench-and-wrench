@@ -1,6 +1,6 @@
 # Live Gantt
 
-**Relationship: Curated.** Developed and maintained upstream by al-Kindi. This collection highlights the tool and the work linked below; it does not duplicate its source or release process.
+**Relationship: Built.** I build and maintain Live Gantt. Its source, releases, and issue tracker live in the alkindilabs/live-gantt repository linked below; this entry does not duplicate them.
 
 Live Gantt shows a Claude Code development plan as a local timeline, with tasks, agents, dependencies, milestone progress, and estimated finish times.
 

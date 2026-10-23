@@ -23,7 +23,7 @@ The drawing-sheet design system keeps Ferit's Bench and Wrench and every tool in
 - `--muted` is body copy. It is the ink at 72% opacity, so it adapts to whatever it sits on.
 - `--rule` is the 1px divider between cells. It is a boundary, not text, so it is allowed a lower contrast than text.
 - `--disabled` is bracketed indices and resting plus icons. It is decoration that repeats information already in the markup, so those marks are hidden from assistive technology.
-- `--surface` is plus marks that appear on hover, `--granite` is labels, captions and footer headings, and `--tick` is the ruler ticks.
+- `--surface` is plus marks that appear on hover, `--granite` is labels, captions and footer headings, `--tick` is the ruler ticks, and `--crosshair` is the pointer crosshair over the hero drawing.
 - `--brand` is the accent. `--on-brand` is the colour of text set on it, and `--on-ink` is the colour of text set on an ink fill.
 
 Use tokens, never raw values. The dark palette redefines the same names, so a component written with tokens is already themed.

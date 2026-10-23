@@ -13,6 +13,8 @@ INLINE_TOKEN = re.compile(r"\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|`([^`]+)`")
 CATALOG_LINK = re.compile(r"^- \[([^\]]+)\]\((tools/[a-z0-9-]+\.md)\):", re.MULTILINE)
 SECTION_HEADING = re.compile(r"^## (.+)$", re.MULTILINE)
 LIGHT_PALETTE = re.compile(r":root\s*\{([^}]*)\}")
+DARK_PALETTE = re.compile(r"@media\s*\(prefers-color-scheme:\s*dark\)\s*\{\s*:root\s*\{([^}]*)\}")
+COLOR_TOKEN = re.compile(r"--([a-z-]+):\s*(#[0-9a-fA-F]+);")
 
 
 def _inline(text):
@@ -69,7 +71,7 @@ def _first_paragraph(blocks):
     return next((value for kind, value in blocks if kind == "p"), "")
 
 
-def _tool_exhibit(root, path):
+def _tool_exhibit(root, path, position):
     source = (root / path).read_text()
     opening, sections = _sections(source)
     opening_blocks = _blocks(opening)
@@ -93,7 +95,7 @@ def _tool_exhibit(root, path):
     slug = Path(path).stem
     illustration_path = root / "site/illustrations" / f"{slug}.html"
     illustration = illustration_path.read_text() if illustration_path.exists() else (
-        f'<div class="tool-illustration plain-illustration"><strong>{html.escape(title)}</strong></div>'
+        f'<div class="tool-illustration plain-illustration cell"><strong>{html.escape(title)}</strong></div>'
     )
     notes = [f'<section class="note-section"><h4>About this entry</h4><p>{_inline(relationship)}</p></section>']
     for heading, blocks in sections.items():
@@ -101,9 +103,9 @@ def _tool_exhibit(root, path):
         if remaining:
             notes.append(f'<section class="note-section"><h4>{html.escape(heading)}</h4>{_render(remaining)}</section>')
     return title, slug, f'''
-<article class="tool-plate" id="{slug}">
-  <header class="plate-header"><h3>{html.escape(title)}</h3><span class="relationship relationship-{html.escape(relation.lower())}">{html.escape(relation)}</span></header>
-  <div class="plate-body">{illustration}<div class="tool-copy"><div class="tool-intro">{intro}</div><h4>Why it earns a place</h4><p>{_inline(reason)}</p><div class="tool-caveat"><h4>Keep in mind</h4><p>{_inline(caveat)}</p></div><p class="tool-actions"><a class="button" href="{html.escape(primary[1], quote=True)}">{html.escape(action)}</a></p></div></div>
+<article class="tool" id="{slug}">
+  <header class="tool-head cell-row"><span class="tool-index label cell">[{position:02d}]</span><h3 class="cell">{html.escape(title)}</h3><span class="relationship relationship-{html.escape(relation.lower())} cell">{html.escape(relation)}</span></header>
+  <div class="tool-body cell-row">{illustration}<div class="tool-copy cell"><div class="tool-intro">{intro}</div><dl class="tool-facts"><div><dt class="label">Why it earns a place</dt><dd>{_inline(reason)}</dd></div><div class="caveat"><dt class="label">Keep in mind</dt><dd>{_inline(caveat)}</dd></div></dl><p class="tool-actions"><a class="button" href="{html.escape(primary[1], quote=True)}"><span class="button-label">{html.escape(action)}</span><span class="button-icon" aria-hidden="true"></span></a></p></div></div>
   <details class="field-notes" id="notes-{slug}"><summary><span>Field notes</span><span class="notes-hint">Fit, limits, and sources</span></summary><div class="notes-grid">{''.join(notes)}</div></details>
 </article>'''
 
@@ -121,7 +123,7 @@ def _build(root):
     catalog = CATALOG_LINK.findall(_markdown_text(sections["On the bench"]))
     if not catalog:
         raise ValueError("The catalog contains no tools")
-    exhibits = [_tool_exhibit(root, path) for _, path in catalog]
+    exhibits = [_tool_exhibit(root, path, position) for position, (_, path) in enumerate(catalog, start=1)]
     legend = []
     for kind, values in sections["What the labels mean"]:
         if kind != "ul":
@@ -131,24 +133,30 @@ def _build(root):
             if match is None:
                 raise ValueError("Unrecognized relationship label")
             label, description = match.groups()
-            legend.append(f"<div><dt>{html.escape(label)}</dt><dd>{_inline(description)}</dd></div>")
+            legend.append(f'<div><dt class="relationship relationship-{html.escape(label.lower())}">{html.escape(label)}</dt><dd>{_inline(description)}</dd></div>')
     styles = (root / "site/style.css").read_text()
     light_palette = LIGHT_PALETTE.search(styles)
     if light_palette is None:
         raise ValueError("site/style.css must define its light palette in a :root block")
-    colors = dict(re.findall(r"--([a-z-]+):\s*(#[0-9a-fA-F]+);", light_palette.group(1)))
+    dark_palette = DARK_PALETTE.search(styles)
+    if dark_palette is None:
+        raise ValueError("site/style.css must redefine its palette in a prefers-color-scheme: dark block")
+    colors = dict(COLOR_TOKEN.findall(light_palette.group(1)))
+    dark_colors = dict(COLOR_TOKEN.findall(dark_palette.group(1)))
     brand_owner, _, brand_name = title.partition(" ")
     values = {
         "brand_owner": html.escape(brand_owner),
         "brand_name": html.escape(brand_name),
         "profile_url": "https://github.com/0xferit",
-        "theme_color": colors["board"],
         "theme_paper": colors["paper"],
-        "theme_accent": colors["paint"],
+        "theme_paper_dark": dark_colors["paper"],
+        "theme_ink": colors["ink"],
+        "theme_accent": colors["brand"],
         "title": html.escape(title),
         "description": html.escape(intro_paragraphs[0], quote=True),
         "tagline": _inline(intro_paragraphs[0]),
         "intro": _inline(intro_paragraphs[1]),
+        "hero_drawing": (root / "site/illustrations/hero-spanner.svg").read_text(),
         "exhibits": "\n".join(exhibit for _, _, exhibit in exhibits),
         "tool_index": ", ".join(f'<a href="#{slug}">{html.escape(name)}</a>' for name, slug, _ in exhibits),
         "criteria": _render(sections["What belongs here"][:1]),
@@ -160,7 +168,8 @@ def _build(root):
         raise ValueError(f"Unknown template fields: {', '.join(sorted(missing))}")
     page = re.sub(r"{{(\w+)}}", lambda match: values[match.group(1)], template)
     output = root / "dist"
-    output.mkdir(exist_ok=True)
+    shutil.rmtree(output, ignore_errors=True)
+    output.mkdir()
     (output / "index.html").write_text(page)
     for name in ("style.css", "app.js", "robots.txt"):
         shutil.copy2(root / "site" / name, output / name)

@@ -66,17 +66,28 @@ class WebsiteBuildTests(unittest.TestCase):
         self.assertTrue(output.is_file())
         self.assertEqual(output.read_text(), policy)
 
-    def test_theme_and_favicon_colours_come_from_the_light_palette(self):
+    def test_theme_and_favicon_colours_come_from_the_palette_tokens(self):
         (self.root / "site/style.css").write_text(
-            ":root { --board: #101010; --paper: #f0f0f0; --paint: #a00000; }\n"
-            "@media (prefers-color-scheme: dark) { :root { --board: #000000; --paper: #202020; --paint: #ff0000; } }\n"
+            ":root { --paper: #f0f0f0; --ink: #101010; --brand: #a00000; }\n"
+            "@media (prefers-color-scheme: dark) { :root { --paper: #202020; --ink: #ffffff; --brand: #ff0000; } }\n"
         )
         result = self.build()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn('name="theme-color" content="#101010"', (self.root / "dist/index.html").read_text())
+        page = (self.root / "dist/index.html").read_text()
+        self.assertIn('content="#f0f0f0" media="(prefers-color-scheme: light)"', page)
+        self.assertIn('content="#202020" media="(prefers-color-scheme: dark)"', page)
         icon = (self.root / "dist/assets/mark.svg").read_text()
         for colour in ("#101010", "#f0f0f0", "#a00000"):
             self.assertIn(f'fill="{colour}"', icon)
+
+    def test_stale_output_is_removed_before_building(self):
+        stale = self.root / "dist/assets/fonts/retired-font.woff2"
+        stale.parent.mkdir(parents=True)
+        stale.write_text("retired")
+        result = self.build()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(stale.exists())
+        self.assertTrue((self.root / "dist/index.html").is_file())
 
     def test_unsafe_link_fails_before_producing_a_page(self):
         path = self.root / "tools/live-gantt.md"

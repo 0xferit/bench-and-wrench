@@ -73,7 +73,7 @@
   const REVEAL_STATES = ['rv-pending', 'rv-start', ...Object.keys(REVEAL_EFFECTS).map((effect) => `rv-${effect}`)];
 
   const clamp01 = (value) => Math.min(1, Math.max(0, value));
-  const token = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const token = (name, fallback = 'linear') => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 
   const scroller = { current: scrollY, target: scrollY, frame: 0, last: 0, anchor: null };
   const smoothScrolling = () => FINE_POINTER.matches && !REDUCED_MOTION.matches && !document.documentElement.classList.contains('is-loading');

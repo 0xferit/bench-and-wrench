@@ -604,8 +604,8 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
   .js .header-menu-btn { display: flex; }
   .header-menu { position: absolute; top: 100%; left: 0; flex-direction: column; height: auto; width: calc(100% + 1px); background-color: var(--paper); border-left: var(--border) solid var(--rule); border-right: var(--border) solid var(--rule); isolation: isolate; transition: clip-path 0.4s ease; }
   .header-menu::before { position: absolute; inset: 0; z-index: -1; background: var(--grain); opacity: var(--grain-opacity); content: ""; pointer-events: none; }
-  .js .header-menu { clip-path: inset(0 0 100%); pointer-events: none; }
-  .js .header-menu.active { clip-path: inset(0); pointer-events: auto; }
+  .js .header-menu { clip-path: inset(0 0 100%); pointer-events: none; visibility: hidden; transition: clip-path 0.4s ease, visibility 0s 0.4s; }
+  .js .header-menu.active { clip-path: inset(0); pointer-events: auto; visibility: visible; transition: clip-path 0.4s ease; }
   .header-menu-item { flex: 0 auto; width: 100%; height: auto; border-left: 0; border-bottom: var(--border) solid var(--rule); }
   .header-menu-item > .line-v { display: none; }
   .btn-fill-bg { display: none; }

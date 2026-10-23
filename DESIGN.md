@@ -154,7 +154,7 @@ A labelled example of a tool, framed as a window. Illustrations are examples, ne
 
 - Every text and ground pair above meets 4.5:1 in both palettes except the two accent pairs. The accent is Heron's exact vermilion, #fa3600. It measures 3.4:1 on paper and 3.8:1 under white text, which meets the 3:1 floor for graphics and large type but not 4.5:1 for small labels. The system keeps the exact value for fidelity, and the thresholds above say so. To meet 4.5:1 instead, darken `--brand` in one place and raise those two thresholds.
 - Keyboard focus uses the browser's own focus ring, as the reference does. No rule removes or restyles it, so every interactive element shows it.
-- Bracketed indices and ruler marks are hidden from assistive technology. Decorative drawings are hidden too and carry a caption that says what they show. The drawing's text labels are dropped on narrow screens, where they would shrink below legibility, and the caption stays.
+- Bracketed indices and ruler marks are hidden from assistive technology. Decorative drawings are hidden too; the meaning always lives in text beside them, never only in the drawing. The drawing's text labels are dropped on narrow screens, where they would shrink below legibility, and the caption stays.
 - The mobile menu is a button with `aria-expanded`. Without scripting the links stay visible.
 - The layout holds from a 390px phone to wide desktops with no horizontal scrolling.
 

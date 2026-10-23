@@ -216,6 +216,28 @@
     REDUCED_MOTION.addEventListener('change', startAutoplay);
   }
 
+  const toolInfos = [...document.querySelectorAll('.tool-row-info')];
+  if (toolInfos.length) {
+    const infoFor = (art) => toolInfos.find((info) => info.dataset.tool === art.dataset.tool);
+    const centreInfos = () => {
+      for (const info of toolInfos) info.style.top = `${Math.max(0, (innerHeight - info.getBoundingClientRect().height) / 2)}px`;
+    };
+    const infoResizes = new ResizeObserver(centreInfos);
+    for (const info of toolInfos) infoResizes.observe(info);
+    window.addEventListener('resize', centreInfos);
+    const activate = (active) => { for (const info of toolInfos) info.classList.toggle('active', info === active); };
+    const midline = new IntersectionObserver((entries) => {
+      for (const entry of entries) if (entry.isIntersecting) activate(infoFor(entry.target));
+    }, { rootMargin: '-50% 0px -50% 0px' });
+    for (const art of document.querySelectorAll('.tool-row-art')) {
+      midline.observe(art);
+      const info = infoFor(art);
+      info.addEventListener('focusin', () => {
+        if (DESKTOP.matches && !info.classList.contains('active')) art.scrollIntoView();
+      });
+    }
+  }
+
   const frame = document.querySelector('.home-hero-img');
   const crosshair = frame && frame.querySelector('.crosshair');
   const drawing = frame && frame.querySelector('.drawing');

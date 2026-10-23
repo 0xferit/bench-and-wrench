@@ -48,6 +48,15 @@ class WebsiteBuildTests(unittest.TestCase):
         self.assertNotIn("{{", page)
         self.assertTrue((self.root / "dist/assets/mark.svg").is_file())
 
+    def test_every_fragment_link_on_the_home_page_has_a_target(self):
+        result = self.build()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        page = (self.root / "dist/index.html").read_text()
+        targets = set(re.findall(r'\bid="([^"]+)"', page))
+        fragments = set(re.findall(r'href="#([^"]+)"', page))
+        self.assertIn("linear-work-tree", fragments)
+        self.assertEqual(fragments - targets, set())
+
     def test_raw_markup_is_rendered_as_text(self):
         path = self.root / "tools/live-gantt.md"
         path.write_text(path.read_text().replace(

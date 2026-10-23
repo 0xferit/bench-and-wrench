@@ -147,18 +147,21 @@ def _tool_exhibit(root, path, position):
         remaining = blocks[1:] if heading in ("Why it earns a place", "Limits to understand") else blocks
         if remaining:
             notes.append(f'<section class="faq-section"><h4>{html.escape(heading)}</h4>{_render(remaining)}</section>')
-    return title, slug, relation, f'''
-<article class="tool" id="{slug}">
-  <div class="tool-row row">
-    <div class="tool-row-left"><span class="txt-mono txt-14 disabled" aria-hidden="true">[{position:02d}]</span><div><span class="relationship relationship-{html.escape(relation.lower())}">{html.escape(relation)}</span><h3 class="tool-row-title heading h4 tb-h6 mb-h4">{html.escape(title)}</h3></div></div>
-    <div class="tool-row-art"><div class="ruler" aria-hidden="true"><i class="ruler-edge ruler-top"></i><i class="ruler-edge ruler-bottom"></i><i class="ruler-edge ruler-left"></i><i class="ruler-edge ruler-right"></i><i class="plus top left"></i><i class="plus top right"></i><i class="plus bot left"></i><i class="plus bot right"></i></div>{illustration}</div>
-    <div class="tool-row-right">
+    info_state = " active" if position == 1 else ""
+    row = f'''
+<article class="tool" style="--i: {position}">
+  <div class="tool-row-info{info_state}" data-tool="{slug}">
+    <div class="tool-row-left"><i class="line line-h line-top line-solid"></i><span class="txt-mono txt-14 disabled" aria-hidden="true">[{position:02d}]</span><div><span class="relationship relationship-{html.escape(relation.lower())}">{html.escape(relation)}</span><h3 class="tool-row-title heading h4 tb-h6 mb-h4">{html.escape(title)}</h3></div><i class="line line-h line-bottom line-solid"></i></div>
+    <div class="tool-row-right"><i class="line line-h line-top line-solid"></i>
       <div class="tool-row-sub"><div class="tool-intro">{intro}</div><dl class="tool-facts"><div><dt class="txt-mono txt-12">Why it earns a place</dt><dd>{_inline(reason)}</dd></div><div><dt class="txt-mono txt-12">Keep in mind</dt><dd>{_inline(caveat)}</dd></div></dl></div>
       <a class="tool-row-btn btn-fill btn-fill-ghost" href="{html.escape(primary[1], quote=True)}"><i class="line line-h line-top line-solid"></i><span class="btn-fill-bg" aria-hidden="true"></span>{_swap_label(action)}<span class="btn-fill-icon"><span class="slide">{ARROW_ICON}{ARROW_ICON}</span></span></a>
-    </div>
+    <i class="line line-h line-bottom line-solid"></i></div>
   </div>
-  <details class="faq-item" id="notes-{slug}"><summary><span class="faq-title heading h6 tb-h20 mb-h18">Field notes</span><span class="txt-mono txt-12 granite">Fit, limits, and sources</span><span class="faq-ic" aria-hidden="true"></span></summary><div class="faq-body"><div class="faq-grid">{''.join(notes)}</div></div></details>
+  <div class="tool-row-art" id="{slug}" data-tool="{slug}"><i class="line line-h line-top line-solid"></i><i class="line line-v line-left line-solid"></i><i class="line line-v line-right line-solid"></i><i class="line line-h line-bottom line-dash"></i>{illustration}</div>
 </article>'''
+    field_notes = f'''
+<details class="faq-item" id="notes-{slug}"><summary><span class="faq-title heading h6 tb-h20 mb-h18">Field notes</span><span class="txt-mono txt-12 granite">Fit, limits, and sources</span><span class="faq-ic" aria-hidden="true"></span></summary><div class="faq-body"><div class="faq-grid">{''.join(notes)}</div></div></details>'''
+    return title, slug, relation, row, field_notes
 
 
 def _markdown_text(blocks):
@@ -346,7 +349,7 @@ def _strip_item(name, slug, relation):
 
 
 def _footer_tool_links(exhibits, home):
-    return "".join(f'<a class="footer-link txt-16 mb-txt-14" href="{home}#{slug}">{html.escape(name)}</a>' for name, slug, _, _ in exhibits)
+    return "".join(f'<a class="footer-link txt-16 mb-txt-14" href="{home}#{slug}">{html.escape(name)}</a>' for name, slug, _, _, _ in exhibits)
 
 
 def _build(root):
@@ -374,9 +377,11 @@ def _build(root):
         "intro": _inline(intro_paragraphs[1]),
         "statement_drawing": STATEMENT_DRAWING,
         "hero_drawing": (root / "site/illustrations/hero-spanner.svg").read_text(),
-        "exhibits": "\n".join(exhibit for _, _, _, exhibit in exhibits),
-        "tool_work_items": "".join(f'<span class="home-hero-work-item txt-mono txt-14">{WORK_ICON}{html.escape(name)}</span>' for name, _, _, _ in exhibits),
-        "tool_strip_items": "".join(_strip_item(name, slug, relation) for name, slug, relation, _ in exhibits),
+        "exhibits": "\n".join(row for _, _, _, row, _ in exhibits),
+        "field_notes": "\n".join(notes for _, _, _, _, notes in exhibits),
+        "tool_total": str(len(exhibits)),
+        "tool_work_items": "".join(f'<span class="home-hero-work-item txt-mono txt-14">{WORK_ICON}{html.escape(name)}</span>' for name, _, _, _, _ in exhibits),
+        "tool_strip_items": "".join(_strip_item(name, slug, relation) for name, slug, relation, _, _ in exhibits),
         "criteria": _render(sections["What belongs here"][:1]),
         "legend_cells": _relationship_cells(sections),
     }

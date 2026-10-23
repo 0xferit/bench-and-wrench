@@ -785,17 +785,40 @@
     }
     const [wallLayer, ...detailLayers] = planCanvas.querySelectorAll('.bench-plan-layer');
     const walls = [...planCanvas.querySelectorAll('.bench-plan-wall')];
-    const showLayer = (layer) => (share) => layer.style.setProperty('--layer-share', share.toFixed(4));
+    const begun = new Set();
+    const showLayer = (layer) => (share, index, linear) => {
+      layer.style.setProperty('--layer-share', share.toFixed(4));
+      if (linear > 0) begun.add(layer);
+      else begun.delete(layer);
+    };
     if (wallLayer && walls.length) {
       sequence
         .add(showLayer(wallLayer), PLAN_WALLS_IN)
         .add((share, index) => walls[index].style.setProperty('--wall', share.toFixed(4)), { ...PLAN_WALL_PIECES, count: walls.length });
       for (const layer of detailLayers) sequence.add(showLayer(layer));
     }
+    const captionBox = plan.querySelector('.caption-box');
+    const captionList = captionBox && captionBox.querySelector('.caption-box-list');
+    const captions = captionList ? [...captionList.querySelectorAll('.caption-box-item')] : [];
+    const captionHeights = new Map();
+    const showCaption = () => {
+      if (!captions.length) return;
+      const latestLayer = detailLayers.findLastIndex((layer) => begun.has(layer));
+      const step = Math.min(Math.max(latestLayer, 0), captions.length - 1);
+      captionBox.classList.toggle('is-active', begun.has(wallLayer));
+      captions.forEach((caption, index) => caption.classList.toggle('is-active', index === step));
+      if (captionHeights.has(captions[step])) captionList.style.setProperty('--caption-height', `${captionHeights.get(captions[step])}px`);
+    };
+    const captionSizes = new ResizeObserver((entries) => {
+      for (const { target, borderBoxSize: [size] } of entries) captionHeights.set(target, size.blockSize);
+      showCaption();
+    });
+    for (const caption of captions) captionSizes.observe(caption);
     scene(plan, {
       ...PLAN_SCRUB,
       onProgress: (progress) => {
         sequence.progress(progress);
+        showCaption();
         plan.classList.toggle('is-started', progress > 0);
         plan.classList.toggle('expanded', progress === 1);
       },

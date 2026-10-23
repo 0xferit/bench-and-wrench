@@ -354,7 +354,7 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
 
 .bench-plan-stage { display: flex; }
 .bench-plan-sheet { position: relative; flex: 1; min-width: 0; overflow: hidden; }
-.bench-plan-sheet-inner { position: relative; display: flex; justify-content: center; height: 100%; padding: 2rem 0; }
+.bench-plan-sheet-inner { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 2rem 0; }
 .bench-plan-canvas { display: grid; grid-template-columns: minmax(1px, 1fr); align-content: center; row-gap: 3.2rem; width: 100%; padding: 6.4rem 3.2rem; }
 .bench-plan-heading { display: flex; align-items: center; justify-content: center; color: var(--ink); text-align: center; }
 .bench-plan-figure { justify-self: center; width: 100%; max-width: 88rem; }
@@ -371,6 +371,14 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
 .bench-plan-drawing text { fill: var(--granite); stroke: none; font-family: var(--font-mono); font-size: 11px; font-weight: 500; text-transform: uppercase; }
 .bench-plan-limits rect { fill: var(--brand); stroke: none; }
 .bench-plan-drawing .bench-plan-limits text { fill: var(--on-brand); font-size: 13px; }
+.caption-box { position: relative; width: 28rem; max-width: 100%; border: var(--border) solid var(--rule); }
+.caption-box-head { padding: 0.8rem 0.8rem 0.8rem 1.2rem; color: var(--on-ink); background: var(--ink); }
+.caption-box-list { padding: 0; list-style: none; }
+.caption-box-item { padding: 1.2rem; }
+.caption-box-cue { display: block; margin-top: 1.6rem; color: var(--disabled); }
+.caption-box-prompt { display: block; color: var(--granite); }
+.caption-box-scroll { display: none; }
+.bench-plan .caption-box { margin-bottom: 3.2rem; }
 @media screen and (prefers-reduced-motion: no-preference) {
   .js .bench-plan-track { height: 700dvh; }
   .js .bench-plan-stage { position: sticky; top: var(--frame); height: var(--sheet-height); }
@@ -397,6 +405,12 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
   .js .bench-plan-wall:nth-child(11) { --wall-from-x: 42rem; --wall-from-y: 100dvh; }
   .js .bench-plan-wall:nth-child(12) { --wall-from-x: 100vw; --wall-from-y: 26rem; }
   .js .bench-plan-wall:nth-child(13) { --wall-from-x: -70rem; --wall-from-y: -100dvh; }
+  .js .bench-plan .caption-box { position: absolute; bottom: 3.2rem; left: 3.2rem; margin: 0; opacity: 0; transition: opacity 0.4s; }
+  .js .bench-plan .caption-box.is-active { opacity: 1; box-shadow: 0 0.8rem 0 -0.2rem var(--ink); }
+  .js .bench-plan .caption-box-list { display: grid; grid-template-columns: minmax(1px, 1fr); align-items: start; height: var(--caption-height, auto); overflow: hidden; transition: height 0.4s; }
+  .js .bench-plan .caption-box-item { grid-area: 1 / 1; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
+  .js .bench-plan .caption-box-item.is-active { opacity: 1; pointer-events: auto; }
+  .js .bench-plan .caption-box-scroll { display: block; }
 }
 @media screen and (prefers-reduced-motion: no-preference) and (max-width: 991px) {
   .js .bench-plan-track { height: auto; }

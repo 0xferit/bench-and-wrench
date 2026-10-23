@@ -49,6 +49,14 @@ BAND_INK_FILTER = (
     '<feComponentTransfer><feFuncA type="linear" slope="5" intercept="-2.15"/></feComponentTransfer></filter>'
 )
 BAND_BLOTS = '<circle class="band-blot" r="0" fill="#fff" filter="url(#band-ragged)"/><circle class="band-blot" r="0" opacity="0" fill="#fff" filter="url(#band-ragged)"/>'
+PLAN_CAPTIONS = (
+    "Development work hides in long message threads and flat issue lists, where progress and purpose are hard to read.",
+    "Most of the effort goes to piecing that picture back together, the same way, every time.",
+    "Each tool here puts one picture back in view: a plan as a timeline, an issue inside its project.",
+    "No tool fits every job. Each one is marked where it stops, so you know before you reach for it.",
+)
+PLAN_CAPTION_SCROLL = "[Scroll to continue]"
+PLAN_CAPTION_PROMPT = "[Select a limit]"
 DESIGN_SOURCE = "DESIGN.md"
 DESIGN_PAGE = "design-system.html"
 
@@ -373,6 +381,12 @@ def _strip_item(name, slug, relation):
     )
 
 
+def _plan_caption_items():
+    scroll = f'<span class="caption-box-cue caption-box-scroll txt-mono txt-12" aria-hidden="true">{html.escape(PLAN_CAPTION_SCROLL)}</span>'
+    steps = "".join(f'<li class="caption-box-item"><p class="txt-14">{html.escape(text)}</p>{scroll}</li>' for text in PLAN_CAPTIONS)
+    return f'{steps}<li class="caption-box-item"><span class="caption-box-prompt txt-mono txt-12">{html.escape(PLAN_CAPTION_PROMPT)}</span></li>'
+
+
 def _footer_tool_links(exhibits, home):
     return "".join(f'<a class="footer-link txt-16 mb-txt-14" href="{home}#{slug}">{html.escape(name)}</a>' for name, slug, _, _, _ in exhibits)
 
@@ -414,6 +428,7 @@ def _build(root):
         "ruler": RULER_FRAME,
         "wordmark": _wordmark(title),
         "hero_drawing": (root / "site/illustrations/hero-spanner.svg").read_text(),
+        "plan_captions": _plan_caption_items(),
         "plan_drawing": _fill((root / "site/illustrations/bench-plan.svg").read_text(), {"spanner_paths": SPANNER_PATHS}),
         "exhibits": "\n".join(row for _, _, _, row, _ in exhibits),
         "field_notes": "\n".join(notes for _, _, _, _, notes in exhibits),

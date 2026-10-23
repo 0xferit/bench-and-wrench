@@ -28,6 +28,84 @@
   const STRIP_STEP_DESKTOP = 3;
   const STRIP_STEP_NARROW = 1;
   const FAQ_SLIDE_MS = 400;
+  const FINE_POINTER = matchMedia('(pointer: fine)');
+  const SCROLL_LERP = 0.1;
+  const SCROLL_SETTLE_PX = 0.5;
+  const ANCHOR_SCROLL_MS = 1000;
+  const ANCHOR_EASE_RATE = 10;
+  const ANCHOR_EASE_CEILING = 1.001;
+  const LINE_HEIGHT_PX = 16;
+
+  const clamp01 = (value) => Math.min(1, Math.max(0, value));
+
+  const scroller = { current: scrollY, target: scrollY, frame: 0, last: 0, anchor: null };
+  const smoothScrolling = () => FINE_POINTER.matches && !REDUCED_MOTION.matches;
+  const maxScroll = () => document.documentElement.scrollHeight - innerHeight;
+  const clampScroll = (value) => Math.min(maxScroll(), Math.max(0, value));
+  const anchorEase = (time) => Math.min(1, ANCHOR_EASE_CEILING - 2 ** (-ANCHOR_EASE_RATE * time));
+  const scrollsWithin = (node, delta) => {
+    for (let element = node instanceof Element ? node : node.parentElement; element && element !== document.body; element = element.parentElement) {
+      if (!/auto|scroll/.test(getComputedStyle(element).overflowY) || element.scrollHeight <= element.clientHeight) continue;
+      if (delta < 0 ? element.scrollTop > 0 : element.scrollTop + element.clientHeight < element.scrollHeight - 1) return true;
+    }
+    return false;
+  };
+  const landAnchor = ({ target, hash }) => {
+    history.pushState(null, '', hash);
+    if (target === document.body) return;
+    if (!target.hasAttribute('tabindex') && target.tabIndex < 0) target.setAttribute('tabindex', '-1');
+    target.focus({ preventScroll: true });
+  };
+  const glide = (time) => {
+    const elapsed = scroller.last ? time - scroller.last : FRAME_MS;
+    scroller.last = time;
+    const { anchor } = scroller;
+    let settled;
+    if (anchor) {
+      anchor.start ??= time;
+      const share = clamp01((time - anchor.start) / ANCHOR_SCROLL_MS);
+      scroller.current = anchor.from + (scroller.target - anchor.from) * anchorEase(share);
+      settled = share === 1;
+    } else {
+      scroller.current += (scroller.target - scroller.current) * (1 - (1 - SCROLL_LERP) ** (elapsed / FRAME_MS));
+      settled = Math.abs(scroller.target - scroller.current) < SCROLL_SETTLE_PX;
+    }
+    if (settled) scroller.current = scroller.target;
+    scrollTo(0, scroller.current);
+    scroller.frame = settled ? 0 : requestAnimationFrame(glide);
+    if (settled && anchor) {
+      scroller.anchor = null;
+      landAnchor(anchor);
+    }
+  };
+  const startGlide = () => {
+    if (scroller.frame) return;
+    scroller.last = 0;
+    scroller.frame = requestAnimationFrame(glide);
+  };
+  window.addEventListener('scroll', () => { if (!scroller.frame) scroller.current = scroller.target = scrollY; }, { passive: true });
+  window.addEventListener('wheel', (event) => {
+    if (!smoothScrolling() || event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY) || scrollsWithin(event.target, event.deltaY)) return;
+    event.preventDefault();
+    const unit = { [WheelEvent.DOM_DELTA_LINE]: LINE_HEIGHT_PX, [WheelEvent.DOM_DELTA_PAGE]: innerHeight }[event.deltaMode] || 1;
+    if (!scroller.frame) scroller.current = scroller.target = scrollY;
+    scroller.anchor = null;
+    scroller.target = clampScroll(scroller.target + event.deltaY * unit);
+    startGlide();
+  }, { passive: false });
+  document.addEventListener('click', (event) => {
+    const link = event.target.closest('a[href*="#"]');
+    if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !smoothScrolling()) return;
+    if (link.origin !== location.origin || link.pathname !== location.pathname || link.search !== location.search || link.hash.length < 2) return;
+    const target = document.getElementById(decodeURIComponent(link.hash.slice(1)));
+    if (!target) return;
+    event.preventDefault();
+    const margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+    scroller.current = scrollY;
+    scroller.target = clampScroll(target.getBoundingClientRect().top + scrollY - margin);
+    scroller.anchor = { target, hash: link.hash, from: scrollY };
+    startGlide();
+  });
 
   const progress = document.querySelector('.demo-progress-value');
   const progressBar = document.querySelector('.mini-progress span');
@@ -65,8 +143,6 @@
     marqueeResizes.observe(marquee);
     marqueeResizes.observe(marqueeCopy);
   }
-
-  const clamp01 = (value) => Math.min(1, Math.max(0, value));
 
   const statementTitle = document.querySelector('.statement-title');
   if (statementTitle && !REDUCED_MOTION.matches) {

@@ -118,6 +118,7 @@ A labelled example of a tool, framed as a window. Illustrations are examples, ne
 ## Motion
 
 - The hero drawing's measuring line sweeps its length once on load, then rests at the jaw tip. That is the page's one orchestrated moment.
+- Over the hero drawing a crosshair follows the pointer and reads its position in millimetres from the part's origin. The drawing carries its own origin and scale as data, so the reading cannot drift from the art.
 - Header cells fill with ink from below on hover, the label swaps upward and a corner mark travels from the bottom right to the top right.
 - Buttons dissolve to ink in 580ms over 20 steps. Cell buttons fill from below in 500ms with an ease-out curve.
 - Under `prefers-reduced-motion`, the sweep does not run, the line rests at its end position, and hover transitions are instant.

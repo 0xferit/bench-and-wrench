@@ -17,6 +17,28 @@
     });
   }
 
+  const frame = document.querySelector('.home-hero-img');
+  const crosshair = frame && frame.querySelector('.crosshair');
+  const drawing = frame && frame.querySelector('.drawing');
+  if (crosshair && drawing) {
+    const [originX, originY] = drawing.dataset.origin.split(' ').map(Number);
+    const unitsPerMm = Number(drawing.dataset.unitsPerMm);
+    const coordinates = crosshair.querySelector('.crosshair-coord');
+    const hide = () => crosshair.classList.remove('active');
+    frame.addEventListener('pointermove', (event) => {
+      if (event.pointerType !== 'mouse') return;
+      const bounds = frame.getBoundingClientRect();
+      crosshair.style.setProperty('--cross-x', `${event.clientX - bounds.left}px`);
+      crosshair.style.setProperty('--cross-y', `${event.clientY - bounds.top}px`);
+      const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(drawing.getScreenCTM().inverse());
+      const x = (point.x - originX) / unitsPerMm;
+      const y = (originY - point.y) / unitsPerMm;
+      coordinates.textContent = `X: ${x.toFixed(1)} MM  Y: ${y.toFixed(1)} MM`;
+      crosshair.classList.add('active');
+    });
+    frame.addEventListener('pointerleave', hide);
+  }
+
   const header = document.querySelector('[data-header]');
   const menuButton = document.querySelector('.header-menu-btn');
   const menu = document.querySelector('#menu');

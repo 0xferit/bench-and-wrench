@@ -1,4 +1,4 @@
-<svg class="drawing" viewBox="0 0 1280 460" role="img" aria-labelledby="drawing-title" focusable="false">
+<svg class="drawing" viewBox="0 0 1280 460" data-origin="132 200" data-units-per-mm="6.15" role="img" aria-labelledby="drawing-title" focusable="false">
   <title id="drawing-title">Orthographic drawing of a 13 millimetre combination spanner, 155 millimetres long, above a millimetre scale</title>
   <g class="centre-lines"><path d="M70,200 H1130 M230,60 V340 M1002.5,60 V340"/></g>
   <g class="part">

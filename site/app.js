@@ -53,6 +53,24 @@
   const CURSOR_SETTLE_PX = 0.1;
   const TRAIL_MS = 400;
   const TRAIL_ALPHA = 0.9;
+  const BAND_UNITS = 1000;
+  const BLOT_RADIUS_SHARE = 0.45;
+  const BLOT_FOLLOW = 0.09;
+  const BLOT_PULSE_FOLLOW = 0.15;
+  const BLOT_PULSE_RADIUS = 1.05;
+  const BLOT_PULSE_OPACITY = 0.2;
+  const BLOT_GROW_MS = 550;
+  const BLOT_PULSE_GROW_MS = 450;
+  const BLOT_SHRINK_MS = 800;
+  const BLOT_PULSE_SHRINK_MS = 1000;
+  const BLOT_SETTLE_UNITS = 0.1;
+  const INK_DISPLACEMENT_SHARE = 0.7;
+  const INK_DISPLACEMENT_MAX_UNITS = 150;
+  const INK_FREQUENCY_UNITS = [0.028, 0.04];
+  const INK_BLUR_UNITS = 0.55;
+  const BAND_TICK_SHARE = 0.1;
+  const ROUND_LETTER = /[CDGOQS]/;
+  const BAND_LETTER = /\p{L}/u;
   const easeOutCubic = (share) => 1 - (1 - share) ** 3;
   const easeOutQuart = (share) => 1 - (1 - share) ** 4;
   const REVEAL_TRIGGERS = [
@@ -798,20 +816,115 @@
   }
 
   const band = document.querySelector('[data-band]');
-  const bandSolid = band && band.querySelector('.band-solid');
-  const blot = bandSolid && bandSolid.querySelector('.band-blot');
-  if (blot) {
-    const rest = { cx: blot.getAttribute('cx'), cy: blot.getAttribute('cy') };
-    const moveBlot = (cx, cy) => {
-      blot.setAttribute('cx', cx);
-      blot.setAttribute('cy', cy);
+  if (band) {
+    const sketch = band.querySelector('.band-sketch');
+    const solid = band.querySelector('.band-solid');
+    const drawMarks = () => {
+      if (!sketch.getBoundingClientRect().width) return;
+      const lines = sketch.querySelector('.band-lines');
+      const cap = new DOMMatrix(getComputedStyle(lines).transform).f;
+      const tick = cap * BAND_TICK_SHARE;
+      const context = document.createElement('canvas').getContext('2d');
+      const path = [];
+      for (const text of lines.querySelectorAll('text')) {
+        const style = getComputedStyle(text);
+        context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+        [...text.textContent].forEach((letter, index) => {
+          if (!BAND_LETTER.test(letter)) return;
+          const start = text.getStartPositionOfChar(index);
+          const glyph = context.measureText(letter);
+          const scale = (text.getEndPositionOfChar(index).x - start.x) / glyph.width;
+          const left = start.x - glyph.actualBoundingBoxLeft * scale;
+          const right = start.x + glyph.actualBoundingBoxRight * scale;
+          for (const x of [left, right]) {
+            for (const y of [start.y - cap, start.y]) path.push(`M${x} ${y - tick}V${y + tick}`);
+          }
+          if (ROUND_LETTER.test(letter)) {
+            const centre = { x: (left + right) / 2, y: start.y - cap / 2 };
+            path.push(`M${centre.x - tick} ${centre.y}H${centre.x + tick}M${centre.x} ${centre.y - tick}V${centre.y + tick}`);
+          }
+        });
+      }
+      lines.querySelector('.band-marks').setAttribute('d', path.join(''));
     };
-    band.addEventListener('pointermove', (event) => {
+    document.fonts.ready.then(() => new ResizeObserver(drawMarks).observe(sketch));
+
+    const [turbulence, displacement, blur] = solid.querySelectorAll('feTurbulence, feDisplacementMap, feGaussianBlur');
+    const blots = [...solid.querySelectorAll('.band-blot')].map((element, index) => ({
+      element,
+      follow: index ? BLOT_PULSE_FOLLOW : BLOT_FOLLOW,
+      grow: index ? { radius: BLOT_PULSE_RADIUS, opacity: BLOT_PULSE_OPACITY, ms: BLOT_PULSE_GROW_MS } : { radius: 1, opacity: 1, ms: BLOT_GROW_MS },
+      shrink: index ? { opacity: 0, ms: BLOT_PULSE_SHRINK_MS } : { opacity: 1, ms: BLOT_SHRINK_MS },
+      x: 0, y: 0, radius: 0, opacity: Number(element.getAttribute('opacity') ?? 1), tween: null,
+    }));
+    const ink = { entered: false, frame: 0, unit: 1, radius: 0, target: { x: 0, y: 0 } };
+    const measureInk = () => {
+      const { width, height } = band.getBoundingClientRect();
+      ink.unit = width / BAND_UNITS;
+      const radiusUnits = BLOT_RADIUS_SHARE * Math.min(BAND_UNITS, (height / width) * BAND_UNITS);
+      ink.radius = radiusUnits * ink.unit;
+      turbulence.setAttribute('baseFrequency', INK_FREQUENCY_UNITS.map((frequency) => frequency / ink.unit).join(' '));
+      displacement.setAttribute('scale', Math.min(INK_DISPLACEMENT_MAX_UNITS, radiusUnits * INK_DISPLACEMENT_SHARE) * ink.unit);
+      blur.setAttribute('stdDeviation', INK_BLUR_UNITS * ink.unit);
+    };
+    const aimInk = (event) => {
+      const area = band.getBoundingClientRect();
+      const origin = solid.getBoundingClientRect();
+      ink.target.x = Math.min(Math.max(event.clientX, area.left), area.right) - origin.left;
+      ink.target.y = Math.min(Math.max(event.clientY, area.top), area.bottom) - origin.top;
+    };
+    const tweenBlot = (blot, radius, opacity, ms, time) => {
+      blot.tween = { from: { radius: blot.radius, opacity: blot.opacity }, to: { radius, opacity }, start: time, ms: REDUCED_MOTION.matches ? 0 : ms };
+    };
+    const renderInk = (time) => {
+      ink.frame = 0;
+      let moving = false;
+      for (const blot of blots) {
+        if (blot.tween) {
+          const share = blot.tween.ms ? Math.min(1, (time - blot.tween.start) / blot.tween.ms) : 1;
+          blot.radius = blot.tween.from.radius + (blot.tween.to.radius - blot.tween.from.radius) * share;
+          blot.opacity = blot.tween.from.opacity + (blot.tween.to.opacity - blot.tween.from.opacity) * share;
+          blot.tween = share < 1 ? blot.tween : null;
+        }
+        if (ink.entered) {
+          const follow = REDUCED_MOTION.matches ? 1 : blot.follow;
+          blot.x += (ink.target.x - blot.x) * follow;
+          blot.y += (ink.target.y - blot.y) * follow;
+        }
+        const settle = BLOT_SETTLE_UNITS * ink.unit;
+        moving = moving || Boolean(blot.tween) || (ink.entered && (Math.abs(ink.target.x - blot.x) > settle || Math.abs(ink.target.y - blot.y) > settle));
+        blot.element.setAttribute('cx', blot.x);
+        blot.element.setAttribute('cy', blot.y);
+        blot.element.setAttribute('r', Math.max(0, blot.radius));
+        blot.element.setAttribute('opacity', blot.opacity);
+      }
+      if (moving) ink.frame = requestAnimationFrame(renderInk);
+    };
+    const requestInk = () => {
+      if (!ink.frame) ink.frame = requestAnimationFrame(renderInk);
+    };
+    band.addEventListener('pointerenter', (event) => {
       if (event.pointerType !== 'mouse' || !DESKTOP.matches) return;
-      const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(bandSolid.getScreenCTM().inverse());
-      moveBlot(point.x, point.y);
+      measureInk();
+      aimInk(event);
+      ink.entered = true;
+      for (const blot of blots) {
+        Object.assign(blot, ink.target);
+        tweenBlot(blot, ink.radius * blot.grow.radius, blot.grow.opacity, blot.grow.ms, document.timeline.currentTime);
+      }
+      requestInk();
     });
-    band.addEventListener('pointerleave', () => moveBlot(rest.cx, rest.cy));
+    band.addEventListener('pointermove', (event) => {
+      if (!ink.entered) return;
+      aimInk(event);
+      requestInk();
+    });
+    band.addEventListener('pointerleave', () => {
+      if (!ink.entered) return;
+      ink.entered = false;
+      for (const blot of blots) tweenBlot(blot, 0, blot.shrink.opacity, blot.shrink.ms, document.timeline.currentTime);
+      requestInk();
+    });
   }
 
   const sizeFill = (button) => {

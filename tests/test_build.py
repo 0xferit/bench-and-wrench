@@ -179,6 +179,17 @@ class WebsiteBuildTests(unittest.TestCase):
                 for name in attribute.split():
                     self.assertIn(f".{name}", styles, f"{specimen.name} uses .{name}, which style.css does not define")
 
+    def test_wordmark_lines_share_one_size_and_the_fonts_own_spacing(self):
+        readme = self.root / "README.md"
+        title = readme.read_text().splitlines()[0]
+        readme.write_text(readme.read_text().replace(title, "# Wide Narrowest Ok", 1))
+        result = self.build()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        band = re.search(r'<svg class="band-sketch".*?</svg>', (self.root / "dist/index.html").read_text()).group(0)
+        lines = re.findall(r"<text ([^>]*)>([^<]*)</text>", band)
+        self.assertEqual([text for _, text in lines], ["WIDE", "NARROWEST OK"])
+        self.assertEqual({re.sub(r' y="[^"]*"', "", attributes) for attributes, _ in lines}, {'x="50%" text-anchor="middle"'})
+
     def test_unsafe_link_fails_before_producing_a_page(self):
         path = self.root / "tools/live-gantt.md"
         path.write_text(path.read_text().replace(

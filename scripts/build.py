@@ -42,15 +42,13 @@ RULER_FRAME = (
     '<div class="ruler" aria-hidden="true"><i class="ruler-edge ruler-top"></i><i class="ruler-edge ruler-bottom"></i><i class="ruler-edge ruler-left"></i>'
     '<i class="ruler-edge ruler-right"></i><i class="plus top left"></i><i class="plus top right"></i><i class="plus bot left"></i><i class="plus bot right"></i></div>'
 )
-WORDMARK_WIDTH = 1000
-WORDMARK_HEIGHT = 220
-WORDMARK_TEXT_LENGTH = 940
-WORDMARK_FONT_SIZE = 100
-WORDMARK_CAP_HEIGHT = 70
-WORDMARK_LINE_GAP = 40
-WORDMARK_TICK = 12
-BLOT_RADIUS = 150
-BLOT_REST = -400
+BAND_GUIDES = "".join(f'<rect class="band-guide band-guide-{edge}"/>' for edge in ("cap", "base", "cap-next", "base-next"))
+BAND_INK_FILTER = (
+    '<filter id="band-ragged" x="-25%" y="-25%" width="150%" height="150%"><feTurbulence type="fractalNoise" numOctaves="3" seed="5" result="noise"/>'
+    '<feDisplacementMap in="SourceGraphic" in2="noise" xChannelSelector="R" yChannelSelector="G"/><feGaussianBlur/>'
+    '<feComponentTransfer><feFuncA type="linear" slope="5" intercept="-2.15"/></feComponentTransfer></filter>'
+)
+BAND_BLOTS = '<circle class="band-blot" r="0" fill="#fff" filter="url(#band-ragged)"/><circle class="band-blot" r="0" opacity="0" fill="#fff" filter="url(#band-ragged)"/>'
 DESIGN_SOURCE = "DESIGN.md"
 DESIGN_PAGE = "design-system.html"
 
@@ -358,23 +356,13 @@ def _balanced_lines(title):
 
 
 def _wordmark(title):
-    lines = _balanced_lines(title)
-    block = len(lines) * WORDMARK_CAP_HEIGHT + (len(lines) - 1) * WORDMARK_LINE_GAP
-    first_baseline = (WORDMARK_HEIGHT - block) / 2 + WORDMARK_CAP_HEIGHT
-    text = "".join(
-        f'<text x="{WORDMARK_WIDTH / 2:g}" y="{first_baseline + index * (WORDMARK_CAP_HEIGHT + WORDMARK_LINE_GAP):g}" font-size="{WORDMARK_FONT_SIZE}" '
-        f'text-anchor="middle" textLength="{WORDMARK_TEXT_LENGTH}" lengthAdjust="spacing">{html.escape(line)}</text>'
-        for index, line in enumerate(lines)
+    lines = "".join(
+        f'<text x="50%" y="{index}em" text-anchor="middle">{html.escape(line)}</text>' for index, line in enumerate(_balanced_lines(title))
     )
-    width, height, tick = WORDMARK_WIDTH, WORDMARK_HEIGHT, WORDMARK_TICK
-    marks = (
-        f'<path d="M0 {tick}V0H{tick}M{width - tick} 0H{width}V{tick}M{width} {height - tick}V{height}H{width - tick}M{tick} {height}H0V{height - tick}'
-        f'M{width / 2 - tick:g} {height / 2:g}h{2 * tick}M{width / 2:g} {height / 2 - tick:g}v{2 * tick}"/>'
-    )
-    frame = f'viewBox="0 0 {width} {height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"'
     return (
-        f'<svg class="band-sketch" {frame}>{text}{marks}</svg>'
-        f'<svg class="band-solid" {frame}><defs><mask id="band-ink"><circle class="band-blot" r="{BLOT_RADIUS}" cx="{BLOT_REST}" cy="{BLOT_REST}" fill="#fff" filter="url(#ink-ragged)"/></mask></defs>{text}</svg>'
+        f'<svg class="band-sketch" aria-hidden="true">{BAND_GUIDES}<g class="band-lines"><path class="band-marks"/>{lines}</g></svg>'
+        f'<svg class="band-solid" aria-hidden="true"><defs>{BAND_INK_FILTER}<mask id="band-ink" maskUnits="userSpaceOnUse">{BAND_BLOTS}</mask></defs>'
+        f'<g class="band-ink"><g class="band-lines">{lines}</g></g></svg>'
     )
 
 

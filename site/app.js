@@ -11,6 +11,10 @@
   const FILL_BLEED_PX = 2;
   const FILL_STATES = ['is-active', 'is-filling', 'is-entered', 'is-exiting', 'is-resetting'];
   const MARQUEE_PX_PER_SECOND = 40;
+  const CROSSHAIR_FOLLOW = 0.3;
+  const FRAME_MS = 1000 / 60;
+  const CROSSHAIR_SETTLE_PX = 0.1;
+  const REDUCED_MOTION = matchMedia('(prefers-reduced-motion: reduce)');
 
   const progress = document.querySelector('.demo-progress-value');
   const progressBar = document.querySelector('.mini-progress span');
@@ -55,20 +59,47 @@
   if (crosshair && drawing) {
     const [originX, originY] = drawing.dataset.origin.split(' ').map(Number);
     const unitsPerMm = Number(drawing.dataset.unitsPerMm);
-    const coordinates = crosshair.querySelector('.crosshair-coord');
-    const hide = () => crosshair.classList.remove('active');
+    const readX = crosshair.querySelector('.crosshair-x');
+    const readY = crosshair.querySelector('.crosshair-y');
+    const target = { x: 0, y: 0 };
+    let position = null;
+    let lastFrame = 0;
+    let followFrame = 0;
+    const draw = () => {
+      crosshair.style.setProperty('--cross-x', `${position.x}px`);
+      crosshair.style.setProperty('--cross-y', `${position.y}px`);
+      const bounds = frame.getBoundingClientRect();
+      const point = new DOMPoint(bounds.left + position.x, bounds.top + position.y).matrixTransform(drawing.getScreenCTM().inverse());
+      readX.textContent = `X:${((point.x - originX) / unitsPerMm).toFixed(1)}MM`;
+      readY.textContent = `Y:${((originY - point.y) / unitsPerMm).toFixed(1)}MM`;
+    };
+    const follow = (time) => {
+      const elapsed = lastFrame ? time - lastFrame : FRAME_MS;
+      lastFrame = time;
+      const share = 1 - Math.pow(1 - CROSSHAIR_FOLLOW, elapsed / FRAME_MS);
+      position.x += (target.x - position.x) * share;
+      position.y += (target.y - position.y) * share;
+      const settled = Math.abs(target.x - position.x) < CROSSHAIR_SETTLE_PX && Math.abs(target.y - position.y) < CROSSHAIR_SETTLE_PX;
+      if (settled) Object.assign(position, target);
+      draw();
+      followFrame = settled ? 0 : requestAnimationFrame(follow);
+    };
     frame.addEventListener('pointermove', (event) => {
       if (event.pointerType !== 'mouse') return;
       const bounds = frame.getBoundingClientRect();
-      crosshair.style.setProperty('--cross-x', `${event.clientX - bounds.left}px`);
-      crosshair.style.setProperty('--cross-y', `${event.clientY - bounds.top}px`);
-      const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(drawing.getScreenCTM().inverse());
-      const x = (point.x - originX) / unitsPerMm;
-      const y = (originY - point.y) / unitsPerMm;
-      coordinates.textContent = `X: ${x.toFixed(1)} MM  Y: ${y.toFixed(1)} MM`;
+      target.x = event.clientX - bounds.left;
+      target.y = event.clientY - bounds.top;
+      if (!position) position = { x: bounds.width / 2, y: bounds.height / 2 };
       crosshair.classList.add('active');
+      if (REDUCED_MOTION.matches) {
+        Object.assign(position, target);
+        draw();
+      } else if (!followFrame) {
+        lastFrame = 0;
+        followFrame = requestAnimationFrame(follow);
+      }
     });
-    frame.addEventListener('pointerleave', hide);
+    frame.addEventListener('pointerleave', () => crosshair.classList.remove('active'));
   }
 
   const sizeFill = (button) => {

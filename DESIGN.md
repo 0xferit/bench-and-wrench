@@ -122,13 +122,13 @@ A labelled example of a tool, framed as a window. Illustrations are examples, ne
 ## Motion
 
 - The hero drawing's measuring line sweeps its length once on load, then rests at the jaw tip. That is the page's one orchestrated moment.
-- Over the hero drawing a crosshair follows the pointer and reads its position in millimetres from the part's origin. The drawing carries its own origin and scale as data, so the reading cannot drift from the art.
+- Over the hero drawing a crosshair follows the pointer, closing 30% of the remaining distance each 60Hz frame, and reads its position in millimetres from the part's origin on two lines below and left of the pointer. Its lines are `--crosshair` at 0.2 opacity, difference-blended so they read on paper in either theme, and it fades in and out over 250ms. The drawing carries its own origin and scale as data, so the reading cannot drift from the art.
 - The hero's row of tool names scrolls left as a marquee at 40px a second at every width. The script repeats the names until they cover the row and hides the repeats from assistive technology; without it the row stands still.
 - Once the page scrolls past the header, the wordmark slides under the mark on screens 768px and wider. Hovering the mark, or focusing the link, slides it back in 400ms.
 - Header links dissolve to ink on hover and the label swaps upward. The current page's link keeps its muted label, takes no pointer and carries a small ink square at its right edge.
 - Every button dissolves in as square pixels on a 24 by 6 grid: 20 steps over 580ms, while the label swaps upward and the arrow passes through in 480ms. On leave the label snaps back and, once the fill has finished, the resting colour dissolves back over it the same way.
 - Hover effects run only on hover-capable screens 992px and wider. Below that, a hover only darkens an outline button's rule and dims the accent button's label to `--muted`, and touch screens show no hover state at all.
-- Under `prefers-reduced-motion`, the sweep does not run, the line rests at its end position, the marquee stands still, and the header and label transitions are instant.
+- Under `prefers-reduced-motion`, the sweep does not run, the line rests at its end position, the marquee stands still, the crosshair snaps to the pointer, and the header and label transitions are instant.
 
 ## Accessibility
 

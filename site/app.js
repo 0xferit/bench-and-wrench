@@ -10,6 +10,7 @@
   const PIXEL_ROWS = 6;
   const FILL_BLEED_PX = 2;
   const FILL_STATES = ['is-active', 'is-filling', 'is-entered', 'is-exiting', 'is-resetting'];
+  const MARQUEE_PX_PER_SECOND = 40;
 
   const progress = document.querySelector('.demo-progress-value');
   const progressBar = document.querySelector('.mini-progress span');
@@ -24,6 +25,28 @@
       branches.hidden = expanded;
       toggle.querySelector('.tree-toggle-icon').textContent = expanded ? '+' : '−';
     });
+  }
+
+  const marquee = document.querySelector('.home-hero-work');
+  const marqueeCopy = marquee && marquee.querySelector('.home-hero-work-inner');
+  if (marqueeCopy) {
+    const fillMarquee = () => {
+      const copyWidth = marqueeCopy.offsetWidth;
+      if (!copyWidth) return;
+      const needed = Math.ceil(marquee.clientWidth / copyWidth) + 1;
+      const copies = marquee.querySelectorAll('.home-hero-work-inner');
+      for (let count = copies.length; count < needed; count += 1) {
+        const clone = marqueeCopy.cloneNode(true);
+        clone.setAttribute('aria-hidden', 'true');
+        clone.inert = true;
+        marquee.append(clone);
+      }
+      for (let index = copies.length - 1; index >= needed; index -= 1) copies[index].remove();
+      marquee.style.setProperty('--marquee-duration', `${Math.round(copyWidth / MARQUEE_PX_PER_SECOND)}s`);
+    };
+    const marqueeResizes = new ResizeObserver(fillMarquee);
+    marqueeResizes.observe(marquee);
+    marqueeResizes.observe(marqueeCopy);
   }
 
   const frame = document.querySelector('.home-hero-img');

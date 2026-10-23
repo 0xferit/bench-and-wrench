@@ -21,6 +21,7 @@ SPECIMEN_NAME = re.compile(r"[a-z][a-z0-9-]*")
 REPOSITORY_URL = "https://github.com/0xferit/bench-and-wrench"
 PROFILE_URL = "https://github.com/0xferit"
 ARROW_ICON = '<svg class="arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 10H16.25M11.85 5.6L16.25 10L11.85 14.4"/></svg>'
+WORK_ICON = '<svg class="home-hero-work-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2.5h6L14 8l-3 5.5H5L2 8Z"/><circle cx="8" cy="8" r="2.25"/></svg>'
 ARROW_SOLID_ICON = '<svg class="arrow-solid" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 9.13H14.14L11.23 6.22 12.47 4.98 17.49 10 12.47 15.02 11.23 13.78 14.14 10.88H2Z"/></svg>'
 SPANNER_GLYPH = (
     '<svg viewBox="0 0 204 100" aria-hidden="true"><circle cx="36" cy="50" r="26"/>'
@@ -361,7 +362,7 @@ def _build(root):
         "hero_drawing": (root / "site/illustrations/hero-spanner.svg").read_text(),
         "exhibits": "\n".join(exhibit for _, _, _, exhibit in exhibits),
         "tool_count": f"{len(exhibits):02d}",
-        "tool_work_items": "".join(f'<span class="home-hero-work-item txt-mono txt-14">{html.escape(name)}</span>' for name, _, _, _ in exhibits),
+        "tool_work_items": "".join(f'<span class="home-hero-work-item txt-mono txt-14">{WORK_ICON}{html.escape(name)}</span>' for name, _, _, _ in exhibits),
         "tool_strip_items": "".join(_strip_item(name, slug, relation) for name, slug, relation, _ in exhibits),
         "criteria": _render(sections["What belongs here"][:1]),
         "legend_cells": _relationship_cells(sections),

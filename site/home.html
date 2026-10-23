@@ -25,15 +25,22 @@
   </div>
 </section>
 <section class="statement" aria-labelledby="statement-title">
-  <div class="statement-content">
-    <h2 id="statement-title" class="statement-title heading h3 tb-h6 mb-h3">{{intro}}</h2>
-    <a class="statement-link btn-fill btn-fill-outline" href="#approach"><span class="btn-fill-bg" aria-hidden="true"></span><span class="btn-fill-label swap txt-mono txt-14"><span>Approach</span><span aria-hidden="true">Approach</span></span><span class="btn-fill-icon"><span class="slide">{{arrow}}{{arrow}}</span></span></a>
+  <div class="statement-media" aria-hidden="true">{{statement_drawing}}</div>
+  <div class="statement-body">
+    <i class="line line-v line-left line-solid"></i><i class="line line-h line-top line-solid"></i>
+    <div class="statement-content">
+      <h2 id="statement-title" class="statement-title heading h3 tb-h6 mb-h3">{{intro}}</h2>
+      <a class="statement-link btn-fill btn-fill-outline" href="#approach"><span class="btn-fill-bg" aria-hidden="true"></span><span class="btn-fill-label swap txt-mono txt-14"><span>Approach</span><span aria-hidden="true">Approach</span></span><span class="btn-fill-icon"><span class="slide">{{arrow}}{{arrow}}</span></span></a>
+    </div>
   </div>
-  <div class="statement-strip">
-    <div class="statement-strip-label"><span class="txt-mono txt-14 mb-txt-12">On the bench</span><span class="txt-mono txt-14 disabled" aria-hidden="true">[{{tool_count}}]</span></div>
-    {{tool_strip_items}}
+  <div class="statement-strip-wrap">
+    <i class="line line-v line-left line-solid"></i>
+    <div class="statement-strip">
+      <div class="statement-strip-label"><span class="txt-mono txt-14 mb-txt-12">On the bench</span><span class="txt-mono txt-14 disabled" aria-hidden="true">[{{tool_count}}]</span></div>
+      {{tool_strip_items}}
+    </div>
+    <p class="statement-desc txt-mono txt-12"><i class="line line-h line-top line-solid"></i>Each entry says what the tool solves, why it earns a place, and where it stops.</p>
   </div>
-  <p class="statement-desc txt-mono txt-12">Each entry says what the tool solves, why it earns a place, and where it stops.</p>
 </section>
 <section id="tools" aria-labelledby="tools-title">
   <div class="section-head">

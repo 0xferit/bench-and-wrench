@@ -359,6 +359,7 @@ def _build(root):
         "title": html.escape(title),
         "tagline": _inline(intro_paragraphs[0]),
         "intro": _inline(intro_paragraphs[1]),
+        "statement_drawing": SPANNER_GLYPH,
         "hero_drawing": (root / "site/illustrations/hero-spanner.svg").read_text(),
         "exhibits": "\n".join(exhibit for _, _, _, exhibit in exhibits),
         "tool_count": f"{len(exhibits):02d}",

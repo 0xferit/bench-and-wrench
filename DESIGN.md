@@ -76,7 +76,7 @@ Two families, self-hosted: Archivo and Geist Mono. The page makes no request to 
 
 Each specimen is the markup the site uses. Copy it, then change the content, not the classes.
 
-Every button is one `.btn-fill` component. The base is an accent block that fills with ink; `btn-fill-outline` adds a rule around a transparent cell, `btn-fill-ghost` is a bare cell (the header links and the tool row's link), and `btn-fill-accent` is an accent label that fills with the accent. Its `.btn-fill-bg` layer carries the dissolve, and the script sizes it to whole square pixels.
+Every button is one `.btn-fill` component. The base is an accent block that fills with ink; `btn-fill-outline` adds a rule around a transparent cell, `btn-fill-ghost` is a bare cell (the header links and the tool row's link), and `btn-fill-accent` is an accent label that fills with the accent. Its `.btn-fill-bg` layer carries the dissolve, and the script sizes it to square pixels that land on whole device pixels.
 
 ### Button
 
@@ -146,7 +146,7 @@ A labelled example of a tool, framed as a window. Illustrations are examples, ne
 - When the tools overflow the strip, it loops: every 3 seconds it steps three cells on screens 992px and wider and one cell below, over 600ms, and the controls step the same way. It pauses while the pointer or focus is inside it, and the script repeats the cells for the loop and hides the repeats from assistive technology. While every tool fits, the controls are disabled. The cells themselves have no hover state.
 - Once the page scrolls past the header, the wordmark slides under the mark on screens 768px and wider. Hovering the mark, or focusing the link, slides it back in 400ms.
 - Header links dissolve to ink on hover and the label swaps upward. The current page's link keeps its muted label, takes no pointer and carries a small ink square at its right edge. In the footer the current page's link is the accent, and footer links fade to the accent on hover.
-- Every button dissolves in as square pixels on a 24 by 6 grid: 20 steps over 580ms, while the label swaps upward and the arrow passes through in 480ms. On leave the label snaps back and, once the fill has finished, the resting colour dissolves back over it the same way.
+- Every button dissolves in as square pixels on a 24 by 6 grid: 20 steps over 580ms, timed from the frame the pointer arrives in, while the label swaps upward and the arrow passes through in 480ms. On leave the label snaps back and, once the fill has finished, the resting colour dissolves back over it the same way.
 - Hover effects run only on hover-capable screens 992px and wider. Below that, a hover only darkens an outline button's rule and dims the accent button's label to `--muted`, and touch screens show no hover state at all.
 - Under `prefers-reduced-motion`, the sweep does not run, the line rests at its end position, the marquee and the tool strip stand still, the statement and its drawing are inked from the start, the crosshair snaps to the pointer, the accent square does not follow it, field notes open without the slide, the home page opens without its drawing sheet, pages swap without the transition or the traced mark, wheel steps and same-page links jump, content shows without its scroll reveal, and approach drawings ink without redrawing. Small hover and state motion stays, as on the reference: the buttons' dissolve and label swap, the header's slide and the menu's clip.
 

@@ -817,14 +817,19 @@
   const sizeFill = (button) => {
     const bg = button.querySelector('.btn-fill-bg');
     const { width, height } = button.getBoundingClientRect();
-    const cell = Math.ceil(Math.max((width + FILL_BLEED_PX) / PIXEL_COLUMNS, (height + FILL_BLEED_PX) / PIXEL_ROWS));
+    const ratio = devicePixelRatio || 1;
+    const cell = Math.ceil(Math.max((width + FILL_BLEED_PX) / PIXEL_COLUMNS, (height + FILL_BLEED_PX) / PIXEL_ROWS) * ratio) / ratio;
     bg.style.width = `${cell * PIXEL_COLUMNS}px`;
     bg.style.height = `${cell * PIXEL_ROWS}px`;
   };
-  const dissolve = (bg) => bg.animate(
-    [{ maskPosition: '0% 0', webkitMaskPosition: '0% 0' }, { maskPosition: '100% 0', webkitMaskPosition: '100% 0' }],
-    { duration: FILL_DURATION_MS, easing: FILL_EASING },
-  );
+  const dissolve = (bg) => {
+    const animation = bg.animate(
+      [{ maskPosition: '0% 0', webkitMaskPosition: '0% 0' }, { maskPosition: '100% 0', webkitMaskPosition: '100% 0' }],
+      { duration: FILL_DURATION_MS, easing: FILL_EASING },
+    );
+    animation.startTime = document.timeline.currentTime;
+    return animation;
+  };
   const fillButtons = [...document.querySelectorAll('.btn-fill')].filter((button) => button.querySelector('.btn-fill-bg'));
   const fillResets = fillButtons.map((button) => {
     const bg = button.querySelector('.btn-fill-bg');

@@ -361,6 +361,9 @@ main > section + section, main + .footer { border-top: var(--border) solid var(-
 
 .cell-content { position: relative; }
 .cell-list { display: flex; }
+.cell-pagi { position: relative; display: none; gap: 0.4rem; padding: 2rem 0 2rem 1.2rem; }
+.cell-pagi span { width: 2rem; height: 0.2rem; background: var(--rule); transition: background-color 0.4s; }
+.cell-pagi span.active { background: var(--ink); }
 .cell-item { position: relative; display: flex; flex: 1; flex-direction: column; min-width: 0; }
 .cell-item:first-child > .line-v { display: none; }
 .cell-item-head { position: relative; display: flex; align-items: center; justify-content: space-between; padding: 1.6rem 3.2rem; color: var(--ink); }
@@ -658,12 +661,16 @@ main > section + section, main + .footer { border-top: var(--border) solid var(-
   .faq-item { padding: 2rem 1.6rem; }
   .faq-details summary { gap: 0.8rem; }
   .faq-body { padding-top: 0.8rem; }
-  .cell-list { flex-wrap: nowrap; overflow-x: auto; }
+  .cell-list { flex-wrap: nowrap; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .cell-list::-webkit-scrollbar { display: none; }
+  .js .cell-pagi { display: flex; }
   .cell-item { flex: none; width: 31.4rem; }
   .cell-item:first-child > .line-v { display: none; }
   .cell-item + .cell-item > .line-v { display: block; }
   .cell-item-head { padding: 0.8rem 1.6rem; }
   .cell-item-img { min-height: 27.8rem; color: var(--disabled); }
+  .cell-item { scroll-snap-align: start; }
+  .cell-item.active .cell-item-img { color: var(--ink); }
   .cell-item-content { padding: 2.4rem 1.6rem 2.4rem; }
   .cta-main { grid-template-columns: 6rem minmax(0, 1fr) 6rem; }
   .cta-main-center { padding: 7rem 1.6rem; }

@@ -239,6 +239,21 @@
     }
   }
 
+  const cellList = document.querySelector('.cell-list');
+  const cellBars = cellList && [...cellList.parentElement.querySelectorAll('.cell-pagi span')];
+  if (cellBars && cellBars.length) {
+    const cells = [...cellList.children];
+    let cellFrame = 0;
+    const markCell = () => {
+      cellFrame = 0;
+      const index = Math.round(cellList.scrollLeft / cellList.firstElementChild.offsetWidth);
+      cells.forEach((cell, position) => cell.classList.toggle('active', position === index));
+      cellBars.forEach((bar, position) => bar.classList.toggle('active', position === index));
+    };
+    cellList.addEventListener('scroll', () => { if (!cellFrame) cellFrame = requestAnimationFrame(markCell); }, { passive: true });
+    markCell();
+  }
+
   for (const list of document.querySelectorAll('.faq-list')) {
     const easing = getComputedStyle(document.documentElement).getPropertyValue('--ease-swing').trim();
     const opened = new Map();

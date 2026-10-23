@@ -328,7 +328,7 @@ def _relationship_cell(position, label, description):
     )
 
 
-def _relationship_cells(sections):
+def _relationship_labels(sections):
     items = []
     for kind, values in sections["What the labels mean"]:
         if kind != "ul":
@@ -338,7 +338,7 @@ def _relationship_cells(sections):
             if match is None:
                 raise ValueError("Unrecognized relationship label")
             items.append(match.groups())
-    return "".join(_relationship_cell(position, label, description) for position, (label, description) in enumerate(items, start=1))
+    return items
 
 
 def _strip_item(name, slug, relation):
@@ -362,6 +362,7 @@ def _build(root):
     if not catalog:
         raise ValueError("The catalog contains no tools")
     exhibits = [_tool_exhibit(root, path, position) for position, (_, path) in enumerate(catalog, start=1)]
+    labels = _relationship_labels(sections)
     palette = Palette((root / "site/style.css").read_text())
     values = {
         "profile_url": PROFILE_URL,
@@ -383,7 +384,8 @@ def _build(root):
         "tool_work_items": "".join(f'<span class="home-hero-work-item txt-mono txt-14">{WORK_ICON}{html.escape(name)}</span>' for name, _, _, _, _ in exhibits),
         "tool_strip_items": "".join(_strip_item(name, slug, relation) for name, slug, relation, _, _ in exhibits),
         "criteria": _render(sections["What belongs here"][:1]),
-        "legend_cells": _relationship_cells(sections),
+        "legend_cells": "".join(_relationship_cell(position, label, description) for position, (label, description) in enumerate(labels, start=1)),
+        "cell_pagination": "".join('<span class="active"></span>' if position == 1 else "<span></span>" for position in range(1, len(labels) + 1)),
     }
     shell = (root / "site/template.html").read_text()
     home = _fill((root / "site/home.html").read_text(), values)

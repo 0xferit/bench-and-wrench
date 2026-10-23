@@ -15,14 +15,18 @@
   const FRAME_MS = 1000 / 60;
   const CROSSHAIR_SETTLE_PX = 0.1;
   const REDUCED_MOTION = matchMedia('(prefers-reduced-motion: reduce)');
-  const SCRUB_START_VIEWPORTS = 1.1;
-  const SCRUB_SPAN_VIEWPORTS = 0.7;
-  const SCRUB_CHAR_DURATION = 0.5;
-  const SCRUB_CHAR_STAGGER = 0.03;
-  const INK_START_VIEWPORTS = 0.35;
-  const INK_END_VIEWPORTS = 0.2;
+  const SCENE_EDGES = { top: 0, center: 0.5, bottom: 1 };
+  const SCENE_DEFAULT_END = 'bottom top';
+  const SCENE_MIN_SPAN_PX = 1;
+  const SCENE_LENGTH = /^(?:(top|center|bottom)|(-?\d*\.?\d+)(px|%|vh)?)?(?:([+-])=(\d*\.?\d+)(px|%|vh)?)?$/;
+  const SCENE_CLAMP = /^clamp\((.*)\)$/;
+  const PERCENT = 100;
+  const TWEEN_DURATION = 0.5;
+  const TIMELINE_POSITION = /^(?:([<>])=?(-?\d*\.?\d+)?|([+-])=(\d*\.?\d+))$/;
+  const STATEMENT_SCRUB = { start: 'center bottom+=10%', end: 'center top+=40%' };
+  const STATEMENT_CHAR_STAGGER = 0.03;
+  const INK_SCRUB = { start: 'top 35%', end: 'bottom 55%' };
   const INK_BULGE = 1.25;
-  const INK_MIN_SPAN_PX = 1;
   const STRIP_AUTOPLAY_MS = 3000;
   const STRIP_SPEED_MS = 600;
   const STRIP_STEP_DESKTOP = 3;
@@ -71,8 +75,8 @@
   const BAND_TICK_SHARE = 0.1;
   const ROUND_LETTER = /[CDGOQS]/;
   const BAND_LETTER = /\p{L}/u;
-  const easeOutCubic = (share) => 1 - (1 - share) ** 3;
-  const easeOutQuart = (share) => 1 - (1 - share) ** 4;
+  const powerOut = (power) => (share) => 1 - (1 - share) ** (power + 1);
+  const EASES = { none: (share) => share, power1Out: powerOut(1), power2Out: powerOut(2), power3Out: powerOut(3) };
   const REVEAL_TRIGGERS = [
     ['.home-hero', 0],
     ['.section-head', 0.65],
@@ -161,6 +165,127 @@
     scroller.anchor = { target, hash: link.hash, from: scrollY };
     startGlide();
   });
+
+  const scene = (() => {
+    const parseLength = (text) => {
+      const match = SCENE_LENGTH.exec(text);
+      if (!match) throw new Error(`Unreadable scene position: ${text}`);
+      const [, edge, base, baseUnit, sign, offset, offsetUnit] = match;
+      const length = { share: edge ? SCENE_EDGES[edge] : 0, viewports: 0, px: 0 };
+      const extend = (amount, unit) => {
+        if (unit === '%') length.share += amount / PERCENT;
+        else if (unit === 'vh') length.viewports += amount / PERCENT;
+        else length.px += amount;
+      };
+      if (base) extend(Number(base), baseUnit);
+      if (offset) extend(Number(`${sign}${offset}`), offsetUnit);
+      return length;
+    };
+    const parsePosition = (text) => {
+      const clamped = SCENE_CLAMP.exec(text.trim());
+      const [element, viewport = 'top', ...rest] = (clamped ? clamped[1] : text).trim().split(/\s+/);
+      if (rest.length) throw new Error(`Unreadable scene position: ${text}`);
+      return { clamped: Boolean(clamped), element: parseLength(element), viewport: parseLength(viewport) };
+    };
+    const measureLength = ({ share, viewports, px }, size) => share * size + viewports * innerHeight + px;
+    const scrollPoint = ({ element, viewport }, bounds) => Math.round(bounds.top + scrollY + measureLength(element, bounds.height) - measureLength(viewport, innerHeight));
+    const live = new Set();
+    let printing = false;
+    const range = ({ start, end }, bounds) => {
+      const max = maxScroll();
+      let from = scrollPoint(start, bounds);
+      let to = scrollPoint(end, bounds);
+      if (start.clamped) from = from >= max ? max - SCENE_MIN_SPAN_PX : Math.max(from, 0);
+      if (end.clamped) to = Math.min(to, max);
+      return { from, span: Math.max(to - from, SCENE_MIN_SPAN_PX) };
+    };
+    const read = (entry) => {
+      const bounds = entry.trigger.getBoundingClientRect();
+      if (REDUCED_MOTION.matches || printing) return { entry, bounds, progress: 1 };
+      const { from, span } = range(entry, bounds);
+      return { entry, bounds, progress: clamp01((scrollY - from) / span) };
+    };
+    const render = ({ entry, bounds, progress }) => {
+      if (entry.onProgress) entry.onProgress(progress, bounds);
+      if (entry.onEnter && progress > 0) {
+        live.delete(entry);
+        entry.onEnter();
+      }
+    };
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      [...live].map(read).forEach(render);
+    };
+    const requestUpdate = () => { if (!frame) frame = requestAnimationFrame(update); };
+    window.addEventListener('scroll', requestUpdate, { passive: true });
+    window.addEventListener('resize', requestUpdate);
+    new ResizeObserver(requestUpdate).observe(document.body);
+    REDUCED_MOTION.addEventListener('change', requestUpdate);
+    window.addEventListener('beforeprint', () => {
+      printing = true;
+      update();
+    });
+    window.addEventListener('afterprint', () => {
+      printing = false;
+      update();
+    });
+    return (trigger, { start, end = SCENE_DEFAULT_END, onProgress, onEnter }) => {
+      const entry = { trigger, start: parsePosition(start), end: parsePosition(end), onProgress, onEnter };
+      live.add(entry);
+      render(read(entry));
+    };
+  })();
+  const shuffle = (items) => {
+    for (let index = items.length - 1; index > 0; index -= 1) {
+      const other = Math.floor(Math.random() * (index + 1));
+      [items[index], items[other]] = [items[other], items[index]];
+    }
+    return items;
+  };
+  const staggerDelays = (count, stagger) => {
+    const { each = 0, amount = each * (count - 1), from = 'start' } = typeof stagger === 'number' ? { each: stagger } : stagger;
+    const ranks = [...Array(count).keys()];
+    if (from === 'random') shuffle(ranks);
+    return ranks.map((rank) => (count > 1 ? amount * rank / (count - 1) : 0));
+  };
+  const timeline = () => {
+    const tracks = [];
+    let recent = { start: 0, end: 0 };
+    let length = 0;
+    const startOf = (position) => {
+      if (position === undefined) return length;
+      if (typeof position === 'number') return position;
+      const match = TIMELINE_POSITION.exec(position);
+      if (!match) throw new Error(`Unreadable timeline position: ${position}`);
+      const [, anchor, shift = 0, sign, offset] = match;
+      if (anchor) return (anchor === '<' ? recent.start : recent.end) + Number(shift);
+      return length + Number(`${sign}${offset}`);
+    };
+    const seek = (time) => {
+      for (const track of tracks) {
+        track.delays.forEach((delay, index) => {
+          const local = time - track.start - delay;
+          const linear = track.duration ? clamp01(local / track.duration) : Number(local >= 0);
+          if (linear === track.shown[index]) return;
+          track.shown[index] = linear;
+          track.render(track.ease(linear), index, linear);
+        });
+      }
+    };
+    const api = {
+      add(render, { at, duration = TWEEN_DURATION, ease = EASES.power1Out, count = 1, stagger = 0 } = {}) {
+        const start = startOf(at);
+        const delays = staggerDelays(count, stagger);
+        tracks.push({ render, start, duration, ease, delays, shown: [] });
+        recent = { start, end: start + Math.max(...delays) + duration };
+        length = Math.max(length, recent.end);
+        return api;
+      },
+      progress: (share) => seek(share * length),
+    };
+    return api;
+  };
 
   const splitLines = (element, byWord) => {
     const original = [...element.childNodes];
@@ -362,8 +487,8 @@
     const count = (now) => {
       const elapsed = now - started;
       const value = elapsed < LOADER_FIRST_MS
-        ? LOADER_FIRST_SHARE * easeOutCubic(elapsed / LOADER_FIRST_MS)
-        : LOADER_FIRST_SHARE + (LOADER_FULL - LOADER_FIRST_SHARE) * easeOutQuart(clamp01((elapsed - LOADER_FIRST_MS) / LOADER_SECOND_MS));
+        ? LOADER_FIRST_SHARE * EASES.power2Out(elapsed / LOADER_FIRST_MS)
+        : LOADER_FIRST_SHARE + (LOADER_FULL - LOADER_FIRST_SHARE) * EASES.power3Out(clamp01((elapsed - LOADER_FIRST_MS) / LOADER_SECOND_MS));
       counter.textContent = `${Math.round(value)}%`;
       progressBar.style.width = `${value}%`;
       if (value < LOADER_FULL) counterFrame = requestAnimationFrame(count);
@@ -530,45 +655,20 @@
       }
       node.replaceWith(fragment);
     }
-    const scrubLength = SCRUB_CHAR_DURATION + SCRUB_CHAR_STAGGER * (chars.length - 1);
-    const shares = chars.map(() => '');
-    let scrubFrame = 0;
-    const scrub = () => {
-      scrubFrame = 0;
-      const bounds = statementTitle.getBoundingClientRect();
-      const centre = bounds.top + bounds.height / 2;
-      const time = scrubLength * clamp01((SCRUB_START_VIEWPORTS * innerHeight - centre) / (SCRUB_SPAN_VIEWPORTS * innerHeight));
-      chars.forEach((char, index) => {
-        const local = clamp01((time - SCRUB_CHAR_STAGGER * index) / SCRUB_CHAR_DURATION);
-        const share = (1 - (1 - local) ** 2).toFixed(3);
-        if (share === shares[index]) return;
-        shares[index] = share;
-        char.style.setProperty('--ink-share', share);
-      });
-    };
-    const requestScrub = () => { if (!scrubFrame) scrubFrame = requestAnimationFrame(scrub); };
-    window.addEventListener('scroll', requestScrub, { passive: true });
-    window.addEventListener('resize', requestScrub);
-    scrub();
+    const inking = timeline().add((share, index) => chars[index].style.setProperty('--ink-share', share.toFixed(3)), { count: chars.length, stagger: STATEMENT_CHAR_STAGGER });
+    scene(statementTitle, { ...STATEMENT_SCRUB, onProgress: inking.progress });
   }
 
   const statementMedia = document.querySelector('.statement-media');
   const inkEdge = statementMedia && statementMedia.querySelector('.statement-ink-edge');
   if (inkEdge) {
-    let revealFrame = 0;
-    const reveal = () => {
-      revealFrame = 0;
-      const { top, width, height } = statementMedia.getBoundingClientRect();
-      const span = Math.max(height - INK_END_VIEWPORTS * innerHeight, INK_MIN_SPAN_PX);
-      const progress = REDUCED_MOTION.matches ? 1 : clamp01((INK_START_VIEWPORTS * innerHeight - top) / span);
-      const edge = (height * progress).toFixed(1);
-      inkEdge.setAttribute('d', `M0 ${edge} Q${width / 2} ${(INK_BULGE * edge).toFixed(1)} ${width} ${edge} L${width} 0 L0 0Z`);
-    };
-    const requestReveal = () => { if (!revealFrame) revealFrame = requestAnimationFrame(reveal); };
-    window.addEventListener('scroll', requestReveal, { passive: true });
-    window.addEventListener('resize', requestReveal);
-    REDUCED_MOTION.addEventListener('change', requestReveal);
-    reveal();
+    scene(statementMedia, {
+      ...INK_SCRUB,
+      onProgress: (progress, { width, height }) => {
+        const edge = (height * progress).toFixed(1);
+        inkEdge.setAttribute('d', `M0 ${edge} Q${width / 2} ${(INK_BULGE * edge).toFixed(1)} ${width} ${edge} L${width} 0 L0 0Z`);
+      },
+    });
   }
 
   const strip = document.querySelector('.statement-strip');

@@ -187,11 +187,18 @@
       if (rest.length) throw new Error(`Unreadable scene position: ${text}`);
       return { clamped: Boolean(clamped), element: parseLength(element), viewport: parseLength(viewport) };
     };
+    const positionOf = (value) => {
+      if (typeof value === 'function') return () => parsePosition(value());
+      const parsed = parsePosition(value);
+      return () => parsed;
+    };
     const measureLength = ({ share, viewports, px }, size) => share * size + viewports * innerHeight + px;
     const scrollPoint = ({ element, viewport }, bounds) => Math.round(bounds.top + scrollY + measureLength(element, bounds.height) - measureLength(viewport, innerHeight));
     const live = new Set();
     let printing = false;
-    const range = ({ start, end }, bounds) => {
+    const range = (entry, bounds) => {
+      const start = entry.start();
+      const end = entry.end();
       const max = maxScroll();
       let from = scrollPoint(start, bounds);
       let to = scrollPoint(end, bounds);
@@ -231,7 +238,7 @@
       update();
     });
     return (trigger, { start, end = SCENE_DEFAULT_END, onProgress, onEnter }) => {
-      const entry = { trigger, start: parsePosition(start), end: parsePosition(end), onProgress, onEnter };
+      const entry = { trigger, start: positionOf(start), end: positionOf(end), onProgress, onEnter };
       live.add(entry);
       render(read(entry));
     };

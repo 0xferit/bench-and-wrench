@@ -45,6 +45,10 @@ class WebsiteBuildTests(unittest.TestCase):
             self.assertIn(name, page)
         self.assertIn('href="https://example.com/tool"', page)
         self.assertIn("A real limitation.", page)
+        callouts = re.findall(r'<div class="limit-callout" id="([^"]+)"><p [^>]*>([^<]*)</p>', page)
+        self.assertEqual(len(callouts), 6)
+        self.assertEqual(callouts[-1], ("plan-limit-06", "Boundary tool · Limit 06"))
+        self.assertIn('<g class="bench-plan-limit" data-limit="plan-limit-06">', page)
         menu = re.search(r'<nav class="header-menu".*?</nav>', page, re.DOTALL).group(0)
         dropdown = re.findall(r'class="header-menu-dropdown-item[^"]*" href="([^"]+)"', menu)
         self.assertEqual(dropdown, ["#live-gantt", "#linear-work-tree", "#boundary-tool"])
@@ -59,6 +63,9 @@ class WebsiteBuildTests(unittest.TestCase):
         fragments = set(re.findall(r'href="#([^"]+)"', page))
         self.assertIn("linear-work-tree", fragments)
         self.assertEqual(fragments - targets, set())
+        references = {name for names in re.findall(r'aria-(?:controls|labelledby)="([^"]+)"', page) for name in names.split()}
+        self.assertIn("plan-limit-01", references)
+        self.assertEqual(references - targets, set())
 
     def test_every_asset_a_page_links_is_published(self):
         result = self.build()

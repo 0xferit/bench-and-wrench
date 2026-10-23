@@ -363,21 +363,36 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
 .bench-plan-hole { stroke: var(--rule); }
 .bench-plan-holes { fill: url("#bench-plan-holes"); stroke: none; }
 .bench-plan-tools { stroke: var(--ink); }
-.bench-plan-sheet-paper { fill: var(--cell); }
+.bench-plan-sheet-paper { fill: var(--zone-fill, var(--cell)); }
 .bench-plan-bar-done { fill: var(--surface); }
 .bench-plan-bar-running { fill: var(--rule); }
 .bench-plan-dims { stroke: var(--granite); }
 .bench-plan-drawing .bench-plan-arrow { fill: var(--granite); stroke: none; }
 .bench-plan-drawing text { fill: var(--granite); stroke: none; font-family: var(--font-mono); font-size: 11px; font-weight: 500; text-transform: uppercase; }
-.bench-plan-limits rect { fill: var(--brand); stroke: none; }
-.bench-plan-drawing .bench-plan-limits text { fill: var(--on-brand); font-size: 13px; }
+.bench-plan-drawing .bench-plan-limit-area { --zone-fill: var(--brand); fill: var(--zone-fill); stroke: none; opacity: 0; transition: opacity 0.4s ease; }
+.bench-plan-limit:is(.is-hover, .is-active) .bench-plan-limit-area { opacity: 0.24; }
+.bench-plan-drawing .bench-plan-limit-dot { stroke: var(--brand); stroke-width: 1; }
+.bench-plan-drawing .bench-plan-limit-dot-core { fill: var(--brand); stroke: var(--paper); stroke-width: 1; }
+.bench-plan-limit-tag { transition: opacity 0.4s ease; }
+.bench-plan-limit.is-active .bench-plan-limit-tag { opacity: 0; }
+.bench-plan-limit-tag rect { fill: var(--brand); stroke: none; }
+.bench-plan-drawing .bench-plan-limit-tag text { fill: var(--on-brand); font-size: 14px; }
+.bench-plan-limit-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 28rem), 1fr)); gap: 1.6rem; margin-top: 3.2rem; padding: 0; list-style: none; }
+.limit-marker { display: none; }
+.limit-callout { position: relative; display: grid; grid-template-columns: minmax(1px, 1fr); padding: 1.2rem; overflow: hidden; color: var(--ink); background-color: var(--paper); border: var(--border) solid var(--brand); isolation: isolate; }
+.limit-callout::before { position: absolute; inset: 0; z-index: -1; background: var(--grain); opacity: var(--grain-opacity); content: ""; pointer-events: none; }
+.limit-callout-label { margin-bottom: 0.4rem; color: var(--brand); }
+.limit-callout-title { color: var(--ink); }
+.limit-callout-body { color: var(--muted); }
+.limit-callout-desc { padding-top: 1.6rem; }
+.limit-callout-link { display: inline-block; margin-top: 1.2rem; color: var(--ink); }
 .caption-box { position: relative; width: 28rem; max-width: 100%; border: var(--border) solid var(--rule); }
 .caption-box-head { padding: 0.8rem 0.8rem 0.8rem 1.2rem; color: var(--on-ink); background: var(--ink); }
 .caption-box-list { padding: 0; list-style: none; }
 .caption-box-item { padding: 1.2rem; }
 .caption-box-cue { display: block; margin-top: 1.6rem; color: var(--disabled); }
 .caption-box-prompt { display: block; color: var(--granite); }
-.caption-box-scroll { display: none; }
+.caption-box-scroll, .caption-box-item:has(> .caption-box-prompt) { display: none; }
 .bench-plan .caption-box { margin-bottom: 3.2rem; }
 @media screen and (prefers-reduced-motion: no-preference) {
   .js .bench-plan-track { height: 700dvh; }
@@ -410,7 +425,16 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
   .js .bench-plan .caption-box-list { display: grid; grid-template-columns: minmax(1px, 1fr); align-items: start; height: var(--caption-height, auto); overflow: hidden; transition: height 0.4s; }
   .js .bench-plan .caption-box-item { grid-area: 1 / 1; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
   .js .bench-plan .caption-box-item.is-active { opacity: 1; pointer-events: auto; }
-  .js .bench-plan .caption-box-scroll { display: block; }
+  .js .bench-plan .caption-box-scroll, .js .bench-plan .caption-box-item:has(> .caption-box-prompt) { display: block; }
+  .js .bench-plan-figure { position: relative; container-type: size; }
+  .js .bench-plan-limit-list { --plan-width: min(100cqw, 100cqh * var(--plan-view-w) / var(--plan-view-h)); --plan-unit: calc(var(--plan-width) / var(--plan-view-w)); --plan-left: calc((100cqw - var(--plan-width)) / 2); --plan-top: calc((100cqh - var(--plan-view-h) * var(--plan-unit)) / 2); display: block; margin: 0; }
+  .js .bench-plan .limit-marker { position: absolute; top: calc(var(--plan-top) + var(--limit-y) * var(--plan-unit)); left: calc(var(--plan-left) + var(--limit-x) * var(--plan-unit)); z-index: 1; display: block; width: calc(var(--limit-size) * var(--plan-unit)); height: calc(var(--limit-size) * var(--plan-unit)); pointer-events: none; }
+  .js .bench-plan.is-limits-live .limit-marker { pointer-events: auto; }
+  .js .bench-plan .limit-callout { position: absolute; top: calc(var(--plan-top) + var(--limit-y) * var(--plan-unit)); left: calc(var(--plan-left) + (var(--limit-x) + var(--limit-size)) * var(--plan-unit) + 1.2rem); z-index: 2; width: 23.5rem; opacity: 0; pointer-events: none; transition: width 0.4s, transform 0.4s, opacity 0.4s; }
+  .js .bench-plan .limit-callout:is(.is-hover, .is-active, :focus-within) { opacity: 1; pointer-events: auto; }
+  .js .bench-plan .limit-callout.is-active { width: 30.4rem; }
+  .js .bench-plan .limit-callout-body { display: none; width: 27rem; }
+  .js .bench-plan .limit-callout-body.is-open { display: block; }
 }
 @media screen and (prefers-reduced-motion: no-preference) and (max-width: 991px) {
   .js .bench-plan-track { height: auto; }
@@ -419,7 +443,12 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
   .js .bench-plan-sheet-inner { position: sticky; top: var(--frame); height: var(--sheet-height); overflow: hidden; }
 }
 @media screen and (prefers-reduced-motion: no-preference) and (max-width: 767px) {
+  .js .bench-plan-canvas { position: relative; z-index: 1; }
   .js .bench-plan-figure { padding-bottom: 10rem; }
+  .js .bench-plan .limit-callout { top: auto; bottom: 0; left: 50%; z-index: 4; display: flex; flex-direction: column; width: 33.1rem; padding: 0.8rem; transform: translate(-50%); }
+  .js .bench-plan .limit-callout.is-active { width: 33.1rem; }
+  .js .bench-plan .limit-callout-body { display: block; width: 100%; }
+  .js .bench-plan .limit-callout-desc { padding-top: 0.6rem; }
   .js .bench-plan-wall:nth-child(1) { --wall-from-x: -100%; --wall-from-y: -16rem; }
   .js .bench-plan-wall:nth-child(2) { --wall-from-x: 100%; --wall-from-y: -26rem; }
   .js .bench-plan-wall:nth-child(3) { --wall-from-x: 100%; --wall-from-y: 26rem; }

@@ -57,6 +57,15 @@ PLAN_CAPTIONS = (
 )
 PLAN_CAPTION_SCROLL = "[Scroll to continue]"
 PLAN_CAPTION_PROMPT = "[Select a limit]"
+PLAN_LIMIT_ZONE = re.compile(r'<rect class="(?:[a-z-]+ )?bench-plan-limit-zone" id="([a-z0-9-]+)" data-tool="([a-z0-9-]*)" x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"/>')
+PLAN_VIEW_BOX = re.compile(r'viewBox="0 0 ([\d.]+) ([\d.]+)"')
+SENTENCE_END = re.compile(r"(?<=[.!?])\s+(?=[A-Z])")
+PLAN_LIMIT_MARK = 42
+PLAN_LIMIT_GAP = 21
+PLAN_LIMIT_DOT = 9
+PLAN_LIMIT_DOT_CORE = 7
+PLAN_LIMITS_LABEL = "Limits marked on the plan"
+PLAN_LIMIT_LINK = "See the {} entry"
 DESIGN_SOURCE = "DESIGN.md"
 DESIGN_PAGE = "design-system.html"
 
@@ -145,7 +154,8 @@ def _tool_exhibit(root, path, position):
     relation = relation_match.group(1)
     intro = _render([(kind, value) for kind, value in opening_blocks if kind == "p" and value != relationship])
     reason = _first_paragraph(sections.get("Why it earns a place", []))
-    caveat = _first_paragraph(sections.get("Limits to understand", []))
+    limits = [value for kind, value in sections.get("Limits to understand", []) if kind == "p"]
+    caveat = limits[0] if limits else ""
     last_heading = next(reversed(sections))
     links = INLINE_TOKEN.findall(_markdown_text(sections[last_heading]))
     primary = next(((label, target) for label, target, _, _ in links if target), None)
@@ -177,7 +187,7 @@ def _tool_exhibit(root, path, position):
 </article>'''
     field_notes = f'''
 <div class="faq-item"><details class="faq-details" name="field-notes" id="notes-{slug}"><summary><span class="faq-title heading h6 tb-h20 mb-h18">Field notes: {html.escape(title)}</span><span class="faq-ic" aria-hidden="true"></span></summary><div class="faq-body">{''.join(notes)}</div></details><i class="line line-h line-top line-solid"></i><i class="line line-h line-bottom line-dash"></i><i class="line line-h line-bottom line-dash line-ink faq-line-hover"></i></div>'''
-    return title, slug, relation, row, field_notes
+    return title, slug, relation, row, field_notes, limits
 
 
 def _markdown_text(blocks):
@@ -387,15 +397,67 @@ def _plan_caption_items():
     return f'{steps}<li class="caption-box-item"><span class="caption-box-prompt txt-mono txt-12">{html.escape(PLAN_CAPTION_PROMPT)}</span></li>'
 
 
+def _plan_limit_mark(ident, number, zone, left, top):
+    centre_x, centre_y = left + PLAN_LIMIT_MARK / 2, top + PLAN_LIMIT_MARK / 2
+    dot = "".join(
+        f'<rect class="{part}" x="{centre_x - size / 2:g}" y="{centre_y - size / 2:g}" width="{size}" height="{size}"/>'
+        for part, size in (("bench-plan-limit-dot", PLAN_LIMIT_DOT), ("bench-plan-limit-dot-core", PLAN_LIMIT_DOT_CORE))
+    )
+    return (
+        f'<g class="bench-plan-limit" data-limit="{ident}"><use class="bench-plan-limit-area" href="#{zone}"/>{dot}'
+        f'<g class="bench-plan-limit-tag"><rect x="{left:g}" y="{top:g}" width="{PLAN_LIMIT_MARK}" height="{PLAN_LIMIT_MARK}"/>'
+        f'<text x="{centre_x:g}" y="{centre_y:g}" text-anchor="middle" dominant-baseline="central">{number}</text></g></g>'
+    )
+
+
+def _plan_limit_item(ident, number, name, slug, text, left, top):
+    title, *rest = SENTENCE_END.split(text, maxsplit=1)
+    desc = f'<p class="limit-callout-desc txt-14 mb-txt-12">{_inline(rest[0])}</p>' if rest else ""
+    return (
+        f'<li class="bench-plan-limit-item" style="--limit-x: {left:g}; --limit-y: {top:g}; --limit-size: {PLAN_LIMIT_MARK}">'
+        f'<button class="limit-marker" type="button" aria-expanded="false" aria-controls="{ident}" aria-labelledby="{ident}-label {ident}-title"></button>'
+        f'<div class="limit-callout" id="{ident}"><p class="limit-callout-label txt-mono txt-12" id="{ident}-label">{html.escape(name)} · Limit {number}</p>'
+        f'<p class="limit-callout-title txt-16 mb-txt-14" id="{ident}-title">{_inline(title)}</p>'
+        f'<div class="limit-callout-body">{desc}<a class="limit-callout-link txt-mono txt-12" href="#{slug}">{html.escape(PLAN_LIMIT_LINK.format(name))}</a></div></div></li>'
+    )
+
+
+def _plan_limits(drawing, exhibits):
+    view = PLAN_VIEW_BOX.search(drawing)
+    if view is None:
+        raise ValueError("site/illustrations/bench-plan.svg needs a viewBox that starts at 0 0")
+    zones = {tool: (zone, *map(float, box)) for zone, tool, *box in PLAN_LIMIT_ZONE.findall(drawing)}
+    if "" not in zones:
+        raise ValueError("site/illustrations/bench-plan.svg needs a limit zone with an empty data-tool for tools it does not draw")
+    placed = {}
+    marks, items = [], []
+    for name, slug, *_, limits in exhibits:
+        zone, x, y, width, _ = zones.get(slug, zones[""])
+        for text in limits:
+            row = placed.get(zone, 0)
+            placed[zone] = row + 1
+            number = f"{len(items) + 1:02d}"
+            ident = f"plan-limit-{number}"
+            left, top = x + width - PLAN_LIMIT_MARK, y + PLAN_LIMIT_GAP + row * (PLAN_LIMIT_MARK + PLAN_LIMIT_GAP)
+            marks.append(_plan_limit_mark(ident, number, zone, left, top))
+            items.append(_plan_limit_item(ident, number, name, slug, text, left, top))
+    view_width, view_height = view.groups()
+    listing = (
+        f'<ol class="bench-plan-limit-list" aria-label="{PLAN_LIMITS_LABEL}" style="--plan-view-w: {view_width}; --plan-view-h: {view_height}">{"".join(items)}</ol>'
+        if items else ""
+    )
+    return "".join(marks), listing
+
+
 def _footer_tool_links(exhibits, home):
-    return "".join(f'<a class="footer-link txt-16 mb-txt-14" href="{home}#{slug}">{html.escape(name)}</a>' for name, slug, _, _, _ in exhibits)
+    return "".join(f'<a class="footer-link txt-16 mb-txt-14" href="{home}#{slug}">{html.escape(name)}</a>' for name, slug, *_ in exhibits)
 
 
 def _menu_tool_links(exhibits, home):
     return "".join(
         f'<a class="header-menu-dropdown-item btn-fill btn-fill-ghost" href="{home}#{slug}"><span class="btn-fill-bg" aria-hidden="true"></span>'
         f'<span class="swap txt-mono txt-14"><span>{html.escape(name)}</span><span aria-hidden="true">{html.escape(name)}</span></span></a>'
-        for name, slug, _, _, _ in exhibits
+        for name, slug, *_ in exhibits
     )
 
 
@@ -411,6 +473,8 @@ def _build(root):
     exhibits = [_tool_exhibit(root, path, position) for position, (_, path) in enumerate(catalog, start=1)]
     labels = _relationship_labels(sections)
     palette = Palette((root / "site/style.css").read_text())
+    plan_drawing = (root / "site/illustrations/bench-plan.svg").read_text()
+    plan_limit_marks, plan_limits = _plan_limits(plan_drawing, exhibits)
     values = {
         "profile_url": PROFILE_URL,
         "repository_url": REPOSITORY_URL,
@@ -429,12 +493,13 @@ def _build(root):
         "wordmark": _wordmark(title),
         "hero_drawing": (root / "site/illustrations/hero-spanner.svg").read_text(),
         "plan_captions": _plan_caption_items(),
-        "plan_drawing": _fill((root / "site/illustrations/bench-plan.svg").read_text(), {"spanner_paths": SPANNER_PATHS}),
-        "exhibits": "\n".join(row for _, _, _, row, _ in exhibits),
-        "field_notes": "\n".join(notes for _, _, _, _, notes in exhibits),
+        "plan_drawing": _fill(plan_drawing, {"spanner_paths": SPANNER_PATHS, "plan_limit_marks": plan_limit_marks}),
+        "plan_limits": plan_limits,
+        "exhibits": "\n".join(row for _, _, _, row, *_ in exhibits),
+        "field_notes": "\n".join(notes for _, _, _, _, notes, _ in exhibits),
         "tool_total": str(len(exhibits)),
-        "tool_work_items": "".join(f'<span class="home-hero-work-item txt-mono txt-14">{WORK_ICON}{html.escape(name)}</span>' for name, _, _, _, _ in exhibits),
-        "tool_strip_items": "".join(_strip_item(name, slug, relation) for name, slug, relation, _, _ in exhibits),
+        "tool_work_items": "".join(f'<span class="home-hero-work-item txt-mono txt-14">{WORK_ICON}{html.escape(name)}</span>' for name, *_ in exhibits),
+        "tool_strip_items": "".join(_strip_item(name, slug, relation) for name, slug, relation, *_ in exhibits),
         "criteria": _render(sections["What belongs here"][:1]),
         "legend_cells": "".join(_relationship_cell(position, label, description) for position, (label, description) in enumerate(labels, start=1)),
         "cell_pagination": "".join('<span class="active"></span>' if position == 1 else "<span></span>" for position in range(1, len(labels) + 1)),

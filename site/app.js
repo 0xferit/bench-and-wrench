@@ -248,6 +248,12 @@
       const entry = { trigger, start: positionOf(start), end: positionOf(end), onProgress, onEnter };
       live.add(entry);
       render(read(entry));
+      return {
+        scrollAt: (progress) => {
+          const { from, span } = range(entry, trigger.getBoundingClientRect());
+          return from + span * progress;
+        },
+      };
     };
   })();
   const shuffle = (items) => {
@@ -791,11 +797,49 @@
       if (linear > 0) begun.add(layer);
       else begun.delete(layer);
     };
+    const limitsLayer = planCanvas.querySelector('.bench-plan-limits');
+    const limits = [...plan.querySelectorAll('.limit-marker')].map((marker) => {
+      const callout = document.getElementById(marker.getAttribute('aria-controls'));
+      return { marker, callout, body: callout.querySelector('.limit-callout-body'), mark: limitsLayer && limitsLayer.querySelector(`[data-limit="${callout.id}"]`), slide: null };
+    });
+    const markLimit = (limit, state, on) => {
+      limit.callout.classList.toggle(state, on);
+      if (limit.mark) limit.mark.classList.toggle(state, on);
+    };
+    const slideLimit = (limit, open) => {
+      const { body } = limit;
+      const from = body.classList.contains('is-open') ? body.getBoundingClientRect().height : 0;
+      if (limit.slide) limit.slide.cancel();
+      body.classList.add('is-open');
+      const to = open ? body.scrollHeight : 0;
+      limit.slide = body.animate({ height: [`${from}px`, `${to}px`] }, { duration: REDUCED_MOTION.matches || !WIDER_THAN_PHONE.matches ? 0 : FAQ_SLIDE_MS, easing: token('--ease-swing') });
+      limit.slide.onfinish = () => {
+        limit.slide = null;
+        body.classList.toggle('is-open', open);
+      };
+    };
+    const openLimit = (chosen) => {
+      for (const limit of limits) {
+        const open = limit === chosen;
+        if (limit.marker.getAttribute('aria-expanded') === String(open)) continue;
+        limit.marker.setAttribute('aria-expanded', String(open));
+        markLimit(limit, 'is-active', open);
+        slideLimit(limit, open);
+      }
+    };
+    let limitsTurning = false;
+    const showLimits = limitsLayer && showLayer(limitsLayer);
+    const turnLimits = (share, index, linear) => {
+      showLimits(share, index, linear);
+      const turning = linear > 0 && linear < 1;
+      if (!turning && (limitsTurning || linear === 0)) openLimit(null);
+      limitsTurning = turning;
+    };
     if (wallLayer && walls.length) {
       sequence
         .add(showLayer(wallLayer), PLAN_WALLS_IN)
         .add((share, index) => walls[index].style.setProperty('--wall', share.toFixed(4)), { ...PLAN_WALL_PIECES, count: walls.length });
-      for (const layer of detailLayers) sequence.add(showLayer(layer));
+      for (const layer of detailLayers) sequence.add(layer === limitsLayer ? turnLimits : showLayer(layer));
     }
     const captionBox = plan.querySelector('.caption-box');
     const captionList = captionBox && captionBox.querySelector('.caption-box-list');
@@ -814,15 +858,38 @@
       showCaption();
     });
     for (const caption of captions) captionSizes.observe(caption);
-    scene(plan, {
+    const planScrub = scene(plan, {
       ...PLAN_SCRUB,
       onProgress: (progress) => {
         sequence.progress(progress);
         showCaption();
         plan.classList.toggle('is-started', progress > 0);
+        plan.classList.toggle('is-limits-live', begun.has(limitsLayer));
         plan.classList.toggle('expanded', progress === 1);
       },
     });
+    for (const limit of limits) {
+      const { marker } = limit;
+      marker.addEventListener('mouseenter', () => markLimit(limit, 'is-hover', true));
+      marker.addEventListener('mouseleave', () => markLimit(limit, 'is-hover', false));
+      marker.addEventListener('focus', () => {
+        if (!begun.has(limitsLayer)) scrollTo(0, planScrub.scrollAt(1));
+        if (marker.matches(':focus-visible')) markLimit(limit, 'is-hover', true);
+      });
+      marker.addEventListener('blur', () => markLimit(limit, 'is-hover', false));
+      marker.addEventListener('click', () => openLimit(marker.getAttribute('aria-expanded') === 'true' ? null : limit));
+    }
+    if (limits.length) {
+      document.addEventListener('click', (event) => {
+        if (!event.target.closest('.limit-marker')) openLimit(null);
+      });
+      document.addEventListener('keydown', (event) => {
+        const open = limits.find(({ marker }) => marker.getAttribute('aria-expanded') === 'true');
+        if (event.key !== 'Escape' || !open) return;
+        if (open.callout.contains(document.activeElement)) open.marker.focus();
+        openLimit(null);
+      });
+    }
   }
 
   const toolInfos = [...document.querySelectorAll('.tool-row-info')];

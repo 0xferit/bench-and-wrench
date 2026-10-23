@@ -1,6 +1,7 @@
 (() => {
-  const SCROLL_HIDE_DISTANCE = 8;
-  const HEADER_ALWAYS_SHOWN_ABOVE = 80;
+  const HIDE_AFTER_HEADER_HEIGHTS = 5;
+  const SETTLE_DELAY_MS = 150;
+  const DESKTOP = matchMedia('(min-width: 992px)');
 
   const progress = document.querySelector('.demo-progress-value');
   const progressBar = document.querySelector('.mini-progress span');
@@ -52,12 +53,22 @@
   menu.addEventListener('click', (event) => { if (event.target.closest('a')) setMenu(false); });
   document.addEventListener('keydown', (event) => { if (event.key === 'Escape') setMenu(false); });
 
-  let lastScroll = window.scrollY;
+  const headerHeight = () => header.getBoundingClientRect().height;
+  const hideThreshold = () => HIDE_AFTER_HEADER_HEIGHTS * headerHeight();
+  const markScrolled = (y) => header.classList.toggle('on-scroll', y > headerHeight());
+  let lastScroll = scrollY;
+  let settleTimer;
+  markScrolled(lastScroll);
   window.addEventListener('scroll', () => {
-    const current = window.scrollY;
-    const menuOpen = menuButton.getAttribute('aria-expanded') === 'true';
-    if (Math.abs(current - lastScroll) < SCROLL_HIDE_DISTANCE) return;
-    header.classList.toggle('on-hide', current > lastScroll && current > HEADER_ALWAYS_SHOWN_ABOVE && !menuOpen);
-    lastScroll = current;
+    const y = scrollY;
+    markScrolled(y);
+    if (y !== lastScroll) {
+      if (menuButton.getAttribute('aria-expanded') === 'true') setMenu(false);
+      header.classList.toggle('on-hide', DESKTOP.matches && y > lastScroll && y > hideThreshold());
+    }
+    lastScroll = y;
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(() => { if (DESKTOP.matches && scrollY > hideThreshold()) header.classList.add('on-hide'); }, SETTLE_DELAY_MS);
   }, { passive: true });
+  DESKTOP.addEventListener('change', () => { if (!DESKTOP.matches) header.classList.remove('on-hide'); });
 })();

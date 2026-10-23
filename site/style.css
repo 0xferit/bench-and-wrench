@@ -243,7 +243,7 @@ button { padding: 0; color: inherit; font: inherit; cursor: pointer; background:
 .header-menu-item.has-dropdown::before { top: 0.6rem; border-top: var(--border) solid; transform: translate(calc(100% + 1.2rem), calc(-100% - 1.2rem)); }
 .header-menu-item.has-dropdown::after { bottom: 0.6rem; border-bottom: var(--border) solid; }
 .header-menu-dropdown { position: absolute; top: calc(100% - var(--border)); left: 0; z-index: 4; display: grid; grid-template-rows: 0fr; opacity: 0; pointer-events: none; visibility: hidden; transition: opacity 0.4s ease, grid-template-rows 0.4s ease, visibility 0s 0.4s; }
-.header-menu-item-wrap:is(:hover, :focus-within):not(.is-dismissed) .header-menu-dropdown { grid-template-rows: 1fr; opacity: 1; pointer-events: auto; visibility: visible; transition: opacity 0.4s ease, grid-template-rows 0.4s ease; }
+.header-menu-item-wrap:is(:hover, :focus-within):not(.is-dismissed) .header-menu-dropdown { grid-template-rows: 1fr; opacity: 1; pointer-events: inherit; visibility: inherit; transition: opacity 0.4s ease, grid-template-rows 0.4s ease; }
 .header-menu-item-wrap:is(:hover, :focus-within):not(.is-dismissed) .has-dropdown::before { transform: none; }
 .header-menu-item-wrap:is(:hover, :focus-within):not(.is-dismissed) .has-dropdown::after { transform: translate(calc(100% + 1.2rem), calc(100% + 1.2rem)); }
 .header-menu-item-wrap.is-dismissed .header-menu-dropdown { transition: none; }
@@ -631,7 +631,7 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
   .header-menu-item.has-dropdown { color: var(--ink); background-color: color-mix(in srgb, var(--ink) 4%, transparent); }
   .header-menu-item.has-dropdown::before { transform: none; }
   .header-menu-item.has-dropdown::after { transform: translate(calc(100% + 1.2rem), calc(100% + 1.2rem)); }
-  .header-menu-dropdown { position: static; grid-template-rows: 1fr; opacity: 1; pointer-events: auto; visibility: visible; transition: none; }
+  .header-menu-dropdown { position: static; grid-template-rows: 1fr; opacity: 1; pointer-events: inherit; visibility: inherit; transition: none; }
   .header-menu-dropdown-inner { min-width: 0; background: none; border: 0; }
   .header-menu-dropdown-inner::before { display: none; }
   .header-menu-dropdown-item { border-bottom: var(--border) solid var(--rule); }

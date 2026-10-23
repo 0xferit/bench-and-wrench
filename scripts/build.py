@@ -389,6 +389,14 @@ def _footer_tool_links(exhibits, home):
     return "".join(f'<a class="footer-link txt-16 mb-txt-14" href="{home}#{slug}">{html.escape(name)}</a>' for name, slug, _, _, _ in exhibits)
 
 
+def _menu_tool_links(exhibits, home):
+    return "".join(
+        f'<a class="header-menu-dropdown-item btn-fill btn-fill-ghost" href="{home}#{slug}"><span class="btn-fill-bg" aria-hidden="true"></span>'
+        f'<span class="swap txt-mono txt-14"><span>{html.escape(name)}</span><span aria-hidden="true">{html.escape(name)}</span></span></a>'
+        for name, slug, _, _, _ in exhibits
+    )
+
+
 def _build(root):
     readme = (root / "README.md").read_text()
     opening, sections = _sections(readme)
@@ -432,8 +440,8 @@ def _build(root):
     loader = _fill((root / "site/loader.html").read_text(), values)
     design_title, design_summary, design = _design_main(root, palette)
     pages = {
-        "index.html": _fill(shell, {**values, "loader": loader, "page_title": html.escape(f"{title} | {intro_paragraphs[0]}"), "description": html.escape(intro_paragraphs[0], quote=True), "home": "", "design_current": "", "footer_tool_links": _footer_tool_links(exhibits, ""), "main": home}),
-        DESIGN_PAGE: _fill(shell, {**values, "loader": "", "page_title": html.escape(f"{title} | {design_title}"), "description": html.escape(design_summary, quote=True), "home": "./", "design_current": ' aria-current="page"', "footer_tool_links": _footer_tool_links(exhibits, "./"), "main": design}),
+        "index.html": _fill(shell, {**values, "loader": loader, "page_title": html.escape(f"{title} | {intro_paragraphs[0]}"), "description": html.escape(intro_paragraphs[0], quote=True), "home": "", "design_current": "", "footer_tool_links": _footer_tool_links(exhibits, ""), "menu_tool_links": _menu_tool_links(exhibits, ""), "main": home}),
+        DESIGN_PAGE: _fill(shell, {**values, "loader": "", "page_title": html.escape(f"{title} | {design_title}"), "description": html.escape(design_summary, quote=True), "home": "./", "design_current": ' aria-current="page"', "footer_tool_links": _footer_tool_links(exhibits, "./"), "menu_tool_links": _menu_tool_links(exhibits, "./"), "main": design}),
     }
     output = root / "dist"
     shutil.rmtree(output, ignore_errors=True)

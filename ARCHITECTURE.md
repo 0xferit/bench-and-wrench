@@ -4,7 +4,7 @@
 
 Each tool has one authored entry in `tools/`. That entry owns the collection's assessment: purpose, reasons for inclusion, limits, relationship to the maintainer, and links to supporting work. The README is the entry point and index, not a second copy of those assessments.
 
-The catalog uses Markdown so it remains readable directly in the repository. The website is generated from these entries rather than maintaining a competing catalog.
+The catalog uses Markdown so it remains readable directly in the repository. The website is generated from these entries rather than maintaining a competing catalog: the tool rows, the header's Tools dropdown and the footer's tool links all come from the same records.
 
 ## Upstream boundary
 

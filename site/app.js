@@ -883,7 +883,24 @@
   };
   menuButton.addEventListener('click', () => setMenu(menuButton.getAttribute('aria-expanded') !== 'true'));
   menu.addEventListener('click', (event) => { if (event.target.closest('a')) setMenu(false); });
-  document.addEventListener('keydown', (event) => { if (event.key === 'Escape') setMenu(false); });
+  const dropdownGroups = [...menu.querySelectorAll('.header-menu-item-wrap')];
+  const dismissDropdowns = () => {
+    for (const group of dropdownGroups) {
+      if (!group.matches(':hover, :focus-within')) continue;
+      group.classList.add('is-dismissed');
+      if (group.contains(document.activeElement)) group.querySelector('.header-menu-item').focus();
+    }
+  };
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    setMenu(false);
+    if (DESKTOP.matches) dismissDropdowns();
+  });
+  for (const group of dropdownGroups) {
+    const restore = () => group.classList.remove('is-dismissed');
+    group.addEventListener('pointerleave', restore);
+    group.addEventListener('focusout', (event) => { if (!group.contains(event.relatedTarget)) restore(); });
+  }
 
   const headerHeight = () => header.getBoundingClientRect().height;
   const hideThreshold = () => HIDE_AFTER_HEADER_HEIGHTS * headerHeight();

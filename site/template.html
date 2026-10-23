@@ -37,7 +37,10 @@
         <div class="header-menu-inner">
           <button class="header-menu-btn txt-mono txt-14" type="button" aria-expanded="false" aria-controls="menu"><i class="line line-v line-left line-solid"></i><span>Menu</span><span class="header-menu-btn-ic" aria-hidden="true"><i></i><i></i><i></i></span></button>
           <nav class="header-menu" id="menu" aria-label="Main navigation">
-            <a class="header-menu-item btn-fill btn-fill-ghost" href="{{home}}#tools"><i class="line line-v line-left line-solid"></i><span class="btn-fill-bg" aria-hidden="true"></span><span class="swap txt-mono txt-14"><span>Tools</span><span aria-hidden="true">Tools</span></span></a>
+            <div class="header-menu-item-wrap">
+              <a class="header-menu-item has-dropdown btn-fill btn-fill-ghost" href="{{home}}#tools"><i class="line line-v line-left line-solid"></i><span class="btn-fill-bg" aria-hidden="true"></span><span class="swap txt-mono txt-14"><span>Tools</span><span aria-hidden="true">Tools</span></span></a>
+              <div class="header-menu-dropdown"><div class="header-menu-dropdown-inner">{{menu_tool_links}}</div></div>
+            </div>
             <a class="header-menu-item btn-fill btn-fill-ghost" href="{{home}}#approach"><i class="line line-v line-left line-solid"></i><span class="btn-fill-bg" aria-hidden="true"></span><span class="swap txt-mono txt-14"><span>Approach</span><span aria-hidden="true">Approach</span></span></a>
             <a class="header-menu-item btn-fill btn-fill-ghost" href="design-system.html"{{design_current}}><i class="line line-v line-left line-solid"></i><span class="btn-fill-bg" aria-hidden="true"></span><span class="swap txt-mono txt-14"><span>Design system</span><span aria-hidden="true">Design system</span></span></a>
             <a class="header-cta only-mb cell-button" href="{{profile_url}}"><i class="line line-v line-left line-solid"></i><span class="swap txt-mono txt-14"><span>GitHub</span><span aria-hidden="true">GitHub</span></span>{{arrow_solid}}<i class="line line-h line-bottom line-solid"></i></a>

@@ -45,6 +45,9 @@ class WebsiteBuildTests(unittest.TestCase):
             self.assertIn(name, page)
         self.assertIn('href="https://example.com/tool"', page)
         self.assertIn("A real limitation.", page)
+        menu = re.search(r'<nav class="header-menu".*?</nav>', page, re.DOTALL).group(0)
+        dropdown = re.findall(r'class="header-menu-dropdown-item[^"]*" href="([^"]+)"', menu)
+        self.assertEqual(dropdown, ["#live-gantt", "#linear-work-tree", "#boundary-tool"])
         self.assertNotIn("{{", page)
         self.assertTrue((self.root / "dist/assets/mark.svg").is_file())
 

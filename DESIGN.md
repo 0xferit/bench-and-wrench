@@ -122,7 +122,7 @@ A labelled example of a tool, framed as a window. Illustrations are examples, ne
 - The hero drawing's measuring line sweeps its length once on load, then rests at the jaw tip. That is the page's one orchestrated moment.
 - Over the hero drawing a crosshair follows the pointer and reads its position in millimetres from the part's origin. The drawing carries its own origin and scale as data, so the reading cannot drift from the art.
 - Once the page scrolls past the header, the wordmark slides under the mark on screens 768px and wider. Hovering the mark, or focusing the link, slides it back in 400ms.
-- Header cells fill with ink from below on hover, the label swaps upward and a corner mark travels from the bottom right to the top right.
+- Header cells fill with ink from below on hover and the label swaps upward. The current page's link keeps its muted label, takes no pointer and carries a small ink square at its right edge.
 - Buttons dissolve to ink in 580ms over 20 steps. Cell buttons fill from below in 500ms with an ease-out curve.
 - Hover effects run only on hover-capable screens 992px and wider. Below that, a hover only darkens an outline button's rule and dims the accent button's label to `--muted`, and touch screens show no hover state at all.
 - Under `prefers-reduced-motion`, the sweep does not run, the line rests at its end position, and hover transitions are instant.

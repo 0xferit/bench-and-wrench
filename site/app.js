@@ -2,6 +2,7 @@
   const HIDE_AFTER_HEADER_HEIGHTS = 5;
   const SETTLE_DELAY_MS = 150;
   const DESKTOP = matchMedia('(min-width: 992px)');
+  const WIDER_THAN_PHONE = matchMedia('(min-width: 768px)');
   const HOVER_DESKTOP = matchMedia('(hover: hover) and (min-width: 992px)');
   const FILL_DURATION_MS = 580;
   const FILL_EASING = 'steps(20, jump-none)';
@@ -27,6 +28,8 @@
   const STATEMENT_CHAR_STAGGER = 0.03;
   const INK_SCRUB = { start: 'top 35%', end: 'bottom 55%' };
   const INK_BULGE = 1.25;
+  const PLAN_ENTRY = { start: 'top bottom', end: 'top top' };
+  const PLAN_SCRUB = { start: 'top 50%', end: () => (WIDER_THAN_PHONE.matches ? 'bottom-=30vh bottom' : 'bottom-=180vh top') };
   const STRIP_AUTOPLAY_MS = 3000;
   const STRIP_SPEED_MS = 600;
   const STRIP_STEP_DESKTOP = 3;
@@ -756,6 +759,21 @@
     strip.addEventListener('focusout', () => { paused = false; });
     new ResizeObserver(layoutStrip).observe(stripList);
     REDUCED_MOTION.addEventListener('change', startAutoplay);
+  }
+
+  const plan = document.querySelector('.bench-plan');
+  const planStage = plan && plan.querySelector('.bench-plan-stage');
+  const planCanvas = planStage && planStage.querySelector('.bench-plan-canvas');
+  if (planCanvas) {
+    scene(plan, {
+      ...PLAN_ENTRY,
+      onProgress: (progress, { top }) => {
+        const pinnedAt = parseFloat(getComputedStyle(planStage).top);
+        const below = progress < 1 && DESKTOP.matches ? Math.min(Math.max(top - pinnedAt, 0), planStage.offsetHeight) : 0;
+        planCanvas.style.setProperty('--plan-entry', `${-below}px`);
+      },
+    });
+    scene(plan, { ...PLAN_SCRUB, onProgress: (progress) => plan.classList.toggle('expanded', progress === 1) });
   }
 
   const toolInfos = [...document.querySelectorAll('.tool-row-info')];

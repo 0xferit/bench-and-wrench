@@ -816,5 +816,4 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
 @media (prefers-reduced-motion: reduce) {
   .drawing .measure { animation: none; }
   .js .home-hero-work-inner { animation: none; }
-  .header-inner, .swap > *, .slide > *, .header-menu { transition: none !important; }
 }

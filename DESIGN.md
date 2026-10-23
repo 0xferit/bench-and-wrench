@@ -63,6 +63,7 @@ Two families, self-hosted: Archivo and Geist Mono. The page makes no request to 
 - The header is fixed. It hides when the reader scrolls down and returns when they scroll up. Below 991px its links collapse behind a Menu cell.
 - A ruler frame has an inset of 1.2rem, 0.9rem tick spacing on every edge and a plus mark at each corner. It frames the one drawing a screen is about.
 - Dashed rules repeat a 1.6rem pattern: a dot, a gap, a dash, a gap. They separate parts of a cell; solid rules separate cells.
+- A rule drawn over a cell is a `.line` element: absolute, 1px, above the content and taking no layout space. It takes `line-h` or `line-v`, a side (`line-top`, `line-bottom`, `line-left`, `line-right`) and `line-solid` or `line-dash`; `line-ink` darkens a dash. Its parent must be positioned.
 
 ## Components
 

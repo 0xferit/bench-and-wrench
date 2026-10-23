@@ -418,8 +418,10 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
 .footer-info-item { display: flex; flex-direction: column; align-items: flex-start; padding: 1.6rem; }
 .footer-info-label { margin-bottom: 1.8rem; color: var(--granite); }
 .footer-info-value { overflow-wrap: anywhere; transition: color 0.4s; }
-.footer-logo { display: flex; align-items: center; justify-content: center; min-height: 42.4rem; color: var(--ink); }
+.footer-logo { display: flex; align-items: center; justify-content: center; min-height: 42.4rem; color: var(--ink); -webkit-user-select: none; user-select: none; }
 .footer-logo .mark { width: 25.8rem; height: 25.8rem; }
+.footer-logo-ink { --brand: var(--ink); }
+.footer-logo-path { --ink: var(--brand); opacity: 0; transition: opacity 0.5s var(--ease-out); }
 .footer-band { position: relative; height: 37.7rem; overflow: hidden; }
 .footer-band-art { position: absolute; inset: 3.2rem 6.4rem; display: grid; }
 .footer-band-art > svg { grid-area: 1 / 1; width: 100%; height: 100%; }
@@ -525,6 +527,7 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
   .cell-item:hover .cell-item-dot, .cell-item:hover .cell-item-main::after { opacity: 1; }
   .cell-item:hover .cell-item-head > span:first-of-type { transform: translateX(2rem); }
   .footer-link:hover { color: var(--brand); }
+  .footer-logo-path:hover { opacity: 1; }
   .footer-policy-item:hover { color: var(--brand); }
   .tree-toggle:hover { background: var(--paper); }
 }

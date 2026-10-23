@@ -70,8 +70,8 @@ class WebsiteBuildTests(unittest.TestCase):
 
     def test_theme_and_favicon_colours_come_from_the_palette_tokens(self):
         (self.root / "site/style.css").write_text(
-            ":root { --paper: #f0f0f0; --cell: #ffffff; --ink: #101010; --muted: #404040; --rule: #999999; --brand: #a00000; --on-brand: #ffffff; --step-label: 12px; --space-1: 4px; }\n"
-            "@media (prefers-color-scheme: dark) { :root { --paper: #202020; --cell: #282828; --ink: #ffffff; --muted: #cccccc; --brand: #ff6666; --on-brand: #000000; } }\n"
+            ":root { --paper: #f0f0f0; --cell: #ffffff; --ink: #101010; --muted: #404040; --granite: #404040; --rule: #999999; --brand: #a00000; --on-brand: #ffffff; --on-ink: #ffffff; --step-label: 12px; --space-1: 4px; }\n"
+            "@media (prefers-color-scheme: dark) { :root { --paper: #202020; --cell: #282828; --ink: #ffffff; --muted: #cccccc; --granite: #cccccc; --brand: #ff6666; --on-brand: #000000; --on-ink: #000000; } }\n"
         )
         result = self.build()
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -79,8 +79,8 @@ class WebsiteBuildTests(unittest.TestCase):
         self.assertIn('content="#f0f0f0" media="(prefers-color-scheme: light)"', page)
         self.assertIn('content="#202020" media="(prefers-color-scheme: dark)"', page)
         icon = (self.root / "dist/assets/mark.svg").read_text()
-        for colour in ("#101010", "#f0f0f0", "#a00000"):
-            self.assertIn(f'fill="{colour}"', icon)
+        for token, colour in (("ink", "#101010"), ("paper", "#f0f0f0"), ("brand", "#a00000")):
+            self.assertIn(f"fill:var(--{token},{colour})", icon)
 
     def test_stale_output_is_removed_before_building(self):
         stale = self.root / "dist/assets/fonts/retired-font.woff2"
@@ -108,7 +108,7 @@ class WebsiteBuildTests(unittest.TestCase):
     def test_a_contrast_pair_below_its_threshold_fails_before_producing_a_page(self):
         styles = self.root / "site/style.css"
         original = styles.read_text()
-        lowered = original.replace("--muted: #5f5f5b;", "--muted: #bbbbb7;")
+        lowered = original.replace("--muted: #282828b8;", "--muted: #28282840;")
         self.assertNotEqual(lowered, original)
         styles.write_text(lowered)
         result = self.build()
@@ -116,6 +116,16 @@ class WebsiteBuildTests(unittest.TestCase):
         self.assertIn("--muted on --paper", result.stderr)
         self.assertIn("below the 4.5:1", result.stderr)
         self.assertFalse((self.root / "dist/index.html").exists())
+
+    def test_a_translucent_text_colour_is_judged_on_the_ground_it_sits_on(self):
+        styles = self.root / "site/style.css"
+        original = styles.read_text()
+        translucent = original.replace("--muted: #282828b8;", "--muted: #00000080;")
+        self.assertNotEqual(translucent, original)
+        styles.write_text(translucent)
+        result = self.build()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("--muted on --paper", result.stderr)
 
     def test_a_dark_palette_that_breaks_a_pair_also_fails(self):
         styles = self.root / "site/style.css"

@@ -18,6 +18,14 @@ COLOR_TOKEN = re.compile(r"--([a-z-]+):\s*(#[0-9a-fA-F]+);")
 ROOT_TOKEN = re.compile(r"--([a-z0-9-]+):\s*([^;]+);")
 DIRECTIVE = re.compile(r"\{\{(.+)\}\}")
 SPECIMEN_NAME = re.compile(r"[a-z][a-z0-9-]*")
+REPOSITORY_URL = "https://github.com/0xferit/bench-and-wrench"
+PROFILE_URL = "https://github.com/0xferit"
+ARROW_ICON = '<svg class="arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 10h15M11 4l6 6-6 6"/></svg>'
+SPANNER_GLYPH = (
+    '<svg viewBox="0 0 204 100" aria-hidden="true"><circle cx="36" cy="50" r="26"/>'
+    '<path d="M36 38l10.4 6v12L36 62l-10.4-6V44z"/><path d="M60 41l82 1M60 59l82-1"/>'
+    '<path d="M187 38H164v24h23A26 26 0 1 1 187 38z"/></svg>'
+)
 DESIGN_SOURCE = "DESIGN.md"
 DESIGN_PAGE = "design-system.html"
 
@@ -88,6 +96,11 @@ def _first_paragraph(blocks):
     return next((value for kind, value in blocks if kind == "p"), "")
 
 
+def _swap_label(text):
+    escaped = html.escape(text)
+    return f'<span class="swap txt-mono txt-14"><span>{escaped}</span><span aria-hidden="true">{escaped}</span></span>'
+
+
 def _tool_exhibit(root, path, position):
     source = (root / path).read_text()
     opening, sections = _sections(source)
@@ -112,18 +125,24 @@ def _tool_exhibit(root, path, position):
     slug = Path(path).stem
     illustration_path = root / "site/illustrations" / f"{slug}.html"
     illustration = illustration_path.read_text() if illustration_path.exists() else (
-        f'<div class="tool-illustration plain-illustration cell"><strong>{html.escape(title)}</strong></div>'
+        f'<div class="tool-illustration plain-illustration"><strong>{html.escape(title)}</strong></div>'
     )
-    notes = [f'<section class="note-section"><h4>About this entry</h4><p>{_inline(relationship)}</p></section>']
+    notes = [f'<section class="faq-section"><h4>About this entry</h4><p>{_inline(relationship)}</p></section>']
     for heading, blocks in sections.items():
         remaining = blocks[1:] if heading in ("Why it earns a place", "Limits to understand") else blocks
         if remaining:
-            notes.append(f'<section class="note-section"><h4>{html.escape(heading)}</h4>{_render(remaining)}</section>')
-    return title, slug, f'''
+            notes.append(f'<section class="faq-section"><h4>{html.escape(heading)}</h4>{_render(remaining)}</section>')
+    return title, slug, relation, f'''
 <article class="tool" id="{slug}">
-  <header class="tool-head cell-row"><span class="tool-index label cell">[{position:02d}]</span><h3 class="cell">{html.escape(title)}</h3><span class="relationship relationship-{html.escape(relation.lower())} cell">{html.escape(relation)}</span></header>
-  <div class="tool-body cell-row">{illustration}<div class="tool-copy cell"><div class="tool-intro">{intro}</div><dl class="tool-facts"><div><dt class="label">Why it earns a place</dt><dd>{_inline(reason)}</dd></div><div class="caveat"><dt class="label">Keep in mind</dt><dd>{_inline(caveat)}</dd></div></dl><p class="tool-actions"><a class="button" href="{html.escape(primary[1], quote=True)}"><span class="button-label">{html.escape(action)}</span><span class="button-icon" aria-hidden="true"></span></a></p></div></div>
-  <details class="field-notes" id="notes-{slug}"><summary><span>Field notes</span><span class="notes-hint">Fit, limits, and sources</span></summary><div class="notes-grid">{''.join(notes)}</div></details>
+  <div class="tool-row row">
+    <div class="tool-row-left"><span class="txt-mono txt-14 disabled" aria-hidden="true">[{position:02d}]</span><div><span class="relationship relationship-{html.escape(relation.lower())}">{html.escape(relation)}</span><h3 class="tool-row-title heading h4 tb-h6 mb-h4">{html.escape(title)}</h3></div></div>
+    <div class="tool-row-art"><div class="ruler" aria-hidden="true"><i class="ruler-edge ruler-top"></i><i class="ruler-edge ruler-bottom"></i><i class="ruler-edge ruler-left"></i><i class="ruler-edge ruler-right"></i><i class="plus top left"></i><i class="plus top right"></i><i class="plus bot left"></i><i class="plus bot right"></i></div>{illustration}</div>
+    <div class="tool-row-right">
+      <div class="tool-row-sub"><div class="tool-intro">{intro}</div><dl class="tool-facts"><div><dt class="txt-mono txt-12">Why it earns a place</dt><dd>{_inline(reason)}</dd></div><div><dt class="txt-mono txt-12">Keep in mind</dt><dd>{_inline(caveat)}</dd></div></dl></div>
+      <a class="tool-row-btn fill-slide" href="{html.escape(primary[1], quote=True)}">{_swap_label(action)}<span class="tool-row-btn-ic">{ARROW_ICON}</span></a>
+    </div>
+  </div>
+  <details class="faq-item" id="notes-{slug}"><summary><span class="faq-title heading h6">Field notes</span><span class="txt-mono txt-12 granite">Fit, limits, and sources</span><span class="faq-ic" aria-hidden="true"></span></summary><div class="faq-body"><div class="faq-grid">{''.join(notes)}</div></div></details>
 </article>'''
 
 
@@ -148,6 +167,14 @@ def _fill(template, values):
     return re.sub(r"{{(\w+)}}", lambda match: values[match.group(1)], template)
 
 
+def _opaque(colour, background):
+    if len(colour) != 9:
+        return colour
+    alpha = int(colour[7:9], 16) / 255
+    channels = [round(int(colour[at:at + 2], 16) * alpha + int(background[at:at + 2], 16) * (1 - alpha)) for at in (1, 3, 5)]
+    return "#" + "".join(f"{channel:02x}" for channel in channels)
+
+
 def _luminance(colour):
     channels = [int(colour[position:position + 2], 16) / 255 for position in (1, 3, 5)]
     linear = [value / 12.92 if value <= 0.03928 else ((value + 0.055) / 1.055) ** 2.4 for value in channels]
@@ -155,6 +182,7 @@ def _luminance(colour):
 
 
 def _contrast(foreground, background):
+    foreground = _opaque(foreground, background)
     lighter, darker = sorted((_luminance(foreground), _luminance(background)), reverse=True)
     return (lighter + 0.05) / (darker + 0.05)
 
@@ -225,7 +253,7 @@ def _scale(palette, family):
 def _specimen(root, name):
     if not SPECIMEN_NAME.fullmatch(name):
         raise ValueError(f"Invalid specimen name: {name}")
-    source = (root / "site/specimens" / f"{name}.html").read_text()
+    source = (root / "site/specimens" / f"{name}.html").read_text().replace("{{arrow}}", ARROW_ICON)
     return (f'<figure class="specimen"><div class="specimen-live">{source}</div>'
             f'<pre class="specimen-code"><code>{html.escape(source.strip())}</code></pre></figure>')
 
@@ -260,16 +288,50 @@ def _design_main(root, palette):
         )
         slug = re.sub(r"[^a-z0-9]+", "-", heading.lower()).strip("-")
         body.append(
-            f'''<section class="section doc-section" id="{slug}" aria-labelledby="{slug}-title">
-  <div class="section-head cell-row"><div class="cell"><span class="label">[{position:02d}]</span></div><div class="cell"><h2 id="{slug}-title">{html.escape(heading)}</h2></div></div>
-  <div class="doc-body cell">{content}</div>
+            f'''<section class="doc-section" id="{slug}" aria-labelledby="{slug}-title">
+  <div class="doc-head"><div class="doc-head-label"><span class="txt-mono txt-14 disabled" aria-hidden="true">[{position:02d}]</span></div><div class="doc-head-title"><h2 id="{slug}-title" class="heading h3 tb-h4 mb-h3">{html.escape(heading)}</h2></div></div>
+  <div class="doc-body">{content}</div>
 </section>'''
         )
-    hero = f'''<section class="hero-row cell-row" aria-labelledby="page-title">
-  <div class="hero-title cell"><h1 id="page-title">{html.escape(title)}</h1></div>
-  <div class="hero-copy cell"><p class="lede">{_inline(paragraphs[0])}</p><p>{_inline(paragraphs[1])}</p></div>
+    head = f'''<section class="page-head" aria-labelledby="page-title">
+  <div class="page-head-title"><h1 id="page-title" class="heading h1 tb-h3 mb-h2">{html.escape(title)}</h1></div>
+  <div class="page-head-copy"><p class="txt-20">{_inline(paragraphs[0])}</p><p>{_inline(paragraphs[1])}</p></div>
 </section>'''
-    return title, paragraphs[0], hero + "\n" + "\n".join(body)
+    return title, paragraphs[0], head + "\n" + "\n".join(body)
+
+
+def _relationship_cell(position, label, description):
+    plus_marks = "".join(f'<i class="cell-item-plus {corner}"></i>' for corner in ("top left", "top right", "bot left", "bot right"))
+    return (
+        f'<article class="cell-item">{plus_marks}'
+        f'<div class="cell-item-head txt-mono txt-14"><span>Relationship</span><span class="disabled" aria-hidden="true">[{position:02d}]</span><i class="dash-h dash-bottom"></i></div>'
+        f'<div class="cell-item-img glyph-{html.escape(label.lower())}">{SPANNER_GLYPH}<i class="dash-h dash-bottom"></i></div>'
+        f'<div class="cell-item-content"><h3 class="cell-item-title heading h5 tb-h6 mb-h4">{html.escape(label)}</h3><p class="txt-16 txt-reg">{_inline(description)}</p></div></article>'
+    )
+
+
+def _relationship_cells(sections):
+    items = []
+    for kind, values in sections["What the labels mean"]:
+        if kind != "ul":
+            continue
+        for value in values:
+            match = re.match(r"\*\*([^*]+):\*\* (.+)", value)
+            if match is None:
+                raise ValueError("Unrecognized relationship label")
+            items.append(match.groups())
+    return "".join(_relationship_cell(position, label, description) for position, (label, description) in enumerate(items, start=1))
+
+
+def _strip_item(name, slug, relation):
+    return (
+        f'<a class="statement-strip-item fill-slide" href="#{slug}"><span class="txt-mono txt-14">{html.escape(name)}</span>'
+        f'<span class="relationship relationship-{html.escape(relation.lower())}">{html.escape(relation)}</span></a>'
+    )
+
+
+def _footer_tool_links(exhibits, home):
+    return "".join(f'<a class="footer-link" href="{home}#{slug}">{html.escape(name)}</a>' for name, slug, _, _ in exhibits)
 
 
 def _build(root):
@@ -282,19 +344,11 @@ def _build(root):
     if not catalog:
         raise ValueError("The catalog contains no tools")
     exhibits = [_tool_exhibit(root, path, position) for position, (_, path) in enumerate(catalog, start=1)]
-    legend = []
-    for kind, values in sections["What the labels mean"]:
-        if kind != "ul":
-            continue
-        for value in values:
-            match = re.match(r"\*\*([^*]+):\*\* (.+)", value)
-            if match is None:
-                raise ValueError("Unrecognized relationship label")
-            label, description = match.groups()
-            legend.append(f'<div><dt class="relationship relationship-{html.escape(label.lower())}">{html.escape(label)}</dt><dd>{_inline(description)}</dd></div>')
     palette = Palette((root / "site/style.css").read_text())
     values = {
-        "profile_url": "https://github.com/0xferit",
+        "profile_url": PROFILE_URL,
+        "repository_url": REPOSITORY_URL,
+        "arrow": ARROW_ICON,
         "theme_paper": palette.colour("light", "paper"),
         "theme_paper_dark": palette.colour("dark", "paper"),
         "theme_ink": palette.colour("light", "ink"),
@@ -303,17 +357,19 @@ def _build(root):
         "tagline": _inline(intro_paragraphs[0]),
         "intro": _inline(intro_paragraphs[1]),
         "hero_drawing": (root / "site/illustrations/hero-spanner.svg").read_text(),
-        "exhibits": "\n".join(exhibit for _, _, exhibit in exhibits),
-        "tool_index": ", ".join(f'<a href="#{slug}">{html.escape(name)}</a>' for name, slug, _ in exhibits),
+        "exhibits": "\n".join(exhibit for _, _, _, exhibit in exhibits),
+        "tool_count": f"{len(exhibits):02d}",
+        "tool_work_items": "".join(f'<span class="home-hero-work-item txt-mono txt-12">{html.escape(name)}</span>' for name, _, _, _ in exhibits),
+        "tool_strip_items": "".join(_strip_item(name, slug, relation) for name, slug, relation, _ in exhibits),
         "criteria": _render(sections["What belongs here"][:1]),
-        "legend": '<dl class="legend">' + "".join(legend) + "</dl>",
+        "legend_cells": _relationship_cells(sections),
     }
     shell = (root / "site/template.html").read_text()
     home = _fill((root / "site/home.html").read_text(), values)
     design_title, design_summary, design = _design_main(root, palette)
     pages = {
-        "index.html": _fill(shell, {**values, "page_title": html.escape(title), "description": html.escape(intro_paragraphs[0], quote=True), "home": "", "main": home}),
-        DESIGN_PAGE: _fill(shell, {**values, "page_title": f"{html.escape(design_title)}: {html.escape(title)}", "description": html.escape(design_summary, quote=True), "home": "./", "main": design}),
+        "index.html": _fill(shell, {**values, "page_title": html.escape(title), "description": html.escape(intro_paragraphs[0], quote=True), "home": "", "design_current": "", "footer_tool_links": _footer_tool_links(exhibits, ""), "main": home}),
+        DESIGN_PAGE: _fill(shell, {**values, "page_title": f"{html.escape(design_title)}: {html.escape(title)}", "description": html.escape(design_summary, quote=True), "home": "./", "design_current": ' aria-current="page"', "footer_tool_links": _footer_tool_links(exhibits, "./"), "main": design}),
     }
     output = root / "dist"
     shutil.rmtree(output, ignore_errors=True)

@@ -13,26 +13,63 @@
   <link rel="icon" href="assets/mark.svg" type="image/svg+xml">
   <link rel="preload" href="assets/fonts/archivo-variable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/geist-mono-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <script>document.documentElement.classList.add('js')</script>
   <link rel="stylesheet" href="style.css">
   <script src="app.js" defer></script>
 </head>
-<body>
+<body id="top">
   <a class="skip-link" href="#main">Skip to the content</a>
-  <div class="sheet" id="top">
-    <header class="masthead">
-      <a class="brand" href="{{home}}#top" aria-label="{{title}} home">
-        <img class="brand-mark" src="assets/mark.svg" width="28" height="28" alt="">
-        <span class="brand-name">{{title}}</span>
+  <header class="header" data-header>
+    <div class="header-inner">
+      <a class="header-logo" href="{{home}}#top" aria-label="{{title}} home">
+        <svg class="mark" aria-hidden="true"><use href="assets/mark.svg#mark"/></svg>
+        <span class="header-logo-name">{{title}}</span>
       </a>
-      <nav class="masthead-nav" aria-label="Main navigation"><a href="{{home}}#tools">Tools</a><a href="{{home}}#approach">Approach</a><a href="design-system.html">Design system</a><a class="nav-accent" href="{{profile_url}}">GitHub</a></nav>
-    </header>
-    <main id="main">
-      {{main}}
-    </main>
-    <footer class="site-footer cell-row">
-      <div class="cell"><p><strong>{{title}}</strong>. Software tools, with the thinking left in.</p></div>
-      <div class="cell"><a class="label" href="#top">Back to the top</a></div>
-    </footer>
-  </div>
+      <div class="header-menu-wrap">
+        <div class="header-menu-inner">
+          <button class="header-menu-btn txt-mono txt-14" type="button" aria-expanded="false" aria-controls="menu"><span>Menu</span><span class="header-menu-btn-ic" aria-hidden="true"><i></i><i></i><i></i></span></button>
+          <nav class="header-menu" id="menu" aria-label="Main navigation">
+            <a class="header-menu-item fill-slide" href="{{home}}#tools"><span class="swap txt-mono txt-14"><span>Tools</span><span aria-hidden="true">Tools</span></span><i class="corner top"></i><i class="corner bot"></i></a>
+            <a class="header-menu-item fill-slide" href="{{home}}#approach"><span class="swap txt-mono txt-14"><span>Approach</span><span aria-hidden="true">Approach</span></span><i class="corner top"></i><i class="corner bot"></i></a>
+            <a class="header-menu-item fill-slide" href="design-system.html"{{design_current}}><span class="swap txt-mono txt-14"><span>Design system</span><span aria-hidden="true">Design system</span></span><i class="corner top"></i><i class="corner bot"></i></a>
+            <a class="header-cta only-mb cell-button fill-slide" href="{{profile_url}}"><span class="swap txt-mono txt-14"><span>GitHub</span><span aria-hidden="true">GitHub</span></span>{{arrow}}</a>
+          </nav>
+        </div>
+        <a class="header-cta cell-button fill-slide" href="{{profile_url}}"><span class="swap txt-mono txt-14"><span>GitHub</span><span aria-hidden="true">GitHub</span></span>{{arrow}}</a>
+      </div>
+    </div>
+  </header>
+  <main id="main">
+    {{main}}
+  </main>
+  <footer class="footer">
+    <div class="footer-grid">
+      <div class="footer-left">
+        <div class="footer-title-wrap"><p class="footer-title heading h4 tb-h5 mb-h3">Software tools, with the thinking left in.</p></div>
+        <div class="footer-note"><p class="footer-label txt-mono txt-14 mb-txt-12">Colophon</p><p>Set in Archivo and Geist Mono, both self-hosted. No cookies, no analytics, no third-party requests.</p></div>
+      </div>
+      <div class="footer-content">
+        <div class="footer-menu">
+          <div class="footer-menu-item"><p class="footer-label txt-mono txt-14 mb-txt-12">Tools</p><div class="footer-link-wrap">{{footer_tool_links}}</div></div>
+          <div class="footer-menu-item"><p class="footer-label txt-mono txt-14 mb-txt-12">Collection</p><div class="footer-link-wrap"><a class="footer-link" href="{{home}}#approach">Approach</a><a class="footer-link" href="design-system.html">Design system</a></div></div>
+          <div class="footer-menu-item"><p class="footer-label txt-mono txt-14 mb-txt-12">Elsewhere</p><div class="footer-link-wrap"><a class="footer-link" href="{{profile_url}}">GitHub</a><a class="footer-link" href="{{repository_url}}">Repository</a></div></div>
+        </div>
+        <div class="footer-info">
+          <div class="footer-info-item"><p class="footer-info-label txt-mono txt-14 mb-txt-12">Source</p><a class="footer-link footer-info-value" href="{{repository_url}}">0xferit/bench-and-wrench</a></div>
+          <div class="footer-info-item"><p class="footer-info-label txt-mono txt-14 mb-txt-12">Maker</p><a class="footer-link footer-info-value" href="{{profile_url}}">0xferit</a></div>
+          <div class="footer-info-item"><p class="footer-info-label txt-mono txt-14 mb-txt-12">Found a problem</p><a class="footer-link footer-info-value" href="{{repository_url}}/issues">Open an issue</a></div>
+        </div>
+      </div>
+      <div class="footer-logo"><svg class="mark" aria-hidden="true"><use href="assets/mark.svg#mark"/></svg></div>
+    </div>
+    <div class="footer-copyright-wrap">
+      <div class="footer-copyright"><p>{{title}}</p></div>
+      <div class="footer-policy">
+        <a class="footer-policy-item txt-mono txt-14" href="{{repository_url}}">Source</a>
+        <a class="footer-policy-item txt-mono txt-14" href="design-system.html">Design system</a>
+        <a class="footer-policy-item txt-mono txt-14" href="#top">Back to top</a>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>

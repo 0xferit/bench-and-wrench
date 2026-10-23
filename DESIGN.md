@@ -2,27 +2,29 @@
 
 The drawing-sheet design system keeps Ferit's Bench and Wrench and every tool in it looking like one family.
 
-`site/style.css` is the only definition of the tokens. This document explains what they mean and how to use them. The website and the tool illustrations are the reference implementation, and the specimens below are the real components, not pictures of them.
+`site/style.css` is the only definition of the tokens. This document explains what they mean and how to use them. The website and the tool illustrations are the reference implementation, and the specimens below are the real components, not pictures of them. The proportions, tokens and interaction patterns follow the Heron AI website by Bearplus, which Ferit chose as the reference; no asset, font, image or copy was taken from it.
 
 ## Principles
 
-- **Everything is a cell.** A page is one ruled sheet. Every module is a bordered cell, and cells in a row are separated by 1px rules. There are no cards, shadows or rounded corners.
-- **Measure, do not decorate.** Rules, ticks, indices and hatching carry information: a tick is an interval, a bracketed index is a position in a sequence, a hatched area is work that has not happened. If a mark carries nothing, leave it out.
+- **Everything is a cell.** A page is one ruled sheet inside a fixed frame. Every module is a bordered cell, and cells in a row are separated by 1px rules. There are no cards, shadows or rounded corners.
+- **One unit, scaled by the viewport.** Every length is in `rem`, and the root size is a share of the viewport width, so the whole sheet scales as one drawing. Never write a pixel length, except the 1px rule.
+- **Measure, do not decorate.** Rules, ticks, indices and plus marks carry information: a tick is an interval, a bracketed index is a position in a sequence, a plus mark is a registered corner. If a mark carries nothing, leave it out.
 - **Statements in grotesque, labels in mono.** Archivo sets headlines and prose. Geist Mono, always uppercase, sets labels, indices, status and buttons.
 - **One accent.** Vermilion marks what to act on or what to look at. It is never decoration, and no screen carries more than a few uses.
-- **State is drawn, not described.** Done is solid ink, running is vermilion, estimated is dashed, waiting is hatched. A reader should not need a legend for the common states.
-- **Quiet motion.** One orchestrated moment per page, plus responses to the reader's own actions. Reduced motion shows the resting state.
+- **Quiet motion.** Motion answers the reader's pointer, plus one orchestrated moment per page. Reduced motion shows the resting state.
 
 ## Colour
 
 {{palette}}
 
-- `--paper` is the page ground. It carries a faint grain, so cells stay transparent and let it show.
-- `--cell` is a raised surface or a hover state: the window inside an illustration, a hovered row.
-- `--ink` is text, rules that need weight, and drawing lines.
-- `--muted` is secondary text and fine drawing lines.
+- `--paper` is the page ground. A faint cloud grain sits behind the content, so cells stay transparent and let it show.
+- `--cell` is a raised surface: the window inside an illustration.
+- `--ink` is headings, rules that need weight, drawing lines and fills on hover.
+- `--muted` is body copy. It is the ink at 72% opacity, so it adapts to whatever it sits on.
 - `--rule` is the 1px divider between cells. It is a boundary, not text, so it is allowed a lower contrast than text.
-- `--brand` is the accent. `--on-brand` is the colour of text set on it.
+- `--disabled` is bracketed indices and resting plus icons. It is decoration that repeats information already in the markup, so those marks are hidden from assistive technology.
+- `--surface` is plus marks that appear on hover, `--granite` is labels, captions and footer headings, and `--tick` is the ruler ticks.
+- `--brand` is the accent. `--on-brand` is the colour of text set on it, and `--on-ink` is the colour of text set on an ink fill.
 
 Use tokens, never raw values. The dark palette redefines the same names, so a component written with tokens is already themed.
 
@@ -31,11 +33,12 @@ Use tokens, never raw values. The dark palette redefines the same names, so a co
 The build fails if a pair below drops under its threshold in either palette. Add a line here when a component introduces a new text and ground combination.
 
 {{contrast ink paper 4.5 Body text and headings on the page}}
-{{contrast muted paper 4.5 Secondary text and labels on the page}}
-{{contrast muted cell 4.5 Secondary text inside an illustration window}}
-{{contrast brand paper 4.5 Accent text and accent marks on the page}}
-{{contrast on-brand brand 4.5 Button labels on the accent fill}}
-{{contrast paper ink 4.5 Inverted labels, such as the Built chip}}
+{{contrast muted paper 4.5 Secondary text and body copy on the page}}
+{{contrast muted cell 4.5 Body copy inside an illustration window}}
+{{contrast granite paper 4.5 Labels, captions and footer headings}}
+{{contrast brand paper 3 Accent marks, large type and graphics; accepted exception for small accent labels, see Accessibility}}
+{{contrast on-brand brand 3 Button labels on the accent fill; accepted exception for small labels, see Accessibility}}
+{{contrast on-ink ink 4.5 Inverted labels, hover fills and the Built chip}}
 
 ## Typography
 
@@ -43,19 +46,22 @@ Two families, self-hosted: Archivo and Geist Mono. The page makes no request to 
 
 {{scale step}}
 
-- Headlines are Archivo 700 at 94% width, uppercase, with tracking of -0.03em and a line height of 1. Break them by meaning, not by width.
-- Prose is Archivo 450 at the body size with a line height of 1.5. Keep lines under 70 characters.
-- Labels are Geist Mono 500, uppercase, tracking 0.02em, never below the label size. A label names or counts something; it does not carry a sentence the reader must study.
-- Numbers use tabular figures so columns and progress values align.
+- Headlines are Archivo uppercase with tracking of -0.02em and a line height of 1. The first level is weight 700 and the rest are 600. Break them by meaning, not by width.
+- Headings take a size class and, where the layout changes, a tablet and a phone class, for example `h1 tb-h3 mb-h2`. The tablet class applies at 991px and below, the phone class at 767px and below.
+- Prose is Archivo 500 at the body size with a line height of 1.3. Keep lines under 70 characters. Body copy set on the page ground may drop to weight 400.
+- Labels are Geist Mono 500, uppercase, with no tracking. A label names or counts something; it does not carry a sentence the reader must study. Micro labels shrink to 0.8rem on phones.
+- Archivo stands in for Heron's commercial BT Grotesk. It is set 3.5% wider for headings and 5% wider for text, which matches BT Grotesk's measured line widths within 1.5%.
 
 ## Space and layout
 
 {{scale space}}
 
-- The sheet is the page. It has one 1px border inside a small margin. Rows are separated by a rule, and cells within a row by a rule.
-- Cell padding is a fluid token, so cells breathe on wide screens and stay compact on phones.
-- Below 860px, rows collapse to one column and the vertical rules between cells become horizontal ones. Nothing is hidden at that width except decoration and hints.
-- Registration marks, the small crosses in a figure's corners, appear on one figure per page.
+- The root size is 0.5787037037vw, which is 8.33px on a 1440px screen. At 991px and below it is 1.1990407674vw, and at 767px and below 2.5445292621vw. These three values are the only breakpoints.
+- The page sits inside a fixed frame inset 0.8rem from the window, drawn by a 1px rule. Rows are separated by 1px rules, and cells within a row by 1px rules.
+- Wide rows divide into quarters: a quarter, a half and a quarter, or four quarters. The first screen is one viewport: the fixed header, a ruler-framed drawing and a title row.
+- The header is fixed. It hides when the reader scrolls down and returns when they scroll up. Below 991px its links collapse behind a Menu cell.
+- A ruler frame has an inset of 1.2rem, 0.9rem tick spacing on every edge and a plus mark at each corner. It frames the one drawing a screen is about.
+- Dashed rules repeat a 1.6rem pattern: a dot, a gap, a dash, a gap. They separate parts of a cell; solid rules separate cells.
 
 ## Components
 
@@ -63,33 +69,45 @@ Each specimen is the markup the site uses. Copy it, then change the content, not
 
 ### Button
 
-The primary action. One per cell. The label says what happens, and the arrow cell is separated by a dashed rule. On hover the ink fills in from below.
+The primary action. One per cell. The label says what happens, and the arrow cell is separated by a dotted rule. On hover the ink dissolves in as a block of pixels, the label swaps upward and the arrow passes through.
 
 {{specimen button}}
 
+### Outline button
+
+The secondary action. It has no arrow and a rule around it. On hover it dissolves to ink the same way.
+
+{{specimen button-outline}}
+
+### Cell button
+
+An action that is a whole cell, such as the header's GitHub link or the first screen's See the tools. The label sits top left and the arrow bottom right. On hover the cell fills with the accent from below.
+
+{{specimen cell-button}}
+
 ### Relationship chips
 
-A tool is either Built or Curated. Built is inverted ink on paper; Curated is outlined. The same two chips head a tool and define the labels in the legend.
+A tool is either Built or Curated. Built is inverted ink on paper; Curated is outlined. The same two chips head a tool and define the labels in the approach section.
 
 {{specimen relationship}}
 
-### Spec list
+### Facts
 
-Facts about a thing, as label and value pairs under a dashed rule.
+Facts about a thing, as label and value pairs under dashed rules.
 
-{{specimen spec}}
+{{specimen facts}}
 
-### Cell row
+### Ruler frame
 
-A row of cells divided by rules. The column proportions belong to the row; the cells never set their own width.
+The frame around a drawing or an illustration. Place it as the first child of a positioned cell.
 
-{{specimen cell-row}}
+{{specimen ruler-frame}}
 
 ### Field notes
 
-Detail the reader opts into. The plus cell becomes a minus when the notes are open.
+Detail the reader opts into. The plus becomes a minus when the notes are open, and a dashed rule draws under the row on hover.
 
-{{specimen field-notes}}
+{{specimen faq}}
 
 ### Illustration window
 
@@ -100,21 +118,23 @@ A labelled example of a tool, framed as a window. Illustrations are examples, ne
 ## Motion
 
 - The hero drawing's measuring line sweeps its length once on load, then rests at the jaw tip. That is the page's one orchestrated moment.
-- The button fills with ink on hover, and the navigation cells brighten. Both answer the reader's pointer.
+- Header cells fill with ink from below on hover, the label swaps upward and a corner mark travels from the bottom right to the top right.
+- Buttons dissolve to ink in 580ms over 20 steps. Cell buttons fill from below in 500ms with an ease-out curve.
 - Under `prefers-reduced-motion`, the sweep does not run, the line rests at its end position, and hover transitions are instant.
 
 ## Accessibility
 
-- Every text and ground pair above meets 4.5:1 in both palettes. A vermilion that looks brighter fails on paper, which is why `--brand` is as deep as it is.
+- Every text and ground pair above meets 4.5:1 in both palettes except the two accent pairs. The accent is Heron's exact vermilion, #fa3600. It measures 3.4:1 on paper and 3.8:1 under white text, which meets the 3:1 floor for graphics and large type but not 4.5:1 for small labels. The system keeps the exact value for fidelity, and the thresholds above say so. To meet 4.5:1 instead, darken `--brand` in one place and raise those two thresholds.
 - Keyboard focus is a 2px ink outline offset 3px, drawn on every interactive element.
-- Decorative drawings are hidden from assistive technology and carry a caption that says what they show. The drawing's text labels are dropped on narrow screens, where they would shrink below legibility, and the caption stays.
+- Bracketed indices and ruler marks are hidden from assistive technology. Decorative drawings are hidden too and carry a caption that says what they show. The drawing's text labels are dropped on narrow screens, where they would shrink below legibility, and the caption stays.
+- The mobile menu is a button with `aria-expanded`. Without scripting the links stay visible.
 - The layout holds from a 390px phone to wide desktops with no horizontal scrolling.
 
 ## Adopting the system in a tool
 
-1. Copy the `:root` block and the dark `prefers-color-scheme` block from `site/style.css`, then the two `@font-face` rules and the font files with their licences.
-2. Build the interface from cells. If a tool needs a layout this document does not describe, draw it as cells and add the pattern here.
-3. Draw state with the conventions above, and give every status a text label as well, since colour alone does not carry it.
+1. Copy the `:root` block and the dark `prefers-color-scheme` block from `site/style.css`, the root size rules, then the two `@font-face` rules and the font files with their licences.
+2. Build the interface from cells inside a frame. If a tool needs a layout this document does not describe, draw it as cells and add the pattern here.
+3. Show state with solid, dashed and hatched fills, and give every status a text label as well, since colour alone does not carry it.
 4. Keep a tool's own accent out of it. The accent is vermilion everywhere.
 
 ## Changing the system

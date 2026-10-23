@@ -1,29 +1,57 @@
-<figure class="hero-drawing">
-  <div class="registered">{{hero_drawing}}</div>
-  <figcaption><span>Fig. 1: A 13 mm combination spanner</span><span>Drawn to scale</span></figcaption>
-</figure>
-<section class="hero-row cell-row" aria-labelledby="hero-title">
-  <div class="hero-title cell"><h1 id="hero-title">Good tools.<br>Sound judgment.</h1></div>
-  <div class="hero-copy cell">
-    <p class="label">{{tagline}}</p>
-    <p class="lede">{{intro}}</p>
-    <dl class="spec"><dt>On the bench</dt><dd>{{tool_index}}</dd><dt>Source</dt><dd><a href="{{profile_url}}">GitHub</a></dd></dl>
-    <a class="button" href="#tools"><span class="button-label">See the tools</span><span class="button-icon" aria-hidden="true"></span></a>
+<section class="home-hero" aria-labelledby="hero-title">
+  <div class="home-hero-inner">
+    <div class="home-hero-img">
+      <div class="ruler" aria-hidden="true"><i class="ruler-edge ruler-top"></i><i class="ruler-edge ruler-bottom"></i><i class="ruler-edge ruler-left"></i><i class="ruler-edge ruler-right"></i><i class="plus top left"></i><i class="plus top right"></i><i class="plus bot left"></i><i class="plus bot right"></i></div>
+      <figure class="home-hero-figure">
+        <div class="home-hero-drawing">{{hero_drawing}}</div>
+        <figcaption class="txt-mono txt-10">Fig. 1: A 13 mm combination spanner, drawn to scale</figcaption>
+      </figure>
+    </div>
+    <div class="home-hero-content">
+      <div class="home-hero-title-wrap"><h1 id="hero-title" class="home-hero-title heading h1 tb-h3 mb-h2">Good tools.<br>Sound judgment.</h1></div>
+      <div class="home-hero-sub-wrap">
+        <div class="home-hero-sub-inner">
+          <p class="home-hero-sub txt-16 txt-reg">{{tagline}}</p>
+          <a class="home-hero-btn cell-button fill-slide" href="#tools" style="--fill: var(--brand)"><span class="swap txt-mono txt-14"><span>See the tools</span><span aria-hidden="true">See the tools</span></span>{{arrow}}</a>
+        </div>
+        <div class="home-hero-work">{{tool_work_items}}</div>
+      </div>
+    </div>
   </div>
 </section>
-<section class="section" id="tools" aria-labelledby="tools-title">
-  <div class="section-head cell-row">
-    <div class="cell"><span class="label">Tools</span></div>
-    <div class="cell"><h2 id="tools-title">Tools with a purpose.</h2></div>
-    <div class="cell"><p>What each tool does, when it helps, and what to keep in mind.</p></div>
+<section class="statement" aria-labelledby="statement-title">
+  <div class="statement-content">
+    <h2 id="statement-title" class="statement-title heading h3 tb-h6 mb-h3">{{intro}}</h2>
+    <a class="statement-link btn-fill btn-fill-outline" href="#approach"><span class="btn-fill-bg"></span><span class="btn-fill-label swap txt-mono txt-14"><span>Approach</span><span aria-hidden="true">Approach</span></span></a>
+  </div>
+  <div class="statement-strip">
+    <div class="statement-strip-label"><span class="txt-mono txt-14">On the bench</span><span class="txt-mono txt-14 disabled" aria-hidden="true">[{{tool_count}}]</span></div>
+    {{tool_strip_items}}
+  </div>
+  <p class="statement-desc txt-mono txt-12">Each entry says what the tool solves, why it earns a place, and where it stops.</p>
+</section>
+<section id="tools" aria-labelledby="tools-title">
+  <div class="section-head">
+    <div class="section-head-label"><span class="txt-mono txt-14">Tools</span></div>
+    <div class="section-head-title"><h2 id="tools-title" class="heading h2 tb-h3 mb-h2">Tools with a purpose.</h2><p>What each tool does, when it helps, and what to keep in mind.</p></div>
   </div>
   {{exhibits}}
 </section>
-<section class="section" id="approach" aria-labelledby="approach-title">
-  <div class="section-head cell-row">
-    <div class="cell"><span class="label">Approach</span></div>
-    <div class="cell"><h2 id="approach-title">A place on the bench is earned.</h2></div>
-    <div class="cell approach-copy">{{criteria}}<p>Useful software deserves a clear explanation. The trade-offs belong beside the recommendation.</p></div>
+<section id="approach" aria-labelledby="approach-title">
+  <div class="section-head">
+    <div class="section-head-label"><span class="txt-mono txt-14">Approach</span></div>
+    <div class="section-head-title"><h2 id="approach-title" class="heading h2 tb-h3 mb-h2">A place on the bench is earned.</h2>{{criteria}}</div>
   </div>
-  {{legend}}
+  <div class="cell-list">{{legend_cells}}</div>
+</section>
+<section class="cta" aria-labelledby="cta-title">
+  <div class="cta-main">
+    <div></div>
+    <div class="cta-main-center">
+      <h2 id="cta-title" class="cta-main-title heading h2 tb-h4 mb-h3">Take what is useful.</h2>
+      <p class="cta-main-sub txt-16 mb-txt-14 txt-reg">Each tool keeps its source, releases and issue tracker with its authors. Start from the entries above, or read the source of this collection.</p>
+      <a class="cta-main-btn btn-fill" href="{{repository_url}}"><i class="btn-ic top"></i><i class="btn-ic bot"></i><span class="btn-fill-bg"></span><span class="btn-fill-label swap txt-mono txt-14"><span>Read the source</span><span aria-hidden="true">Read the source</span></span></a>
+    </div>
+    <div></div>
+  </div>
 </section>

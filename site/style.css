@@ -15,7 +15,7 @@
 
   --font-sans: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --stretch-text: 105%;
+  --stretch-text: 106%;
   --stretch-heading: 103.5%;
 
   --step-micro: 1rem;
@@ -66,7 +66,8 @@
 @font-face { font-family: "Archivo"; font-weight: 100 900; font-stretch: 62% 125%; font-display: swap; src: url("assets/fonts/archivo-variable.woff2") format("woff2"); }
 @font-face { font-family: "Geist Mono"; font-weight: 400 600; font-display: swap; src: url("assets/fonts/geist-mono-variable.woff2") format("woff2"); }
 
-html { font-size: 0.5787037037vw; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+html { font-size: 0.5787037037vw; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; font-kerning: none; -webkit-font-smoothing: antialiased; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; scrollbar-width: none; }
+html::-webkit-scrollbar { display: none; }
 * { box-sizing: border-box; margin: 0; }
 body {
   min-height: 100dvh;
@@ -79,7 +80,6 @@ body {
   font-weight: 500;
   letter-spacing: -0.02em;
   line-height: 1.3;
-  text-rendering: optimizeLegibility;
 }
 body::before { position: fixed; inset: 0; z-index: -1; background: url("assets/paper-grain.png") 0 0 / 124px 124px; opacity: var(--grain-opacity); content: ""; pointer-events: none; }
 body::after { position: fixed; inset: var(--frame); z-index: 190; border: var(--border) solid var(--rule); content: ""; pointer-events: none; }
@@ -87,18 +87,18 @@ img, svg { display: block; max-width: 100%; }
 ul, ol { padding-left: 1.2em; }
 a { color: inherit; text-decoration-thickness: var(--border); text-underline-offset: 0.4rem; }
 ::selection { color: var(--on-brand); background: #e15c46; }
-:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 button { color: inherit; font: inherit; cursor: pointer; background: none; border: 0; }
 .skip-link { position: fixed; left: var(--space-3); top: -64px; z-index: 300; padding: var(--space-2) var(--space-4); color: var(--on-ink); background: var(--ink); }
 .skip-link:focus { top: var(--space-3); }
 
-.heading { color: var(--ink); font-stretch: var(--stretch-heading); font-weight: 700; letter-spacing: -0.02em; line-height: 1; text-transform: uppercase; text-wrap: balance; }
+.heading { color: var(--ink); font-stretch: var(--stretch-heading); font-weight: 700; letter-spacing: -0.02em; line-height: 1; text-transform: uppercase; }
 .h1 { font-size: var(--step-h1); }
 .h2 { font-size: var(--step-h2); font-weight: 600; }
 .h3 { font-size: var(--step-h3); font-weight: 600; }
 .h4 { font-size: var(--step-h4); font-weight: 600; }
 .h5 { font-size: var(--step-h5); font-weight: 600; }
 .h6 { font-size: var(--step-h6); line-height: 1.1; }
+.txt-20, .txt-16, .txt-14, .txt-12, .txt-10, .mini-muted, .gantt-row > span, .tree-issue { letter-spacing: -0.02em; }
 .txt-mono { font-family: var(--font-mono); font-stretch: 100%; font-weight: 500; letter-spacing: 0; text-transform: uppercase; }
 .txt-14 { font-size: var(--step-label); line-height: 1.4; }
 .txt-12 { font-size: var(--step-caption); line-height: 1.3; }

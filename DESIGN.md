@@ -50,7 +50,8 @@ Two families, self-hosted: Archivo and Geist Mono. The page makes no request to 
 - Headings take a size class and, where the layout changes, a tablet and a phone class, for example `h1 tb-h3 mb-h2`. The tablet class applies at 991px and below, the phone class at 767px and below.
 - Prose is Archivo 500 at the body size with a line height of 1.3. Keep lines under 70 characters. Body copy set on the page ground may drop to weight 400.
 - Labels are Geist Mono 500, uppercase, with no tracking. A label names or counts something; it does not carry a sentence the reader must study. Micro labels shrink to 0.8rem on phones.
-- Archivo stands in for Heron's commercial BT Grotesk. It is set 3.5% wider for headings and 5% wider for text, which matches BT Grotesk's measured line widths within 1.5%.
+- Archivo stands in for Heron's commercial BT Grotesk. Kerning is off, as on the reference, and Archivo is set 3.5% wider for headings and 6% wider for text, which matches BT Grotesk's measured line widths within 0.5%.
+- Every sans size tracks at -0.02em of its own size; mono labels keep no tracking. Lines wrap greedily, as on the reference.
 
 ## Space and layout
 
@@ -126,7 +127,7 @@ A labelled example of a tool, framed as a window. Illustrations are examples, ne
 ## Accessibility
 
 - Every text and ground pair above meets 4.5:1 in both palettes except the two accent pairs. The accent is Heron's exact vermilion, #fa3600. It measures 3.4:1 on paper and 3.8:1 under white text, which meets the 3:1 floor for graphics and large type but not 4.5:1 for small labels. The system keeps the exact value for fidelity, and the thresholds above say so. To meet 4.5:1 instead, darken `--brand` in one place and raise those two thresholds.
-- Keyboard focus is a 2px ink outline offset 3px, drawn on every interactive element.
+- Keyboard focus uses the browser's own focus ring, as the reference does. No rule removes or restyles it, so every interactive element shows it.
 - Bracketed indices and ruler marks are hidden from assistive technology. Decorative drawings are hidden too and carry a caption that says what they show. The drawing's text labels are dropped on narrow screens, where they would shrink below legibility, and the caption stays.
 - The mobile menu is a button with `aria-expanded`. Without scripting the links stay visible.
 - The layout holds from a 390px phone to wide desktops with no horizontal scrolling.

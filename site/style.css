@@ -217,6 +217,8 @@ button { padding: 0; color: inherit; font: inherit; cursor: pointer; background:
 @keyframes page-close { to { clip-path: inset(50%); } }
 @keyframes page-open { from { clip-path: inset(50%); } }
 
+.cursor-canvas { position: fixed; top: 0; left: 0; z-index: 400; width: 100%; height: 100%; pointer-events: none; }
+
 .header { position: fixed; top: var(--frame); left: var(--frame); right: var(--frame); z-index: 100; pointer-events: none; }
 .header.on-hide .header-inner { transform: translateY(-101%); }
 .header.on-hide:has(:focus-visible) .header-inner { transform: none; }

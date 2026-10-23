@@ -47,6 +47,12 @@
   const LOADED_AT_MS = 7200;
   const PAGE_MARK_MS = 800;
   const PAGE_OPEN_MS = 800;
+  const CURSOR_POINTER = matchMedia('(hover: hover) and (min-width: 992px) and (pointer: fine)');
+  const CURSOR_FOLLOW = 0.18;
+  const CURSOR_SIZE_PX = 8;
+  const CURSOR_SETTLE_PX = 0.1;
+  const TRAIL_MS = 400;
+  const TRAIL_ALPHA = 0.9;
   const easeOutCubic = (share) => 1 - (1 - share) ** 3;
   const easeOutQuart = (share) => 1 - (1 - share) ** 4;
   const REVEAL_TRIGGERS = [
@@ -370,6 +376,76 @@
       document.body.animate([{ clipPath: 'inset(50%)' }, { clipPath: 'inset(0%)' }], { duration: PAGE_OPEN_MS, easing: token('--ease-out-quad') });
     }, opened);
   }
+
+  const cursor = { canvas: null, context: null, pointer: null, head: null, trail: [], frame: 0, last: 0, hidden: true, colour: '' };
+  const sizeCursor = () => {
+    const ratio = devicePixelRatio || 1;
+    cursor.canvas.width = Math.round(innerWidth * ratio);
+    cursor.canvas.height = Math.round(innerHeight * ratio);
+    cursor.context.setTransform(ratio, 0, 0, ratio, 0, 0);
+  };
+  const drawCursor = (time) => {
+    const elapsed = cursor.last ? time - cursor.last : FRAME_MS;
+    cursor.last = time;
+    const { context, head, pointer, trail } = cursor;
+    const share = 1 - (1 - CURSOR_FOLLOW) ** (elapsed / FRAME_MS);
+    const step = { x: (pointer.x - head.x) * share, y: (pointer.y - head.y) * share };
+    head.x += step.x;
+    head.y += step.y;
+    if (Math.hypot(step.x, step.y) > CURSOR_SETTLE_PX) trail.push({ x: head.x, y: head.y, time });
+    while (trail.length && time - trail[0].time > TRAIL_MS) trail.shift();
+    context.clearRect(0, 0, innerWidth, innerHeight);
+    if (!cursor.hidden) {
+      context.strokeStyle = cursor.colour;
+      context.fillStyle = cursor.colour;
+      context.lineWidth = 1;
+      for (let index = 1; index < trail.length; index += 1) {
+        context.globalAlpha = TRAIL_ALPHA * (1 - (time - trail[index].time) / TRAIL_MS);
+        context.beginPath();
+        context.moveTo(trail[index - 1].x, trail[index - 1].y);
+        context.lineTo(trail[index].x, trail[index].y);
+        context.stroke();
+      }
+      context.globalAlpha = 1;
+      context.fillRect(head.x - CURSOR_SIZE_PX / 2, head.y - CURSOR_SIZE_PX / 2, CURSOR_SIZE_PX, CURSOR_SIZE_PX);
+    }
+    const settled = !trail.length && Math.hypot(pointer.x - head.x, pointer.y - head.y) < CURSOR_SETTLE_PX;
+    cursor.frame = settled ? 0 : requestAnimationFrame(drawCursor);
+  };
+  const wakeCursor = () => {
+    if (cursor.frame) return;
+    cursor.last = 0;
+    cursor.frame = requestAnimationFrame(drawCursor);
+  };
+  document.addEventListener('pointermove', (event) => {
+    if (event.pointerType !== 'mouse') return;
+    if (!CURSOR_POINTER.matches || REDUCED_MOTION.matches) {
+      if (cursor.canvas && !cursor.hidden) {
+        cursor.hidden = true;
+        wakeCursor();
+      }
+      return;
+    }
+    if (!cursor.canvas) {
+      cursor.canvas = document.createElement('canvas');
+      cursor.canvas.className = 'cursor-canvas';
+      cursor.canvas.setAttribute('aria-hidden', 'true');
+      cursor.context = cursor.canvas.getContext('2d');
+      document.body.append(cursor.canvas);
+      sizeCursor();
+      window.addEventListener('resize', sizeCursor);
+    }
+    cursor.pointer = { x: event.clientX, y: event.clientY };
+    cursor.head ??= { ...cursor.pointer };
+    cursor.hidden = Boolean(event.target.closest('.home-hero-img'));
+    cursor.colour = token('--brand');
+    wakeCursor();
+  });
+  document.addEventListener('mouseout', (event) => {
+    if (event.relatedTarget || !cursor.canvas) return;
+    cursor.hidden = true;
+    wakeCursor();
+  });
 
   const progress = document.querySelector('.demo-progress-value');
   const progressBar = document.querySelector('.mini-progress span');

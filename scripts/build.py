@@ -142,7 +142,7 @@ def _tool_exhibit(root, path, position):
       <a class="tool-row-btn fill-slide" href="{html.escape(primary[1], quote=True)}">{_swap_label(action)}<span class="tool-row-btn-ic">{ARROW_ICON}</span></a>
     </div>
   </div>
-  <details class="faq-item" id="notes-{slug}"><summary><span class="faq-title heading h6">Field notes</span><span class="txt-mono txt-12 granite">Fit, limits, and sources</span><span class="faq-ic" aria-hidden="true"></span></summary><div class="faq-body"><div class="faq-grid">{''.join(notes)}</div></div></details>
+  <details class="faq-item" id="notes-{slug}"><summary><span class="faq-title heading h6 tb-h20 mb-h18">Field notes</span><span class="txt-mono txt-12 granite">Fit, limits, and sources</span><span class="faq-ic" aria-hidden="true"></span></summary><div class="faq-body"><div class="faq-grid">{''.join(notes)}</div></div></details>
 </article>'''
 
 
@@ -331,7 +331,7 @@ def _strip_item(name, slug, relation):
 
 
 def _footer_tool_links(exhibits, home):
-    return "".join(f'<a class="footer-link" href="{home}#{slug}">{html.escape(name)}</a>' for name, slug, _, _ in exhibits)
+    return "".join(f'<a class="footer-link txt-16 mb-txt-14" href="{home}#{slug}">{html.escape(name)}</a>' for name, slug, _, _ in exhibits)
 
 
 def _build(root):
@@ -359,7 +359,7 @@ def _build(root):
         "hero_drawing": (root / "site/illustrations/hero-spanner.svg").read_text(),
         "exhibits": "\n".join(exhibit for _, _, _, exhibit in exhibits),
         "tool_count": f"{len(exhibits):02d}",
-        "tool_work_items": "".join(f'<span class="home-hero-work-item txt-mono txt-12">{html.escape(name)}</span>' for name, _, _, _ in exhibits),
+        "tool_work_items": "".join(f'<span class="home-hero-work-item txt-mono txt-14">{html.escape(name)}</span>' for name, _, _, _ in exhibits),
         "tool_strip_items": "".join(_strip_item(name, slug, relation) for name, slug, relation, _ in exhibits),
         "criteria": _render(sections["What belongs here"][:1]),
         "legend_cells": _relationship_cells(sections),

@@ -254,6 +254,16 @@ section + section, .row + .row, main + .footer { border-top: var(--border) solid
 .crosshair-plus { position: absolute; left: var(--cross-x, 0); top: var(--cross-y, 0); width: 1rem; height: 1rem; color: var(--brand); background: linear-gradient(currentColor, currentColor) center / 100% 0.2rem no-repeat, linear-gradient(currentColor, currentColor) center / 0.2rem 100% no-repeat; transform: translate(-50%, -50%); }
 .crosshair-coord { position: absolute; left: var(--cross-x, 0); top: var(--cross-y, 0); color: var(--muted); white-space: nowrap; transform: translate(calc(-100% - 0.4rem), 0.4rem); }
 .crosshair-coord > span { display: block; }
+.hero-guides { position: absolute; inset: 3.2rem; z-index: 3; display: grid; grid-template: 1fr 1fr / 1fr 1fr; }
+.hero-guide { opacity: 0; transition: opacity 0.4s; }
+.hero-guides.active .hero-guide { opacity: 0.64; }
+.hero-guide-brand { background: var(--brand); }
+.hero-guide-brand.line-v { left: 0; }
+.hero-guide-brand.line-h { top: 0; }
+.hero-guides[data-zone$="r"] .hero-guide-brand.line-v { left: auto; right: 0; }
+.hero-guides[data-zone^="b"] .hero-guide-brand.line-h { top: auto; bottom: 0; }
+.hero-guides[data-zone$="l"] .hero-guide.line-dash.line-h { clip-path: inset(0 calc(100% - var(--px, 100%)) 0 0); }
+.hero-guides[data-zone$="r"] .hero-guide.line-dash.line-h { clip-path: inset(0 0 0 var(--px, 0)); }
 .drawing { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; overflow: visible; }
 .drawing .edge { stroke-width: 2.5; }
 .drawing .fine { stroke-width: 1; stroke: var(--muted); }
@@ -497,7 +507,7 @@ section + section, .row + .row, main + .footer { border-top: var(--border) solid
   .home-hero-inner { height: auto; min-height: calc(100dvh - 2 * var(--frame) - var(--padding-hero)); grid-template-rows: minmax(44.76rem, 1fr) auto; }
   .home-hero-content { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .home-hero-img { padding: 3rem 2.4rem; }
-  .crosshair { display: none; }
+  .crosshair, .hero-guides { display: none; }
   .statement-content { padding: 2.4rem; }
   .statement-title { margin-bottom: 2.4rem; }
   .statement-strip-label { width: auto; flex: 1; padding: 0 2.4rem; }

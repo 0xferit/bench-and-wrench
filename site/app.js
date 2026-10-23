@@ -102,6 +102,52 @@
     frame.addEventListener('pointerleave', () => crosshair.classList.remove('active'));
   }
 
+  const guides = frame && frame.querySelector('.hero-guides');
+  if (guides && drawing) {
+    const numbers = (name) => drawing.dataset[name].split(' ').map(Number);
+    const guideXs = numbers('guidesX');
+    const guideYs = numbers('guidesY');
+    const [extentLeft, extentTop, extentRight, extentBottom] = numbers('extent');
+    const guide = (classes) => {
+      const line = document.createElement('i');
+      line.className = `line ${classes} hero-guide`;
+      guides.append(line);
+      return line;
+    };
+    const rows = guideYs.map(() => guide('line-h line-dash'));
+    const columns = guideXs.map(() => guide('line-v line-dash'));
+    const brandColumn = guide('line-v hero-guide-brand');
+    const brandRow = guide('line-h hero-guide-brand');
+    const placeGuides = () => {
+      const bounds = guides.getBoundingClientRect();
+      const matrix = drawing.getScreenCTM();
+      const toGuides = (x, y) => {
+        const point = new DOMPoint(x, y).matrixTransform(matrix);
+        return { x: point.x - bounds.left, y: point.y - bounds.top };
+      };
+      guideYs.forEach((y, index) => { rows[index].style.top = `${toGuides(0, y).y}px`; });
+      guideXs.forEach((x, index) => { columns[index].style.left = `${toGuides(x, 0).x}px`; });
+      const start = toGuides(extentLeft, extentTop);
+      const end = toGuides(extentRight, extentBottom);
+      Object.assign(brandColumn.style, { top: `${start.y}px`, height: `${end.y - start.y}px` });
+      Object.assign(brandRow.style, { left: `${start.x}px`, width: `${end.x - start.x}px` });
+    };
+    const guideResizes = new ResizeObserver(placeGuides);
+    guideResizes.observe(guides);
+    guideResizes.observe(drawing);
+    for (const zone of guides.querySelectorAll('.hero-zone')) {
+      zone.addEventListener('pointerenter', (event) => {
+        if (event.pointerType !== 'mouse') return;
+        guides.dataset.zone = zone.dataset.zone;
+        guides.classList.add('active');
+      });
+    }
+    guides.addEventListener('pointermove', (event) => {
+      guides.style.setProperty('--px', `${event.clientX - guides.getBoundingClientRect().left}px`);
+    });
+    guides.addEventListener('pointerleave', () => guides.classList.remove('active'));
+  }
+
   const sizeFill = (button) => {
     const bg = button.querySelector('.btn-fill-bg');
     const { width, height } = button.getBoundingClientRect();

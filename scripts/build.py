@@ -429,10 +429,11 @@ def _build(root):
     }
     shell = (root / "site/template.html").read_text()
     home = _fill((root / "site/home.html").read_text(), values)
+    loader = _fill((root / "site/loader.html").read_text(), values)
     design_title, design_summary, design = _design_main(root, palette)
     pages = {
-        "index.html": _fill(shell, {**values, "page_title": html.escape(title), "description": html.escape(intro_paragraphs[0], quote=True), "home": "", "design_current": "", "footer_tool_links": _footer_tool_links(exhibits, ""), "main": home}),
-        DESIGN_PAGE: _fill(shell, {**values, "page_title": f"{html.escape(design_title)}: {html.escape(title)}", "description": html.escape(design_summary, quote=True), "home": "./", "design_current": ' aria-current="page"', "footer_tool_links": _footer_tool_links(exhibits, "./"), "main": design}),
+        "index.html": _fill(shell, {**values, "loader": loader, "page_title": html.escape(title), "description": html.escape(intro_paragraphs[0], quote=True), "home": "", "design_current": "", "footer_tool_links": _footer_tool_links(exhibits, ""), "main": home}),
+        DESIGN_PAGE: _fill(shell, {**values, "loader": "", "page_title": f"{html.escape(design_title)}: {html.escape(title)}", "description": html.escape(design_summary, quote=True), "home": "./", "design_current": ' aria-current="page"', "footer_tool_links": _footer_tool_links(exhibits, "./"), "main": design}),
     }
     output = root / "dist"
     shutil.rmtree(output, ignore_errors=True)

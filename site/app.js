@@ -35,7 +35,20 @@
   const ANCHOR_EASE_RATE = 10;
   const ANCHOR_EASE_CEILING = 1.001;
   const LINE_HEIGHT_PX = 16;
+  const LOADER_DRAW_MS = 1300;
+  const LOADER_DRAW_SPREAD_MS = 3000;
+  const LOADER_FIRST_MS = 3000;
+  const LOADER_FIRST_SHARE = 60;
+  const LOADER_SECOND_MS = 2500;
+  const LOADER_FULL = 100;
+  const LOADER_FADE_MS = 400;
+  const LOADER_SPLIT_MS = 800;
+  const HEADER_FADE_MS = 1000;
+  const LOADED_AT_MS = 7200;
+  const easeOutCubic = (share) => 1 - (1 - share) ** 3;
+  const easeOutQuart = (share) => 1 - (1 - share) ** 4;
   const REVEAL_TRIGGERS = [
+    ['.home-hero', 0],
     ['.section-head', 0.65],
     ['.statement-strip-wrap, .cell-list, .faq-list, .footer-left, .footer-menu, .footer-info, .footer-logo, .footer-band, .footer-copyright-wrap', 0.55],
     ['.statement-body, .statement-media, .tool-row-art, .cell-item-img', 0.45],
@@ -43,16 +56,18 @@
   ];
   const REVEAL_EFFECTS = {
     text: '.section-head-title .heading, .section-head-title p, .section-head-label span, .cell-item-head > span, .tool-row-title, .tool-row-sub p, .cell-item-title, .cell-item-content p, .cta-main-title, .cta-main-sub, .footer-title, .footer-label, .footer-info-label, .statement-desc',
-    block: '.statement-link, .cta-main-btn, .tool-row-btn, .tool-facts > div, .faq-ic, .footer-note, .cta-head-item span',
+    words: '.home-hero-title',
+    block: '.home-hero-sub, .home-hero-work, .statement-link, .cta-main-btn, .tool-row-btn, .tool-facts > div, .faq-ic, .footer-note, .cta-head-item span',
     scale: '.tool-row-art .tool-illustration, .cell-item-img > svg, .statement-media > svg, .cta-deco-art > svg, .footer-logo .mark',
     rule: 'main .line:not(.hero-guide), .cta .line, .footer .line',
+    fade: '.home-hero-img .ruler',
   };
   const REVEAL_STATES = ['rv-pending', 'rv-start', ...Object.keys(REVEAL_EFFECTS).map((effect) => `rv-${effect}`)];
 
   const clamp01 = (value) => Math.min(1, Math.max(0, value));
 
   const scroller = { current: scrollY, target: scrollY, frame: 0, last: 0, anchor: null };
-  const smoothScrolling = () => FINE_POINTER.matches && !REDUCED_MOTION.matches;
+  const smoothScrolling = () => FINE_POINTER.matches && !REDUCED_MOTION.matches && !document.documentElement.classList.contains('is-loading');
   const maxScroll = () => document.documentElement.scrollHeight - innerHeight;
   const clampScroll = (value) => Math.min(maxScroll(), Math.max(0, value));
   const anchorEase = (time) => Math.min(1, ANCHOR_EASE_CEILING - 2 ** (-ANCHOR_EASE_RATE * time));
@@ -120,22 +135,25 @@
     startGlide();
   });
 
-  const splitLines = (element) => {
+  const splitLines = (element, byWord) => {
     const original = [...element.childNodes];
     const overlays = original.filter((node) => node.nodeType === Node.ELEMENT_NODE && node.classList.contains('line'));
     const content = original.filter((node) => !overlays.includes(node));
-    const lineMask = (index, nodes) => {
-      const mask = document.createElement('span');
+    const riser = (index, nodes, className) => {
       const line = document.createElement('span');
-      mask.className = 'rv-mask';
-      line.className = 'rv-line';
+      line.className = className;
       line.style.setProperty('--line', index);
       line.append(...nodes);
-      mask.append(line);
+      return line;
+    };
+    const lineMask = (nodes) => {
+      const mask = document.createElement('span');
+      mask.className = 'rv-mask';
+      mask.append(...nodes);
       return mask;
     };
     if (!content.every((node) => node.nodeType === Node.TEXT_NODE || node.nodeName === 'BR')) {
-      element.replaceChildren(lineMask(0, content), ...overlays);
+      element.replaceChildren(lineMask([riser(0, content, 'rv-line')]), ...overlays);
       return original;
     }
     const words = [];
@@ -155,7 +173,11 @@
       if (row && row.top === word.offsetTop) row.words.push(word.textContent);
       else rows.push({ top: word.offsetTop, words: [word.textContent] });
     }
-    element.replaceChildren(...rows.map((row, index) => lineMask(index, [row.words.join(' ')])), ...overlays);
+    let wordIndex = 0;
+    const masks = rows.map((row, index) => lineMask(byWord
+      ? row.words.flatMap((word, position) => [...(position ? [' '] : []), riser(wordIndex++, [word], 'rv-line rv-word')])
+      : [riser(index, [row.words.join(' ')], 'rv-line')]));
+    element.replaceChildren(...masks, ...overlays);
     return original;
   };
   const reveal = (() => {
@@ -177,12 +199,13 @@
       target.classList.remove(...REVEAL_STATES);
     };
     const begin = (target) => {
-      if (!target.classList.contains('rv-text')) {
+      const byWord = target.classList.contains('rv-words');
+      if (!byWord && !target.classList.contains('rv-text')) {
         target.classList.remove('rv-pending');
         settle(target, null);
         return;
       }
-      const original = splitLines(target);
+      const original = splitLines(target, byWord);
       target.classList.replace('rv-pending', 'rv-start');
       target.getBoundingClientRect();
       target.classList.remove('rv-start');
@@ -227,6 +250,105 @@
       },
     };
   })();
+
+  const loader = document.querySelector('.loading');
+  const heroSection = document.querySelector('.home-hero');
+  const heroDrawing = heroSection && heroSection.querySelector('.drawing');
+  if (loader && heroDrawing && !REDUCED_MOTION.matches) {
+    const root = document.documentElement;
+    const styles = getComputedStyle(root);
+    const token = (name) => styles.getPropertyValue(name).trim();
+    const sheet = loader.querySelector('.loading-sheet');
+    const image = loader.querySelector('.loading-img');
+    const content = loader.querySelector('.loading-content');
+    const progressBar = loader.querySelector('.loading-progress-line');
+    const counter = loader.querySelector('.loading-progress-text');
+    const edges = [...loader.querySelectorAll('.loading-edge')];
+    const headerParts = [...document.querySelectorAll('.header-logo, .header-menu-wrap')];
+    root.classList.add('is-loading');
+    reveal.hold(heroSection);
+    const placeSketch = () => {
+      const sheetBox = loader.getBoundingClientRect();
+      const drawingBox = heroDrawing.getBoundingClientRect();
+      Object.assign(image.style, {
+        left: `${drawingBox.left - sheetBox.left}px`,
+        top: `${drawingBox.top - sheetBox.top}px`,
+        width: `${drawingBox.width}px`,
+        height: `${drawingBox.height}px`,
+      });
+    };
+    placeSketch();
+    document.fonts.ready.then(placeSketch);
+    window.addEventListener('resize', placeSketch);
+    const sketch = heroDrawing.cloneNode(true);
+    for (const node of [sketch, ...sketch.querySelectorAll('[id]')]) node.removeAttribute('id');
+    for (const name of ['role', 'aria-labelledby']) sketch.removeAttribute(name);
+    sketch.querySelector('title')?.remove();
+    sketch.setAttribute('aria-hidden', 'true');
+    image.append(sketch);
+    const parts = [...sketch.querySelectorAll('path, line, circle, rect, polygon, polyline, ellipse, text')];
+    const drawTiming = (index) => ({ duration: LOADER_DRAW_MS, delay: index * LOADER_DRAW_SPREAD_MS / parts.length, easing: token('--ease-out-quad'), fill: 'backwards' });
+    parts.forEach((part, index) => {
+      const { stroke, strokeDasharray } = getComputedStyle(part);
+      if (part.nodeName === 'text' || stroke === 'none' || strokeDasharray !== 'none') {
+        part.animate([{ opacity: 0 }, { opacity: 1 }], drawTiming(index));
+        return;
+      }
+      const length = part.getTotalLength();
+      part.style.strokeDasharray = length;
+      part.animate([{ strokeDashoffset: length }, { strokeDashoffset: 0 }], drawTiming(index));
+    });
+    const started = performance.now();
+    let counterFrame = 0;
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      cancelAnimationFrame(counterFrame);
+      window.removeEventListener('resize', placeSketch);
+      loader.classList.add('loaded');
+      root.classList.remove('is-loading');
+      reveal.release(heroSection);
+    };
+    const showPage = () => {
+      if (finished) return;
+      sheet.style.visibility = 'hidden';
+      for (const part of headerParts) part.animate([{ opacity: 0 }, { opacity: 1 }], { duration: HEADER_FADE_MS, easing: token('--ease-out-cubic') });
+    };
+    const open = () => {
+      const box = loader.getBoundingClientRect();
+      const frame = heroSection.querySelector('.home-hero-img').getBoundingClientRect();
+      const from = progressBar.getBoundingClientRect().top - box.top;
+      const stops = [frame.top - box.top, frame.bottom - box.top];
+      const timing = { duration: LOADER_SPLIT_MS, easing: token('--ease-out-cubic'), fill: 'forwards' };
+      for (const part of [content, counter]) part.animate([{ opacity: 1 }, { opacity: 0 }], { duration: LOADER_FADE_MS, fill: 'forwards' });
+      progressBar.style.visibility = 'hidden';
+      edges.forEach((edge, index) => {
+        Object.assign(edge.style, { top: `${from}px`, visibility: 'visible' });
+        edge.animate([
+          { transform: 'none', backgroundColor: token('--brand') },
+          { transform: `translateY(${stops[index] - from}px)`, backgroundColor: token('--rule') },
+        ], timing);
+      });
+      const hole = (top, bottom) => `polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, 0 ${top}px, 100% ${top}px, 100% ${bottom}px, 0 ${bottom}px, 0 ${top}px)`;
+      sheet.animate([{ clipPath: hole(from, from) }, { clipPath: hole(...stops) }], timing).finished.then(showPage, showPage);
+      setTimeout(finish, Math.max(0, LOADED_AT_MS - (performance.now() - started)));
+    };
+    const count = (now) => {
+      const elapsed = now - started;
+      const value = elapsed < LOADER_FIRST_MS
+        ? LOADER_FIRST_SHARE * easeOutCubic(elapsed / LOADER_FIRST_MS)
+        : LOADER_FIRST_SHARE + (LOADER_FULL - LOADER_FIRST_SHARE) * easeOutQuart(clamp01((elapsed - LOADER_FIRST_MS) / LOADER_SECOND_MS));
+      counter.textContent = `${Math.round(value)}%`;
+      progressBar.style.width = `${value}%`;
+      if (value < LOADER_FULL) counterFrame = requestAnimationFrame(count);
+      else open();
+    };
+    counterFrame = requestAnimationFrame(count);
+    document.addEventListener('keydown', finish, { once: true });
+  } else if (loader) {
+    loader.classList.add('loaded');
+  }
 
   const progress = document.querySelector('.demo-progress-value');
   const progressBar = document.querySelector('.mini-progress span');

@@ -328,7 +328,7 @@ def _relationship_cells(sections):
 def _strip_item(name, slug, relation):
     return (
         f'<a class="statement-strip-item" href="#{slug}"><span class="txt-mono txt-14">{html.escape(name)}</span>'
-        f'<span class="relationship relationship-{html.escape(relation.lower())}">{html.escape(relation)}</span></a>'
+        f'<span class="relationship relationship-{html.escape(relation.lower())}">{html.escape(relation)}</span><i class="line line-v line-left line-dash"></i></a>'
     )
 
 
@@ -362,7 +362,6 @@ def _build(root):
         "statement_drawing": SPANNER_GLYPH,
         "hero_drawing": (root / "site/illustrations/hero-spanner.svg").read_text(),
         "exhibits": "\n".join(exhibit for _, _, _, exhibit in exhibits),
-        "tool_count": f"{len(exhibits):02d}",
         "tool_work_items": "".join(f'<span class="home-hero-work-item txt-mono txt-14">{WORK_ICON}{html.escape(name)}</span>' for name, _, _, _ in exhibits),
         "tool_strip_items": "".join(_strip_item(name, slug, relation) for name, slug, relation, _ in exhibits),
         "criteria": _render(sections["What belongs here"][:1]),

@@ -15,6 +15,10 @@
   const FRAME_MS = 1000 / 60;
   const CROSSHAIR_SETTLE_PX = 0.1;
   const REDUCED_MOTION = matchMedia('(prefers-reduced-motion: reduce)');
+  const STRIP_AUTOPLAY_MS = 3000;
+  const STRIP_SPEED_MS = 600;
+  const STRIP_STEP_DESKTOP = 3;
+  const STRIP_STEP_NARROW = 1;
 
   const progress = document.querySelector('.demo-progress-value');
   const progressBar = document.querySelector('.mini-progress span');
@@ -51,6 +55,86 @@
     const marqueeResizes = new ResizeObserver(fillMarquee);
     marqueeResizes.observe(marquee);
     marqueeResizes.observe(marqueeCopy);
+  }
+
+  const strip = document.querySelector('.statement-strip');
+  const stripList = strip && strip.querySelector('.statement-strip-list');
+  const stripTrack = stripList && stripList.querySelector('.statement-strip-track');
+  if (stripTrack && stripTrack.children.length) {
+    const originals = [...stripTrack.children];
+    const controls = [...strip.querySelectorAll('.statement-strip-ctrl')];
+    let index = 0;
+    let autoplay = 0;
+    let paused = false;
+    const itemWidth = () => originals[0].getBoundingClientRect().width;
+    const place = (animate) => {
+      stripTrack.style.transition = animate && !REDUCED_MOTION.matches ? `transform ${STRIP_SPEED_MS}ms ease` : 'none';
+      stripTrack.style.transform = `translateX(${-index * itemWidth()}px)`;
+    };
+    const wrapIndex = () => {
+      if (index < originals.length) return;
+      index -= originals.length;
+      place(false);
+    };
+    const step = (direction) => {
+      const delta = direction * (DESKTOP.matches ? STRIP_STEP_DESKTOP : STRIP_STEP_NARROW);
+      if (index + delta < 0) {
+        index += originals.length;
+        place(false);
+        stripTrack.getBoundingClientRect();
+      }
+      index += delta;
+      place(true);
+      if (REDUCED_MOTION.matches) wrapIndex();
+    };
+    const stopAutoplay = () => { clearInterval(autoplay); autoplay = 0; };
+    const startAutoplay = () => {
+      stopAutoplay();
+      if (REDUCED_MOTION.matches || controls.some((control) => control.disabled)) return;
+      autoplay = setInterval(() => { if (!paused) step(1); }, STRIP_AUTOPLAY_MS);
+    };
+    const layoutStrip = () => {
+      for (const clone of stripTrack.querySelectorAll('[data-clone]')) clone.remove();
+      const width = itemWidth();
+      const overflowing = Math.round(originals.length * width) > stripList.clientWidth;
+      for (const control of controls) control.disabled = !overflowing;
+      if (overflowing) {
+        const visible = Math.ceil(stripList.clientWidth / width);
+        const copies = Math.ceil((STRIP_STEP_DESKTOP - 1 + visible) / originals.length);
+        for (let copy = 0; copy < copies; copy += 1) {
+          for (const item of originals) {
+            const clone = item.cloneNode(true);
+            clone.dataset.clone = '';
+            clone.setAttribute('aria-hidden', 'true');
+            clone.inert = true;
+            stripTrack.append(clone);
+          }
+        }
+      } else {
+        index = 0;
+      }
+      place(false);
+      startAutoplay();
+    };
+    stripTrack.addEventListener('transitionend', (event) => { if (event.target === stripTrack) wrapIndex(); });
+    for (const control of controls) {
+      control.addEventListener('click', () => {
+        step(Number(control.dataset.step));
+        startAutoplay();
+      });
+    }
+    stripTrack.addEventListener('focusin', (event) => {
+      const focused = originals.indexOf(event.target.closest('.statement-strip-item'));
+      if (focused < 0) return;
+      index = focused;
+      place(true);
+    });
+    strip.addEventListener('pointerenter', () => { paused = true; });
+    strip.addEventListener('pointerleave', () => { paused = false; });
+    strip.addEventListener('focusin', () => { paused = true; });
+    strip.addEventListener('focusout', () => { paused = false; });
+    new ResizeObserver(layoutStrip).observe(stripList);
+    REDUCED_MOTION.addEventListener('change', startAutoplay);
   }
 
   const frame = document.querySelector('.home-hero-img');

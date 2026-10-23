@@ -36,8 +36,13 @@
   <div class="statement-strip-wrap">
     <i class="line line-v line-left line-solid"></i>
     <div class="statement-strip">
-      <div class="statement-strip-label"><span class="txt-mono txt-14 mb-txt-12">On the bench</span><span class="txt-mono txt-14 disabled" aria-hidden="true">[{{tool_count}}]</span></div>
-      {{tool_strip_items}}
+      <div class="statement-strip-label">
+        <i class="line line-h line-top line-solid"></i>
+        <span class="txt-mono txt-14 mb-txt-12">On the bench</span>
+        <div class="statement-strip-ctrls"><button class="statement-strip-ctrl btn-fill btn-fill-ghost" type="button" data-step="-1" aria-label="Previous tool" disabled><i class="line line-v line-left line-solid"></i><span class="btn-fill-bg" aria-hidden="true"></span><span class="btn-fill-icon"><span class="slide">{{arrow}}{{arrow}}</span></span></button><button class="statement-strip-ctrl btn-fill btn-fill-ghost" type="button" data-step="1" aria-label="Next tool" disabled><i class="line line-v line-left line-solid"></i><span class="btn-fill-bg" aria-hidden="true"></span><span class="btn-fill-icon"><span class="slide">{{arrow}}{{arrow}}</span></span></button></div>
+        <i class="line line-h line-bottom line-solid"></i>
+      </div>
+      <div class="statement-strip-list"><div class="statement-strip-track">{{tool_strip_items}}</div></div>
     </div>
     <p class="statement-desc txt-mono txt-12"><i class="line line-h line-top line-solid"></i>Each entry says what the tool solves, why it earns a place, and where it stops.</p>
   </div>

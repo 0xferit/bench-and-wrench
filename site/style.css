@@ -713,14 +713,14 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
   .cell-item { scroll-snap-align: start; }
   .cell-item.active .cell-item-img { color: var(--ink); }
   .cell-item-content { padding: 2.4rem 1.6rem 2.4rem; }
-  .cta-head { grid-template-columns: 6rem minmax(0, 1fr) 6rem; min-height: 6rem; }
+  .cta-head, .cta-deco { grid-template-columns: 6rem minmax(0, 1fr) 6rem; }
+  .cta-head { min-height: 6rem; }
   .cta-head-item span { display: none; }
   .cta-main { grid-template-columns: minmax(0, 1fr); }
   .cta-main .cta-main-side, .cta-main .line-v { display: none; }
   .cta-main-center { padding: 7rem 1.6rem; }
   .cta-main-title { margin-bottom: 0.8rem; }
   .cta-main-sub { max-width: 28rem; margin-bottom: 2.4rem; }
-  .cta-deco { grid-template-columns: 6rem minmax(0, 1fr) 6rem; }
   .footer-left { flex-direction: column; }
   .footer-title-wrap { padding: 2rem 1.5rem; }
   .footer-note { padding: 2rem 1.5rem; border-left: 0; border-top: var(--border) solid var(--rule); }

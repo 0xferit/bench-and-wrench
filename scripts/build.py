@@ -377,6 +377,7 @@ def _build(root):
         "tagline": _inline(intro_paragraphs[0]),
         "intro": _inline(intro_paragraphs[1]),
         "statement_drawing": STATEMENT_DRAWING,
+        "cta_drawing": SPANNER_GLYPH,
         "hero_drawing": (root / "site/illustrations/hero-spanner.svg").read_text(),
         "exhibits": "\n".join(row for _, _, _, row, _ in exhibits),
         "field_notes": "\n".join(notes for _, _, _, _, notes in exhibits),

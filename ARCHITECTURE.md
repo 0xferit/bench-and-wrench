@@ -28,7 +28,7 @@ The renderer supports the catalog's paragraphs, second-level sections, flat list
 
 ## Hosting
 
-Cloudflare Workers Static Assets serves the public deployment identified in the README. Only the generated `dist/` files are uploaded through the direct-upload interface. There is no Worker module, server process, secret, or runtime binding. Cloudflare owns hostname and routing configuration; HTML paths use automatic trailing-slash handling, and missing assets return a not-found response. These are static documents with fragment navigation, so an application-router fallback would hide broken links.
+Cloudflare Workers Static Assets serves the public deployment identified in the README. A GitHub Actions workflow deploys on every push to `main`, after the same checks that run on pull requests; only the generated `dist/` files are uploaded, with Wrangler, and the only credential is a Worker-scoped Cloudflare API token held as a repository secret that pull request runs never receive. There is no Worker module, server process, secret, or runtime binding. Cloudflare owns hostname and routing configuration; HTML paths use automatic trailing-slash handling, and missing assets return a not-found response. These are static documents with fragment navigation, so an application-router fallback would hide broken links.
 
 `site/robots.txt` owns the public crawl policy and is copied to the deployment root. It allows crawlers and explicitly permits search and use as input to artificial intelligence models, including agent browsing. All meaningful page content is server-rendered HTML, so a crawler does not need to execute JavaScript. Cloudflare's zone-level AI bot policies do not apply to this account's `workers.dev` hostname; no unrelated zone protections are changed.
 

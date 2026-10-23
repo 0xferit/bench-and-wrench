@@ -140,14 +140,14 @@ button { color: inherit; font: inherit; cursor: pointer; background: none; borde
 .line-dash.line-v { background-image: repeating-linear-gradient(180deg, var(--dash, var(--rule)) 0 var(--border), transparent var(--border) 0.4rem, var(--dash, var(--rule)) 0.4rem 1.4rem, transparent 1.4rem 1.6rem); }
 
 .ruler { position: absolute; inset: 1.2rem; z-index: 0; pointer-events: none; }
-.ruler-edge { position: absolute; background-position: 50%; }
-.ruler-top, .ruler-bottom { left: 2rem; right: 2rem; height: 0.8rem; background-image: linear-gradient(90deg, var(--tick) 0 var(--border), transparent var(--border)); background-size: 0.9rem 0.8rem; }
-.ruler-left, .ruler-right { top: 2rem; bottom: 2rem; width: 0.8rem; background-image: linear-gradient(180deg, var(--tick) 0 var(--border), transparent var(--border)); background-size: 0.8rem 0.9rem; }
+.ruler-edge { position: absolute; }
+.ruler-top, .ruler-bottom { left: 2rem; right: 2rem; height: 0.8rem; background: var(--tick); -webkit-mask: url("assets/tick-h.svg") 50% / 0.9rem 0.8rem repeat-x; mask: url("assets/tick-h.svg") 50% / 0.9rem 0.8rem repeat-x; }
+.ruler-left, .ruler-right { top: 2rem; bottom: 2rem; width: 0.8rem; background: var(--tick); -webkit-mask: url("assets/tick-v.svg") 50% / 0.8rem 0.9rem repeat-y; mask: url("assets/tick-v.svg") 50% / 0.8rem 0.9rem repeat-y; }
 .ruler-top { top: 0; }
 .ruler-bottom { bottom: 0; }
 .ruler-left { left: 0; }
 .ruler-right { right: 0; }
-.plus { position: absolute; width: 1.2rem; height: 1.2rem; color: var(--ink); background: linear-gradient(currentColor, currentColor) center / 100% var(--border) no-repeat, linear-gradient(currentColor, currentColor) center / var(--border) 100% no-repeat; }
+.plus { position: absolute; width: 1.2rem; height: 1.2rem; color: var(--ink); background: currentColor; -webkit-mask: url("assets/plus.svg") center / 100% 100% no-repeat; mask: url("assets/plus.svg") center / 100% 100% no-repeat; }
 .plus.top { top: -0.2rem; }
 .plus.bot { bottom: -0.2rem; }
 .plus.left { left: -0.2rem; }
@@ -318,7 +318,7 @@ section + section, .row + .row, main + .footer { border-top: var(--border) solid
 .cell-item:hover .cell-item-img { color: var(--ink); }
 .cell-item-content { position: relative; display: flex; flex-direction: column; justify-content: space-around; min-height: 25rem; padding: 3.2rem; }
 .cell-item-title { margin-bottom: 1.6rem; color: var(--ink); }
-.cell-item-plus { position: absolute; width: 1.2rem; height: 1.2rem; color: var(--surface); background: linear-gradient(currentColor, currentColor) center / 100% var(--border) no-repeat, linear-gradient(currentColor, currentColor) center / var(--border) 100% no-repeat; transform: scale(0); transition: transform 0.4s ease; }
+.cell-item-plus { color: var(--surface); transform: scale(0); transition: transform 0.4s ease; }
 .cell-item-plus.top { top: 1.6rem; }
 .cell-item-plus.bot { bottom: 1.6rem; }
 .cell-item-plus.left { left: 1.6rem; }
@@ -549,8 +549,8 @@ section + section, .row + .row, main + .footer { border-top: var(--border) solid
   .mb-txt-14 { font-size: var(--step-label); }
   .mb-txt-12 { font-size: var(--step-caption); }
   .ruler { inset: 0.8rem; }
-  .ruler-top, .ruler-bottom { left: 1.2rem; right: 1.2rem; height: 0.6rem; background-size: 0.9rem 0.6rem; }
-  .ruler-left, .ruler-right { top: 1.2rem; bottom: 1.2rem; width: 0.6rem; background-size: 0.6rem 0.9rem; }
+  .ruler-top, .ruler-bottom { left: 1.2rem; right: 1.2rem; height: 0.6rem; -webkit-mask-size: 0.675rem 0.6rem; mask-size: 0.675rem 0.6rem; }
+  .ruler-left, .ruler-right { top: 1.2rem; bottom: 1.2rem; width: 0.6rem; -webkit-mask-size: 0.6rem 0.675rem; mask-size: 0.6rem 0.675rem; }
   .plus { width: 0.8rem; height: 0.8rem; }
   .plus.top { top: -0.1rem; }
   .plus.bot { bottom: -0.1rem; }

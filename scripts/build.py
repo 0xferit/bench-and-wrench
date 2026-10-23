@@ -301,7 +301,7 @@ def _design_main(root, palette):
 
 
 def _relationship_cell(position, label, description):
-    plus_marks = "".join(f'<i class="cell-item-plus {corner}"></i>' for corner in ("top left", "top right", "bot left", "bot right"))
+    plus_marks = "".join(f'<i class="plus cell-item-plus {corner}"></i>' for corner in ("top left", "top right", "bot left", "bot right"))
     return (
         f'<article class="cell-item">{plus_marks}'
         f'<div class="cell-item-head txt-mono txt-14"><span>Relationship</span><span class="disabled" aria-hidden="true">[{position:02d}]</span><i class="line line-h line-bottom line-dash"></i></div>'

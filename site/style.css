@@ -518,6 +518,19 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
 .specimen-live { padding: 3.2rem; background: var(--cell); }
 .specimen-code { margin: 0; padding: 1.6rem; overflow-x: auto; border-top: var(--border) solid var(--rule); font-family: var(--font-mono); font-size: var(--step-caption); font-stretch: 100%; line-height: 1.5; }
 
+.rv-text.rv-pending { opacity: 0; }
+.rv-mask { display: block; overflow: clip; }
+.rv-line { display: block; transition: transform 0.8s var(--ease-out-cubic), opacity 0.8s var(--ease-out-cubic); transition-delay: calc(var(--line, 0) * 0.02s); }
+.rv-start .rv-line { opacity: 0; transform: translateY(100%); }
+.rv-block { transition: transform 1s var(--ease-out-quart), opacity 1s var(--ease-out-quart); }
+.rv-block.rv-pending { opacity: 0; transform: translateY(3.2rem); }
+.rv-scale { transition: transform 1.6s var(--ease-out-expo), opacity 1.6s var(--ease-out-expo); }
+.rv-scale.rv-pending { opacity: 0; transform: scale(1.25); }
+:has(> .rv-scale) { overflow: clip; }
+.rv-rule { transform-origin: 0 0; transition: transform 1.2s linear; }
+.rv-rule.rv-pending.line-h { transform: scaleX(0); }
+.rv-rule.rv-pending.line-v { transform: scaleY(0); }
+
 @media (hover: hover) and (min-width: 992px) {
   .header.on-scroll .header-logo-inner:hover .header-logo-name { transform: none; pointer-events: auto; }
   .faq-item:not(:last-child):hover .faq-line-hover { opacity: 1; }

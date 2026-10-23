@@ -35,6 +35,19 @@
   const ANCHOR_EASE_RATE = 10;
   const ANCHOR_EASE_CEILING = 1.001;
   const LINE_HEIGHT_PX = 16;
+  const REVEAL_TRIGGERS = [
+    ['.section-head', 0.65],
+    ['.statement-strip-wrap, .cell-list, .faq-list, .footer-left, .footer-menu, .footer-info, .footer-logo, .footer-band, .footer-copyright-wrap', 0.55],
+    ['.statement-body, .statement-media, .tool-row-art, .cell-item-img', 0.45],
+    ['.tool-row-left, .tool-row-right, .cta', 0.4],
+  ];
+  const REVEAL_EFFECTS = {
+    text: '.section-head-title .heading, .section-head-title p, .section-head-label span, .cell-item-head > span, .tool-row-title, .tool-row-sub p, .cell-item-title, .cell-item-content p, .cta-main-title, .cta-main-sub, .footer-title, .footer-label, .footer-info-label, .statement-desc',
+    block: '.statement-link, .cta-main-btn, .tool-row-btn, .tool-facts > div, .faq-ic, .footer-note, .cta-head-item span',
+    scale: '.tool-row-art .tool-illustration, .cell-item-img > svg, .statement-media > svg, .cta-deco-art > svg, .footer-logo .mark',
+    rule: 'main .line:not(.hero-guide), .cta .line, .footer .line',
+  };
+  const REVEAL_STATES = ['rv-pending', 'rv-start', ...Object.keys(REVEAL_EFFECTS).map((effect) => `rv-${effect}`)];
 
   const clamp01 = (value) => Math.min(1, Math.max(0, value));
 
@@ -106,6 +119,114 @@
     scroller.anchor = { target, hash: link.hash, from: scrollY };
     startGlide();
   });
+
+  const splitLines = (element) => {
+    const original = [...element.childNodes];
+    const overlays = original.filter((node) => node.nodeType === Node.ELEMENT_NODE && node.classList.contains('line'));
+    const content = original.filter((node) => !overlays.includes(node));
+    const lineMask = (index, nodes) => {
+      const mask = document.createElement('span');
+      const line = document.createElement('span');
+      mask.className = 'rv-mask';
+      line.className = 'rv-line';
+      line.style.setProperty('--line', index);
+      line.append(...nodes);
+      mask.append(line);
+      return mask;
+    };
+    if (!content.every((node) => node.nodeType === Node.TEXT_NODE || node.nodeName === 'BR')) {
+      element.replaceChildren(lineMask(0, content), ...overlays);
+      return original;
+    }
+    const words = [];
+    element.replaceChildren(...content.flatMap((node) => {
+      if (node.nodeName === 'BR') return [node];
+      return node.textContent.split(/(\s+)/).filter(Boolean).map((part) => {
+        if (!part.trim()) return document.createTextNode(part);
+        const word = document.createElement('span');
+        word.textContent = part;
+        words.push(word);
+        return word;
+      });
+    }), ...overlays);
+    const rows = [];
+    for (const word of words) {
+      const row = rows.at(-1);
+      if (row && row.top === word.offsetTop) row.words.push(word.textContent);
+      else rows.push({ top: word.offsetTop, words: [word.textContent] });
+    }
+    element.replaceChildren(...rows.map((row, index) => lineMask(index, [row.words.join(' ')])), ...overlays);
+    return original;
+  };
+  const reveal = (() => {
+    if (REDUCED_MOTION.matches) return { hold() {}, release() {} };
+    const triggerSelector = REVEAL_TRIGGERS.map(([selector]) => selector).join(', ');
+    const ownerOf = (target) => target.closest(triggerSelector) || target.parentElement;
+    const shares = new Map();
+    for (const [effect, selector] of Object.entries(REVEAL_EFFECTS)) {
+      for (const target of document.querySelectorAll(selector)) {
+        target.classList.add(`rv-${effect}`, 'rv-pending');
+        const trigger = ownerOf(target);
+        if (!shares.has(trigger)) shares.set(trigger, (REVEAL_TRIGGERS.find(([triggers]) => trigger.matches(triggers)) || [null, 0])[1]);
+      }
+    }
+    const settle = async (target, original) => {
+      const transitions = target.getAnimations({ subtree: true }).filter((animation) => animation instanceof CSSTransition);
+      await Promise.allSettled(transitions.map((animation) => animation.finished));
+      if (original) target.replaceChildren(...original);
+      target.classList.remove(...REVEAL_STATES);
+    };
+    const begin = (target) => {
+      if (!target.classList.contains('rv-text')) {
+        target.classList.remove('rv-pending');
+        settle(target, null);
+        return;
+      }
+      const original = splitLines(target);
+      target.classList.replace('rv-pending', 'rv-start');
+      target.getBoundingClientRect();
+      target.classList.remove('rv-start');
+      settle(target, original);
+    };
+    const near = new Set();
+    const held = new Set();
+    const watcher = new IntersectionObserver((entries) => {
+      for (const { target, isIntersecting, boundingClientRect } of entries) {
+        if (isIntersecting || boundingClientRect.top < 0) near.add(target);
+        else near.delete(target);
+      }
+      requestCheck();
+    });
+    const play = (trigger) => {
+      near.delete(trigger);
+      shares.delete(trigger);
+      watcher.unobserve(trigger);
+      for (const target of trigger.querySelectorAll('.rv-pending')) if (ownerOf(target) === trigger) begin(target);
+    };
+    let checkFrame = 0;
+    const check = () => {
+      checkFrame = 0;
+      for (const trigger of near) {
+        if (held.has(trigger)) continue;
+        const { top, height } = trigger.getBoundingClientRect();
+        if (top + shares.get(trigger) * height <= innerHeight) play(trigger);
+      }
+    };
+    const requestCheck = () => { if (!checkFrame) checkFrame = requestAnimationFrame(check); };
+    for (const trigger of shares.keys()) watcher.observe(trigger);
+    window.addEventListener('scroll', requestCheck, { passive: true });
+    window.addEventListener('resize', requestCheck);
+    const playAll = () => { for (const trigger of [...shares.keys()]) play(trigger); };
+    window.addEventListener('beforeprint', playAll);
+    REDUCED_MOTION.addEventListener('change', playAll);
+    return {
+      hold: (trigger) => held.add(trigger),
+      release: (trigger) => {
+        held.delete(trigger);
+        if (shares.has(trigger)) play(trigger);
+      },
+    };
+  })();
 
   const progress = document.querySelector('.demo-progress-value');
   const progressBar = document.querySelector('.mini-progress span');

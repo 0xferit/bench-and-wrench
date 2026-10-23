@@ -511,6 +511,13 @@ main > section + section, main + .footer { border-top: var(--border) solid var(-
   .footer-policy-item:hover { color: var(--brand); }
   .tree-toggle:hover { background: var(--paper); }
 }
+@media (hover: hover) and (min-width: 992px) and (prefers-reduced-motion: no-preference) {
+  .cell-item:hover .cell-item-img svg > * { stroke-dasharray: 1; animation: cell-draw 0.8s var(--ease-draw) both; }
+  .cell-item:hover .cell-item-img svg > :nth-child(2) { animation-delay: 0.08s; }
+  .cell-item:hover .cell-item-img svg > :nth-child(3) { animation-delay: 0.16s; }
+  .cell-item:hover .cell-item-img svg > :nth-child(4) { animation-delay: 0.25s; }
+}
+@keyframes cell-draw { from { stroke-dashoffset: 1; } }
 @media (hover: hover) and (max-width: 991px) {
   .btn-fill-outline:hover { border-color: var(--ink); }
   .cta-main-btn:hover { color: var(--muted); }

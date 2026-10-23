@@ -27,6 +27,7 @@
   const STRIP_SPEED_MS = 600;
   const STRIP_STEP_DESKTOP = 3;
   const STRIP_STEP_NARROW = 1;
+  const FAQ_SLIDE_MS = 400;
 
   const progress = document.querySelector('.demo-progress-value');
   const progressBar = document.querySelector('.mini-progress span');
@@ -236,6 +237,38 @@
         if (DESKTOP.matches && !info.classList.contains('active')) art.scrollIntoView();
       });
     }
+  }
+
+  for (const list of document.querySelectorAll('.faq-list')) {
+    const easing = getComputedStyle(document.documentElement).getPropertyValue('--ease-swing').trim();
+    const opened = new Map();
+    const slides = new Map();
+    const isOpening = (details) => (slides.has(details) ? opened.get(details) : details.open);
+    const slide = (details, open) => {
+      const body = details.querySelector('.faq-body');
+      if (slides.has(details)) slides.get(details).cancel();
+      opened.set(details, open);
+      details.open = true;
+      const shut = { height: '0px', paddingTop: '0px', overflow: 'hidden' };
+      const full = { height: `${body.getBoundingClientRect().height}px`, paddingTop: getComputedStyle(body).paddingTop, overflow: 'hidden' };
+      const animation = body.animate(open ? [shut, full] : [full, shut], { duration: REDUCED_MOTION.matches ? 0 : FAQ_SLIDE_MS, easing });
+      slides.set(details, animation);
+      animation.onfinish = () => {
+        slides.delete(details);
+        if (!open) details.open = false;
+      };
+    };
+    const items = [...list.querySelectorAll('.faq-details')];
+    for (const details of items) details.removeAttribute('name');
+    list.addEventListener('click', (event) => {
+      const item = event.target.closest('.faq-item');
+      if (!item || event.target.closest('.faq-body')) return;
+      event.preventDefault();
+      const details = item.querySelector('.faq-details');
+      const open = !isOpening(details);
+      if (open) for (const other of items) if (other !== details && isOpening(other)) slide(other, false);
+      slide(details, open);
+    });
   }
 
   const frame = document.querySelector('.home-hero-img');

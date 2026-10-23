@@ -112,7 +112,7 @@ The frame around a drawing or an illustration. Place it as the first child of a 
 
 ### Field notes
 
-Detail the reader opts into. The plus becomes a minus when the notes are open, and a dashed rule draws under the row on hover.
+Detail the reader opts into, one list below the tool stack with one item per tool. The title is the h6 size, stepping to 2rem on tablets and 1.8rem on phones; the plus becomes a minus when the notes are open. Items are separated by dashed rules, and on hover the rule under an item turns ink, except under the last. The answer has no inner rules: each part is a mono label over its text.
 
 {{specimen faq}}
 
@@ -130,13 +130,14 @@ A labelled example of a tool, framed as a window. Illustrations are examples, ne
 - The hero's row of tool names scrolls left as a marquee at 40px a second at every width. The script repeats the names until they cover the row and hides the repeats from assistive technology; without it the row stands still.
 - The statement inks in with the scroll, one character after another, from `--rule` to `--ink`. The scrub starts when the title's centre is 10% of a viewport below the window and ends when it is 40% from the top; each character takes 0.5 of the timeline on an ease-out curve, 0.03 after the one before it. The heading keeps its full text as its accessible name, and the split characters are hidden from assistive technology.
 - The statement's drawing inks in as it scrolls up: a hatched, filled copy of the line drawing is revealed from the top down behind a curved edge roughened by a turbulence displacement filter. The edge starts when the drawing's top is 35% down the window and reaches the bottom once the drawing has moved its own height less a fifth of the window further. Without the script only the line drawing shows.
+- Field notes are exclusive: opening one closes the open one, and both slide over 400ms on `--ease-swing`. Without the script the notes still open one at a time, without the slide.
 - The tool boxes cross-fade over 400ms when the next illustration crosses the window's middle line. Focusing a link in a hidden box scrolls its illustration to the middle, so a keyboard reaches every link with its box in view.
 - When the tools overflow the strip, it loops: every 3 seconds it steps three cells on screens 992px and wider and one cell below, over 600ms, and the controls step the same way. It pauses while the pointer or focus is inside it, and the script repeats the cells for the loop and hides the repeats from assistive technology. While every tool fits, the controls are disabled. The cells themselves have no hover state.
 - Once the page scrolls past the header, the wordmark slides under the mark on screens 768px and wider. Hovering the mark, or focusing the link, slides it back in 400ms.
 - Header links dissolve to ink on hover and the label swaps upward. The current page's link keeps its muted label, takes no pointer and carries a small ink square at its right edge.
 - Every button dissolves in as square pixels on a 24 by 6 grid: 20 steps over 580ms, while the label swaps upward and the arrow passes through in 480ms. On leave the label snaps back and, once the fill has finished, the resting colour dissolves back over it the same way.
 - Hover effects run only on hover-capable screens 992px and wider. Below that, a hover only darkens an outline button's rule and dims the accent button's label to `--muted`, and touch screens show no hover state at all.
-- Under `prefers-reduced-motion`, the sweep does not run, the line rests at its end position, the marquee and the tool strip stand still, the statement and its drawing are inked from the start, the crosshair snaps to the pointer, and the header and label transitions are instant.
+- Under `prefers-reduced-motion`, the sweep does not run, the line rests at its end position, the marquee and the tool strip stand still, the statement and its drawing are inked from the start, the crosshair snaps to the pointer, field notes open without the slide, and the header and label transitions are instant.
 
 ## Accessibility
 

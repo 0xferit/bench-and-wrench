@@ -160,7 +160,7 @@ def _tool_exhibit(root, path, position):
   <div class="tool-row-art" id="{slug}" data-tool="{slug}"><i class="line line-h line-top line-solid"></i><i class="line line-v line-left line-solid"></i><i class="line line-v line-right line-solid"></i><i class="line line-h line-bottom line-dash"></i>{illustration}</div>
 </article>'''
     field_notes = f'''
-<details class="faq-item" id="notes-{slug}"><summary><span class="faq-title heading h6 tb-h20 mb-h18">Field notes</span><span class="txt-mono txt-12 granite">Fit, limits, and sources</span><span class="faq-ic" aria-hidden="true"></span></summary><div class="faq-body"><div class="faq-grid">{''.join(notes)}</div></div></details>'''
+<div class="faq-item"><details class="faq-details" name="field-notes" id="notes-{slug}"><summary><span class="faq-title heading h6 tb-h20 mb-h18">Field notes: {html.escape(title)}</span><span class="faq-ic" aria-hidden="true"></span></summary><div class="faq-body">{''.join(notes)}</div></details><i class="line line-h line-top line-solid"></i><i class="line line-h line-bottom line-dash"></i><i class="line line-h line-bottom line-dash line-ink faq-line-hover"></i></div>'''
     return title, slug, relation, row, field_notes
 
 

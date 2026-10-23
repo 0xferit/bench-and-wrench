@@ -60,7 +60,7 @@ Two families, self-hosted: Archivo and Geist Mono. The page makes no request to 
 - The root size is 0.5787037037vw, which is 8.33px on a 1440px screen. At 991px and below it is 1.1990407674vw, and at 767px and below 2.5445292621vw. These three values are the only breakpoints.
 - The page sits inside a fixed frame inset 0.8rem from the window, drawn by a 1px rule. Content scrolls under the frame: the margin outside the rule is repainted with paper and grain above everything but the skip link, so the sheet ends at the frame line. Rows are separated by 1px rules, and cells within a row by 1px rules.
 - Wide rows divide into quarters: a quarter, a half and a quarter, or four quarters. The first screen is one viewport: the fixed header, a ruler-framed drawing and a title row.
-- The header is fixed. It hides when the reader scrolls down and returns when they scroll up. Below 991px its links collapse behind a Menu cell.
+- The header is fixed. It hides when the reader scrolls down and returns when they scroll up. Below 991px its links collapse behind a Menu cell. Only the mark, the wordmark and the header's buttons take the pointer; the rest of the header lets it through to the page.
 - A ruler frame has an inset of 1.2rem, 0.9rem tick spacing on every edge (0.675rem on phones) and a plus mark at each corner. It frames the one drawing a screen is about. Ticks and plus marks are 1px SVG masks filled with a token colour, so they keep a hairline weight at every size and theme.
 - Dashed rules repeat a 1.6rem pattern: a dot, a gap, a dash, a gap. They separate parts of a cell; solid rules separate cells.
 - A rule drawn over a cell is a `.line` element: absolute, 1px, above the content and taking no layout space. It takes `line-h` or `line-v`, a side (`line-top`, `line-bottom`, `line-left`, `line-right`) and `line-solid` or `line-dash`; `line-ink` darkens a dash. Its parent must be positioned.
@@ -121,6 +121,7 @@ A labelled example of a tool, framed as a window. Illustrations are examples, ne
 
 - The hero drawing's measuring line sweeps its length once on load, then rests at the jaw tip. That is the page's one orchestrated moment.
 - Over the hero drawing a crosshair follows the pointer and reads its position in millimetres from the part's origin. The drawing carries its own origin and scale as data, so the reading cannot drift from the art.
+- Once the page scrolls past the header, the wordmark slides under the mark on screens 768px and wider. Hovering the mark, or focusing the link, slides it back in 400ms.
 - Header cells fill with ink from below on hover, the label swaps upward and a corner mark travels from the bottom right to the top right.
 - Buttons dissolve to ink in 580ms over 20 steps. Cell buttons fill from below in 500ms with an ease-out curve.
 - Hover effects run only on hover-capable screens 992px and wider. Below that, a hover only darkens an outline button's rule and dims the accent button's label to `--muted`, and touch screens show no hover state at all.

@@ -360,7 +360,10 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
 @media screen and (prefers-reduced-motion: no-preference) {
   .js .bench-plan-track { height: 700dvh; }
   .js .bench-plan-stage { position: sticky; top: var(--frame); height: var(--sheet-height); }
-  .js .bench-plan-canvas { height: 100%; transform: translateY(var(--plan-entry, 0px)); }
+  .js .bench-plan-canvas { height: 100%; align-content: stretch; padding-block: 0; transform: translateY(var(--plan-entry, 0px)); }
+  .js .bench-plan-heading { --heading-rise: 0.3rem; --heading-from-opacity: 0; --heading-from-scale: 1.04; --heading-to-scale: 0.96; grid-area: 1 / 1; opacity: calc((var(--heading-from-opacity) + (1 - var(--heading-from-opacity)) * var(--heading-in, 0)) * (1 - var(--heading-out, 0))); transform: translateY(calc(var(--heading-rise) * (1 - var(--heading-in, 0) - var(--heading-out, 0)))) scale(calc(var(--heading-from-scale) + (1 - var(--heading-from-scale)) * var(--heading-in, 0) - (1 - var(--heading-to-scale)) * var(--heading-out, 0))); }
+  .js .bench-plan-heading:first-child { --heading-from-opacity: 1; --heading-from-scale: 1; }
+  .js .bench-plan:not(.is-started) .bench-plan-heading { opacity: 0; }
 }
 @media screen and (prefers-reduced-motion: no-preference) and (max-width: 991px) {
   .js .bench-plan-track { height: auto; }

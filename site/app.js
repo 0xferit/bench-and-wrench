@@ -30,6 +30,9 @@
   const INK_BULGE = 1.25;
   const PLAN_ENTRY = { start: 'top bottom', end: 'top top' };
   const PLAN_SCRUB = { start: 'top 50%', end: () => (WIDER_THAN_PHONE.matches ? 'bottom-=30vh bottom' : 'bottom-=180vh top') };
+  const PLAN_HEADING_IN = { at: '>=0' };
+  const PLAN_HEADING_OUT = { at: '>=0.5' };
+  const PLAN_TIMELINE_UNITS = 5.5;
   const STRIP_AUTOPLAY_MS = 3000;
   const STRIP_SPEED_MS = 600;
   const STRIP_STEP_DESKTOP = 3;
@@ -773,7 +776,21 @@
         planCanvas.style.setProperty('--plan-entry', `${-below}px`);
       },
     });
-    scene(plan, { ...PLAN_SCRUB, onProgress: (progress) => plan.classList.toggle('expanded', progress === 1) });
+    const sequence = timeline();
+    for (const heading of planCanvas.querySelectorAll('.bench-plan-heading')) {
+      sequence
+        .add((share) => heading.style.setProperty('--heading-in', share.toFixed(4)), PLAN_HEADING_IN)
+        .add((share) => heading.style.setProperty('--heading-out', share.toFixed(4)), PLAN_HEADING_OUT);
+    }
+    sequence.add(() => {}, { at: PLAN_TIMELINE_UNITS, duration: 0 });
+    scene(plan, {
+      ...PLAN_SCRUB,
+      onProgress: (progress) => {
+        sequence.progress(progress);
+        plan.classList.toggle('is-started', progress > 0);
+        plan.classList.toggle('expanded', progress === 1);
+      },
+    });
   }
 
   const toolInfos = [...document.querySelectorAll('.tool-row-info')];

@@ -15,6 +15,10 @@
   const FRAME_MS = 1000 / 60;
   const CROSSHAIR_SETTLE_PX = 0.1;
   const REDUCED_MOTION = matchMedia('(prefers-reduced-motion: reduce)');
+  const SCRUB_START_VIEWPORTS = 1.1;
+  const SCRUB_SPAN_VIEWPORTS = 0.7;
+  const SCRUB_CHAR_DURATION = 0.5;
+  const SCRUB_CHAR_STAGGER = 0.03;
   const STRIP_AUTOPLAY_MS = 3000;
   const STRIP_SPEED_MS = 600;
   const STRIP_STEP_DESKTOP = 3;
@@ -55,6 +59,58 @@
     const marqueeResizes = new ResizeObserver(fillMarquee);
     marqueeResizes.observe(marquee);
     marqueeResizes.observe(marqueeCopy);
+  }
+
+  const clamp01 = (value) => Math.min(1, Math.max(0, value));
+
+  const statementTitle = document.querySelector('.statement-title');
+  if (statementTitle && !REDUCED_MOTION.matches) {
+    statementTitle.setAttribute('aria-label', statementTitle.textContent.replace(/\s+/g, ' ').trim());
+    const chars = [];
+    const walker = document.createTreeWalker(statementTitle, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+    for (const node of textNodes) {
+      const fragment = document.createDocumentFragment();
+      for (const part of node.textContent.split(/(\s+)/)) {
+        if (!part.trim()) {
+          fragment.append(part);
+          continue;
+        }
+        const word = document.createElement('span');
+        word.className = 'word';
+        for (const letter of part) {
+          const char = document.createElement('span');
+          char.className = 'char';
+          char.setAttribute('aria-hidden', 'true');
+          char.textContent = letter;
+          word.append(char);
+          chars.push(char);
+        }
+        fragment.append(word);
+      }
+      node.replaceWith(fragment);
+    }
+    const scrubLength = SCRUB_CHAR_DURATION + SCRUB_CHAR_STAGGER * (chars.length - 1);
+    const shares = chars.map(() => '');
+    let scrubFrame = 0;
+    const scrub = () => {
+      scrubFrame = 0;
+      const bounds = statementTitle.getBoundingClientRect();
+      const centre = bounds.top + bounds.height / 2;
+      const time = scrubLength * clamp01((SCRUB_START_VIEWPORTS * innerHeight - centre) / (SCRUB_SPAN_VIEWPORTS * innerHeight));
+      chars.forEach((char, index) => {
+        const local = clamp01((time - SCRUB_CHAR_STAGGER * index) / SCRUB_CHAR_DURATION);
+        const share = (1 - (1 - local) ** 2).toFixed(3);
+        if (share === shares[index]) return;
+        shares[index] = share;
+        char.style.setProperty('--ink-share', share);
+      });
+    };
+    const requestScrub = () => { if (!scrubFrame) scrubFrame = requestAnimationFrame(scrub); };
+    window.addEventListener('scroll', requestScrub, { passive: true });
+    window.addEventListener('resize', requestScrub);
+    scrub();
   }
 
   const strip = document.querySelector('.statement-strip');

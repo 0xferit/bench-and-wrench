@@ -288,6 +288,8 @@ section + section, .row + .row, main + .footer { border-top: var(--border) solid
 .statement-strip-wrap { position: relative; grid-column: 7 / -1; grid-row: 2; display: flex; flex-direction: column; margin-left: -1rem; }
 .statement-content { padding: 6.4rem 15rem 3.2rem; }
 .statement-title { margin-bottom: 3.2rem; color: var(--ink); }
+.statement-title .word { display: inline-block; white-space: nowrap; }
+.statement-title .char { color: color-mix(in srgb, var(--ink) calc(var(--ink-share, 0) * 100%), var(--rule)); }
 .statement-link { color: var(--ink); }
 .statement-strip { display: flex; flex-direction: column; overflow: hidden; }
 .statement-strip-label { position: relative; display: flex; align-items: center; justify-content: space-between; padding-left: 3.2rem; color: var(--ink); }

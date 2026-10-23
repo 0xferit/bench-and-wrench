@@ -218,7 +218,7 @@ button { padding: 0; color: inherit; font: inherit; cursor: pointer; background:
 
 main { display: block; padding-top: 0; }
 section { position: relative; }
-main > section + section, main + .footer { border-top: var(--border) solid var(--rule); }
+main > section + section, main + .cta, .cta + .footer { border-top: var(--border) solid var(--rule); }
 .cells { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .cell { position: relative; min-width: 0; }
 .cells > .cell + .cell { border-left: var(--border) solid var(--rule); }

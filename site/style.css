@@ -104,8 +104,8 @@ ul, ol { padding-left: 1.2em; }
 a { color: inherit; text-decoration-thickness: var(--border); text-underline-offset: 0.4rem; }
 ::selection { color: var(--on-brand); background: #e15c46; }
 button { color: inherit; font: inherit; cursor: pointer; background: none; border: 0; }
-.skip-link { position: fixed; left: var(--space-3); top: -64px; z-index: 300; padding: var(--space-2) var(--space-4); color: var(--on-ink); background: var(--ink); }
-.skip-link:focus { top: var(--space-3); }
+.skip-link { position: fixed; left: var(--space-3); top: 0; z-index: 300; padding: var(--space-2) var(--space-4); color: var(--on-ink); background: var(--ink); transform: translateY(-100%); }
+.skip-link:focus { transform: translateY(var(--space-3)); }
 
 .heading { color: var(--ink); font-stretch: var(--stretch-heading); font-weight: 700; letter-spacing: -0.02em; line-height: 1; text-transform: uppercase; }
 .h1 { font-size: var(--step-h1); }

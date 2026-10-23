@@ -321,10 +321,10 @@ def _design_main(root, palette):
 def _relationship_cell(position, label, description):
     plus_marks = "".join(f'<i class="plus cell-item-plus {corner}"></i>' for corner in ("top left", "top right", "bot left", "bot right"))
     return (
-        f'<article class="cell-item">{plus_marks}'
-        f'<div class="cell-item-head txt-mono txt-14"><span>Relationship</span><span class="disabled" aria-hidden="true">[{position:02d}]</span><i class="line line-h line-bottom line-dash"></i></div>'
-        f'<div class="cell-item-img glyph-{html.escape(label.lower())}">{SPANNER_GLYPH}<i class="line line-h line-bottom line-dash"></i></div>'
-        f'<div class="cell-item-content"><h3 class="cell-item-title heading h5 tb-h6 mb-h4">{html.escape(label)}</h3><p class="txt-16 txt-reg">{_inline(description)}</p></div></article>'
+        '<article class="cell-item"><i class="line line-v line-left line-solid"></i>'
+        f'<div class="cell-item-head txt-mono txt-14"><i class="cell-item-dot" aria-hidden="true"></i><span>Relationship</span><span class="disabled" aria-hidden="true">[{position:02d}]</span><i class="line line-h line-bottom line-dash"></i></div>'
+        f'<div class="cell-item-main"><div class="cell-item-img glyph-{html.escape(label.lower())}">{SPANNER_GLYPH}{plus_marks}</div>'
+        f'<div class="cell-item-content"><i class="line line-h line-top line-dash"></i><h3 class="cell-item-title heading h5 tb-h6 mb-h4">{html.escape(label)}</h3><p class="txt-16 txt-reg">{_inline(description)}</p></div></div></article>'
     )
 
 

@@ -357,19 +357,68 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
 .bench-plan-sheet-inner { position: relative; display: flex; justify-content: center; height: 100%; padding: 2rem 0; }
 .bench-plan-canvas { display: grid; grid-template-columns: minmax(1px, 1fr); align-content: center; row-gap: 3.2rem; width: 100%; padding: 6.4rem 3.2rem; }
 .bench-plan-heading { display: flex; align-items: center; justify-content: center; color: var(--ink); text-align: center; }
+.bench-plan-figure { justify-self: center; width: 100%; max-width: 88rem; }
+.bench-plan-drawing { display: block; width: 100%; height: auto; fill: none; stroke: var(--surface); stroke-width: 1.5; stroke-linejoin: round; overflow: visible; }
+.bench-plan-drawing .bench-plan-fine { stroke-width: 1; }
+.bench-plan-hole { stroke: var(--rule); }
+.bench-plan-holes { fill: url("#bench-plan-holes"); stroke: none; }
+.bench-plan-tools { stroke: var(--ink); }
+.bench-plan-sheet-paper { fill: var(--cell); }
+.bench-plan-bar-done { fill: var(--surface); }
+.bench-plan-bar-running { fill: var(--rule); }
+.bench-plan-dims { stroke: var(--granite); }
+.bench-plan-drawing .bench-plan-arrow { fill: var(--granite); stroke: none; }
+.bench-plan-drawing text { fill: var(--granite); stroke: none; font-family: var(--font-mono); font-size: 11px; font-weight: 500; text-transform: uppercase; }
+.bench-plan-limits rect { fill: var(--brand); stroke: none; }
+.bench-plan-drawing .bench-plan-limits text { fill: var(--on-brand); font-size: 13px; }
 @media screen and (prefers-reduced-motion: no-preference) {
   .js .bench-plan-track { height: 700dvh; }
   .js .bench-plan-stage { position: sticky; top: var(--frame); height: var(--sheet-height); }
-  .js .bench-plan-canvas { height: 100%; align-content: stretch; padding-block: 0; transform: translateY(var(--plan-entry, 0px)); }
-  .js .bench-plan-heading { --heading-rise: 0.3rem; --heading-from-opacity: 0; --heading-from-scale: 1.04; --heading-to-scale: 0.96; grid-area: 1 / 1; opacity: calc((var(--heading-from-opacity) + (1 - var(--heading-from-opacity)) * var(--heading-in, 0)) * (1 - var(--heading-out, 0))); transform: translateY(calc(var(--heading-rise) * (1 - var(--heading-in, 0) - var(--heading-out, 0)))) scale(calc(var(--heading-from-scale) + (1 - var(--heading-from-scale)) * var(--heading-in, 0) - (1 - var(--heading-to-scale)) * var(--heading-out, 0))); }
+  .js .bench-plan-canvas { height: 100%; align-content: stretch; padding: 0; transform: translateY(var(--plan-entry, 0px)); }
+  .js .bench-plan-heading { padding-inline: 2rem; --heading-rise: 0.3rem; --heading-from-opacity: 0; --heading-from-scale: 1.04; --heading-to-scale: 0.96; grid-area: 1 / 1; opacity: calc((var(--heading-from-opacity) + (1 - var(--heading-from-opacity)) * var(--heading-in, 0)) * (1 - var(--heading-out, 0))); transform: translateY(calc(var(--heading-rise) * (1 - var(--heading-in, 0) - var(--heading-out, 0)))) scale(calc(var(--heading-from-scale) + (1 - var(--heading-from-scale)) * var(--heading-in, 0) - (1 - var(--heading-to-scale)) * var(--heading-out, 0))); }
   .js .bench-plan-heading:first-child { --heading-from-opacity: 1; --heading-from-scale: 1; }
   .js .bench-plan:not(.is-started) .bench-plan-heading { opacity: 0; }
+  .js .bench-plan-figure { grid-area: 1 / 1; max-width: none; min-height: 0; }
+  .js .bench-plan-drawing { height: 100%; }
+  .js .bench-plan-layer { opacity: var(--layer-share, 0); }
+  .js .bench-plan-walls { --wall-from-scale: 1.1; }
+  .js .bench-plan-wall { opacity: var(--wall, 0); transform: translate(calc(var(--wall-from-x) * (1 - var(--wall, 0))), calc(var(--wall-from-y) * (1 - var(--wall, 0)))); }
+  .js .bench-plan-wall > path { transform-box: fill-box; transform-origin: 0 0; transform: scale(calc(var(--wall-from-scale) + (1 - var(--wall-from-scale)) * var(--wall, 0))); }
+  .js .bench-plan-wall:nth-child(1) { --wall-from-x: -100vw; --wall-from-y: -16rem; }
+  .js .bench-plan-wall:nth-child(2) { --wall-from-x: 100vw; --wall-from-y: -26rem; }
+  .js .bench-plan-wall:nth-child(3) { --wall-from-x: 100vw; --wall-from-y: 26rem; }
+  .js .bench-plan-wall:nth-child(4) { --wall-from-x: -20rem; --wall-from-y: -100dvh; }
+  .js .bench-plan-wall:nth-child(5) { --wall-from-x: -22rem; --wall-from-y: -100dvh; }
+  .js .bench-plan-wall:nth-child(6) { --wall-from-x: -100vw; --wall-from-y: 28rem; }
+  .js .bench-plan-wall:nth-child(7) { --wall-from-x: -100vw; --wall-from-y: 48rem; }
+  .js .bench-plan-wall:nth-child(8) { --wall-from-x: -48rem; --wall-from-y: 100dvh; }
+  .js .bench-plan-wall:nth-child(9) { --wall-from-x: -28rem; --wall-from-y: 100dvh; }
+  .js .bench-plan-wall:nth-child(10) { --wall-from-x: 9rem; --wall-from-y: 100dvh; }
+  .js .bench-plan-wall:nth-child(11) { --wall-from-x: 42rem; --wall-from-y: 100dvh; }
+  .js .bench-plan-wall:nth-child(12) { --wall-from-x: 100vw; --wall-from-y: 26rem; }
+  .js .bench-plan-wall:nth-child(13) { --wall-from-x: -70rem; --wall-from-y: -100dvh; }
 }
 @media screen and (prefers-reduced-motion: no-preference) and (max-width: 991px) {
   .js .bench-plan-track { height: auto; }
   .js .bench-plan-stage { position: static; flex-direction: column; height: auto; }
   .js .bench-plan-sheet { flex: none; height: 500dvh; overflow: visible; }
   .js .bench-plan-sheet-inner { position: sticky; top: var(--frame); height: var(--sheet-height); overflow: hidden; }
+}
+@media screen and (prefers-reduced-motion: no-preference) and (max-width: 767px) {
+  .js .bench-plan-figure { padding-bottom: 10rem; }
+  .js .bench-plan-wall:nth-child(1) { --wall-from-x: -100%; --wall-from-y: -16rem; }
+  .js .bench-plan-wall:nth-child(2) { --wall-from-x: 100%; --wall-from-y: -26rem; }
+  .js .bench-plan-wall:nth-child(3) { --wall-from-x: 100%; --wall-from-y: 26rem; }
+  .js .bench-plan-wall:nth-child(4) { --wall-from-x: -20rem; --wall-from-y: -130dvh; }
+  .js .bench-plan-wall:nth-child(5) { --wall-from-x: -22rem; --wall-from-y: -121dvh; }
+  .js .bench-plan-wall:nth-child(6) { --wall-from-x: -100%; --wall-from-y: 28rem; }
+  .js .bench-plan-wall:nth-child(7) { --wall-from-x: -100%; --wall-from-y: 48rem; }
+  .js .bench-plan-wall:nth-child(8) { --wall-from-x: -48rem; --wall-from-y: 100dvh; }
+  .js .bench-plan-wall:nth-child(9) { --wall-from-x: -28rem; --wall-from-y: 160dvh; }
+  .js .bench-plan-wall:nth-child(10) { --wall-from-x: 9rem; --wall-from-y: 160dvh; }
+  .js .bench-plan-wall:nth-child(11) { --wall-from-x: 42rem; --wall-from-y: 160dvh; }
+  .js .bench-plan-wall:nth-child(12) { --wall-from-x: 100%; --wall-from-y: 26rem; }
+  .js .bench-plan-wall:nth-child(13) { --wall-from-x: -70rem; --wall-from-y: -100dvh; }
 }
 
 .section-head { display: grid; grid-template-columns: 42.8fr 128.4fr; }

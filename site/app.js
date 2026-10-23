@@ -32,7 +32,8 @@
   const PLAN_SCRUB = { start: 'top 50%', end: () => (WIDER_THAN_PHONE.matches ? 'bottom-=30vh bottom' : 'bottom-=180vh top') };
   const PLAN_HEADING_IN = { at: '>=0' };
   const PLAN_HEADING_OUT = { at: '>=0.5' };
-  const PLAN_TIMELINE_UNITS = 5.5;
+  const PLAN_WALLS_IN = { at: '-=0.5' };
+  const PLAN_WALL_PIECES = { at: '<=0', stagger: { amount: 0.02, from: 'random' } };
   const STRIP_AUTOPLAY_MS = 3000;
   const STRIP_SPEED_MS = 600;
   const STRIP_STEP_DESKTOP = 3;
@@ -782,7 +783,15 @@
         .add((share) => heading.style.setProperty('--heading-in', share.toFixed(4)), PLAN_HEADING_IN)
         .add((share) => heading.style.setProperty('--heading-out', share.toFixed(4)), PLAN_HEADING_OUT);
     }
-    sequence.add(() => {}, { at: PLAN_TIMELINE_UNITS, duration: 0 });
+    const [wallLayer, ...detailLayers] = planCanvas.querySelectorAll('.bench-plan-layer');
+    const walls = [...planCanvas.querySelectorAll('.bench-plan-wall')];
+    const showLayer = (layer) => (share) => layer.style.setProperty('--layer-share', share.toFixed(4));
+    if (wallLayer && walls.length) {
+      sequence
+        .add(showLayer(wallLayer), PLAN_WALLS_IN)
+        .add((share, index) => walls[index].style.setProperty('--wall', share.toFixed(4)), { ...PLAN_WALL_PIECES, count: walls.length });
+      for (const layer of detailLayers) sequence.add(showLayer(layer));
+    }
     scene(plan, {
       ...PLAN_SCRUB,
       onProgress: (progress) => {

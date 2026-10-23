@@ -414,6 +414,7 @@ def _build(root):
         "ruler": RULER_FRAME,
         "wordmark": _wordmark(title),
         "hero_drawing": (root / "site/illustrations/hero-spanner.svg").read_text(),
+        "plan_drawing": _fill((root / "site/illustrations/bench-plan.svg").read_text(), {"spanner_paths": SPANNER_PATHS}),
         "exhibits": "\n".join(row for _, _, _, row, _ in exhibits),
         "field_notes": "\n".join(notes for _, _, _, _, notes in exhibits),
         "tool_total": str(len(exhibits)),

@@ -98,7 +98,7 @@ def _first_paragraph(blocks):
 
 def _swap_label(text):
     escaped = html.escape(text)
-    return f'<span class="swap txt-mono txt-14"><span>{escaped}</span><span aria-hidden="true">{escaped}</span></span>'
+    return f'<span class="btn-fill-label swap txt-mono txt-14"><span>{escaped}</span><span aria-hidden="true">{escaped}</span></span>'
 
 
 def _tool_exhibit(root, path, position):
@@ -139,7 +139,7 @@ def _tool_exhibit(root, path, position):
     <div class="tool-row-art"><div class="ruler" aria-hidden="true"><i class="ruler-edge ruler-top"></i><i class="ruler-edge ruler-bottom"></i><i class="ruler-edge ruler-left"></i><i class="ruler-edge ruler-right"></i><i class="plus top left"></i><i class="plus top right"></i><i class="plus bot left"></i><i class="plus bot right"></i></div>{illustration}</div>
     <div class="tool-row-right">
       <div class="tool-row-sub"><div class="tool-intro">{intro}</div><dl class="tool-facts"><div><dt class="txt-mono txt-12">Why it earns a place</dt><dd>{_inline(reason)}</dd></div><div><dt class="txt-mono txt-12">Keep in mind</dt><dd>{_inline(caveat)}</dd></div></dl></div>
-      <a class="tool-row-btn fill-slide" href="{html.escape(primary[1], quote=True)}">{_swap_label(action)}<span class="tool-row-btn-ic">{ARROW_ICON}</span></a>
+      <a class="tool-row-btn btn-fill btn-fill-ghost" href="{html.escape(primary[1], quote=True)}"><i class="line line-h line-top line-solid"></i><span class="btn-fill-bg" aria-hidden="true"></span>{_swap_label(action)}<span class="btn-fill-icon"><span class="slide">{ARROW_ICON}{ARROW_ICON}</span></span></a>
     </div>
   </div>
   <details class="faq-item" id="notes-{slug}"><summary><span class="faq-title heading h6 tb-h20 mb-h18">Field notes</span><span class="txt-mono txt-12 granite">Fit, limits, and sources</span><span class="faq-ic" aria-hidden="true"></span></summary><div class="faq-body"><div class="faq-grid">{''.join(notes)}</div></div></details>
@@ -325,7 +325,7 @@ def _relationship_cells(sections):
 
 def _strip_item(name, slug, relation):
     return (
-        f'<a class="statement-strip-item fill-slide" href="#{slug}"><span class="txt-mono txt-14">{html.escape(name)}</span>'
+        f'<a class="statement-strip-item" href="#{slug}"><span class="txt-mono txt-14">{html.escape(name)}</span>'
         f'<span class="relationship relationship-{html.escape(relation.lower())}">{html.escape(relation)}</span></a>'
     )
 

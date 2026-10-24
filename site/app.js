@@ -34,7 +34,7 @@
   const TOOL_INK_SCRUB = { start: 'top 50%', end: 'bottom 50%' };
   const TOOL_INK_BLEED_UNITS = 100;
   const PLAN_ENTRY = { start: 'top bottom', end: 'top top' };
-  const PLAN_SCRUB = { start: 'top 50%', end: () => (WIDER_THAN_PHONE.matches ? 'bottom-=30vh bottom' : 'bottom-=180vh top') };
+  const PLAN_SCRUB = { start: 'top 50%', end: 'bottom-=30vh bottom' };
   const PLAN_HEADING_IN = { at: '>=0' };
   const PLAN_HEADING_OUT = { at: '>=0.5' };
   const PLAN_WALLS_IN = { at: '-=0.5' };
@@ -45,7 +45,7 @@
   const STRIP_STEP_DESKTOP = 3;
   const STRIP_STEP_NARROW = 1;
   const FAQ_SLIDE_MS = 400;
-  const ENTRY_FOLLOW_LAYOUT = matchMedia('screen and (prefers-reduced-motion: no-preference) and (min-width: 992px)');
+  const SCENE_LAYOUT = matchMedia('screen and (prefers-reduced-motion: no-preference) and (min-width: 992px)');
   const ENTRY_LINE_FOLLOW = 0.2;
   const ENTRY_LINE_SETTLE_PX = 0.1;
   const FINE_POINTER = matchMedia('(pointer: fine)');
@@ -931,7 +931,7 @@
     for (const caption of captions) captionSizes.observe(caption);
     const planPanel = plan.querySelector('.bench-plan-panel');
     let panelRevealQueued = false;
-    if (planPanel && WIDER_THAN_PHONE.matches) reveal.hold(planPanel);
+    if (planPanel && SCENE_LAYOUT.matches) reveal.hold(planPanel);
     else if (planPanel) reveal.release(planPanel);
     const expand = (expanded) => {
       plan.classList.toggle('expanded', expanded);
@@ -954,7 +954,7 @@
       marker.addEventListener('mouseenter', () => markLimit(limit, 'is-hover', true));
       marker.addEventListener('mouseleave', () => markLimit(limit, 'is-hover', false));
       marker.addEventListener('focus', () => {
-        if (!begun.has(limitsLayer)) scrollTo(0, planScrub.scrollAt(1));
+        if (SCENE_LAYOUT.matches && !begun.has(limitsLayer)) scrollTo(0, planScrub.scrollAt(1));
         if (marker.matches(':focus-visible')) markLimit(limit, 'is-hover', true);
       });
       marker.addEventListener('blur', () => markLimit(limit, 'is-hover', false));
@@ -989,7 +989,7 @@
     };
     const follow = (time) => {
       followFrame = 0;
-      const following = ENTRY_FOLLOW_LAYOUT.matches && inView();
+      const following = SCENE_LAYOUT.matches && inView();
       entryParts.classList.toggle('is-following', following);
       if (!following) {
         lastFrame = 0;
@@ -1022,7 +1022,7 @@
     });
     window.addEventListener('scroll', wake, { passive: true });
     window.addEventListener('resize', wake);
-    ENTRY_FOLLOW_LAYOUT.addEventListener('change', wake);
+    SCENE_LAYOUT.addEventListener('change', wake);
     wake();
   }
 

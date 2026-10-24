@@ -410,7 +410,7 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
 .bench-plan-panel-item-text { --rv-delay: calc((5 + 2 * var(--item)) * var(--plan-panel-stagger)); }
 .bench-plan-panel-item-ic { --rv-delay: calc((4 + 2 * var(--item)) * var(--plan-panel-stagger)); position: relative; display: flex; flex: none; align-items: center; justify-content: center; aspect-ratio: 1; }
 .bench-plan-panel-icon { width: 3.2rem; height: 3.2rem; fill: none; stroke: var(--surface); stroke-width: 1.5; stroke-linecap: square; }
-@media screen and (prefers-reduced-motion: no-preference) {
+@media screen and (prefers-reduced-motion: no-preference) and (min-width: 992px) {
   .js .bench-plan-track { height: 700dvh; }
   .js .bench-plan-stage { position: sticky; top: var(--frame); flex-direction: row; height: var(--sheet-height); }
   .js .bench-plan-canvas { height: 100%; align-content: stretch; padding: 0; transform: translateY(var(--plan-entry, 0px)); }
@@ -451,8 +451,6 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
   .js .bench-plan .limit-callout.is-active { width: 30.4rem; }
   .js .bench-plan .limit-callout-body { display: none; width: 27rem; }
   .js .bench-plan .limit-callout-body.is-open { display: block; }
-}
-@media screen and (prefers-reduced-motion: no-preference) and (min-width: 992px) {
   .js .bench-plan-panel { --plan-panel-width: 55.65rem; flex: none; width: 0; height: 100%; transition: width 0.4s; }
   .js .bench-plan.expanded .bench-plan-panel { width: var(--plan-panel-width); }
   .js .bench-plan-panel-inner { display: flex; flex-direction: column; width: var(--plan-panel-width); height: 100%; }
@@ -466,33 +464,6 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
   .js .bench-plan-panel-item-title > .line-v { left: auto; right: 0; }
   .js .bench-plan-panel-item-ic { aspect-ratio: auto; padding: 1.6rem; }
   .js .bench-plan-panel-item-ic > .line { display: none; }
-}
-@media screen and (prefers-reduced-motion: no-preference) and (max-width: 991px) {
-  .js .bench-plan-track { height: auto; }
-  .js .bench-plan-stage { position: static; flex-direction: column; height: auto; }
-  .js .bench-plan-sheet { flex: none; height: 500dvh; overflow: visible; }
-  .js .bench-plan-sheet-inner { position: sticky; top: var(--frame); height: var(--sheet-height); overflow: hidden; }
-}
-@media screen and (prefers-reduced-motion: no-preference) and (max-width: 767px) {
-  .js .bench-plan-canvas { position: relative; z-index: 1; }
-  .js .bench-plan-figure { padding-bottom: 10rem; }
-  .js .bench-plan .limit-callout { top: auto; bottom: 0; left: 50%; z-index: 4; display: flex; flex-direction: column; width: 33.1rem; padding: 0.8rem; transform: translate(-50%); }
-  .js .bench-plan .limit-callout.is-active { width: 33.1rem; }
-  .js .bench-plan .limit-callout-body { display: block; width: 100%; }
-  .js .bench-plan .limit-callout-desc { padding-top: 0.6rem; }
-  .js .bench-plan-wall:nth-child(1) { --wall-from-x: -100%; --wall-from-y: -16rem; }
-  .js .bench-plan-wall:nth-child(2) { --wall-from-x: 100%; --wall-from-y: -26rem; }
-  .js .bench-plan-wall:nth-child(3) { --wall-from-x: 100%; --wall-from-y: 26rem; }
-  .js .bench-plan-wall:nth-child(4) { --wall-from-x: -20rem; --wall-from-y: -130dvh; }
-  .js .bench-plan-wall:nth-child(5) { --wall-from-x: -22rem; --wall-from-y: -121dvh; }
-  .js .bench-plan-wall:nth-child(6) { --wall-from-x: -100%; --wall-from-y: 28rem; }
-  .js .bench-plan-wall:nth-child(7) { --wall-from-x: -100%; --wall-from-y: 48rem; }
-  .js .bench-plan-wall:nth-child(8) { --wall-from-x: -48rem; --wall-from-y: 100dvh; }
-  .js .bench-plan-wall:nth-child(9) { --wall-from-x: -28rem; --wall-from-y: 160dvh; }
-  .js .bench-plan-wall:nth-child(10) { --wall-from-x: 9rem; --wall-from-y: 160dvh; }
-  .js .bench-plan-wall:nth-child(11) { --wall-from-x: 42rem; --wall-from-y: 160dvh; }
-  .js .bench-plan-wall:nth-child(12) { --wall-from-x: 100%; --wall-from-y: 26rem; }
-  .js .bench-plan-wall:nth-child(13) { --wall-from-x: -70rem; --wall-from-y: -100dvh; }
 }
 
 .section-head { display: grid; grid-template-columns: 42.8fr 128.4fr; }

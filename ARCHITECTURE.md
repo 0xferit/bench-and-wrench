@@ -20,7 +20,7 @@ The repository is an installable marketplace for Claude Code and Codex. `.claude
 
 ## Website
 
-The build in `scripts/build.py` reads the tool order and the design credit from the README and the assessments from the linked catalog entries, so the footer's credit is the README's line and never a second wording. It combines those records with the layout in `site/template.html` and emits the static site into `dist/`. Generated output is ignored by Git and can be recreated without installing dependencies.
+The build in `scripts/build.py` reads the tool order and the design credit from the README and the assessments from the linked catalog entries, so the footer's credit is the README's line and never a second wording. The public address in the README's Deployment section is likewise the only statement of the site's address: the build turns it into the absolute `og:image` and `twitter:image` URLs, which crawlers require, and `site/assets/og-image.png` is the built hero captured at 1200 by 630 pixels and committed like the icons. It combines those records with the layout in `site/template.html` and emits the static site into `dist/`. Generated output is ignored by Git and can be recreated without installing dependencies.
 
 The renderer supports the catalog's paragraphs, second-level sections, flat lists, and inline links, emphasis, and code. It escapes authored text and rejects executable link schemes before writing a page. It is deliberately a small catalog renderer rather than a general Markdown engine. Boundary checks exercise the command against temporary catalogs, including a new tool and invalid input.
 

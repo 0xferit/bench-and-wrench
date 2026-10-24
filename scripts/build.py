@@ -146,6 +146,13 @@ def _first_paragraph(blocks):
     return next((value for kind, value in blocks if kind == "p"), "")
 
 
+def _site_address(sections):
+    link = INLINE_TOKEN.search(_first_paragraph(sections["Deployment"]))
+    if not link or not link.group(2).startswith("https://"):
+        raise ValueError("The README's Deployment section must open with a link to the public website")
+    return link.group(2).rstrip("/") + "/"
+
+
 def _swap_label(text):
     escaped = html.escape(text)
     return f'<span class="btn-fill-label swap txt-mono txt-14"><span>{escaped}</span><span aria-hidden="true">{escaped}</span></span>'
@@ -559,6 +566,7 @@ def _build(root):
         "tagline": _inline(intro_paragraphs[0]),
         "intro": _inline(intro_paragraphs[1]),
         "credit": _inline(_first_paragraph(sections["Credits"])),
+        "site_address": _site_address(sections),
         "statement_drawing": _ink_drawing("statement", STATEMENT_INK_FRAME),
         "cta_drawing": _ink_drawing("cta", CTA_INK_FRAME),
         "ruler": RULER_FRAME,

@@ -27,7 +27,11 @@
   const STATEMENT_SCRUB = { start: 'center bottom+=10%', end: 'center top+=40%' };
   const STATEMENT_CHAR_STAGGER = 0.03;
   const INK_SCRUB = { start: 'top 35%', end: 'bottom 55%' };
-  const INK_BULGE = 1.25;
+  const INK_EDGE = { from: 0.001, to: 1 };
+  const INK_BULGE = { from: 0.002, to: 1.25 };
+  const TOOL_INK_SCRUB = { start: 'top 50%', end: 'bottom 50%' };
+  const TOOL_INK_UNITS = 1000;
+  const TOOL_INK_BLEED_UNITS = 100;
   const PLAN_ENTRY = { start: 'top bottom', end: 'top top' };
   const PLAN_SCRUB = { start: 'top 50%', end: () => (WIDER_THAN_PHONE.matches ? 'bottom-=30vh bottom' : 'bottom-=180vh top') };
   const PLAN_HEADING_IN = { at: '>=0' };
@@ -100,13 +104,19 @@
     text: '.section-head-title .heading, .section-head-title p, .section-head-label span, .cell-item-head > span, .tool-row-title, .tool-row-sub p, .cell-item-title, .cell-item-content p, .cta-main-title, .cta-main-sub, .footer-title, .footer-label, .footer-info-label, .statement-desc',
     words: '.home-hero-title, .bench-plan-panel-label-text, .bench-plan-panel-title, .bench-plan-panel-sub, .bench-plan-panel-item-text, .entry-parts-label, .entry-parts-title, .entry-parts-sub, .entry-parts-cue, .usecase-label, .usecase-title, .usecase-numb, .usecase-item-title, .usecase-item:first-child .usecase-sub-text',
     block: '.home-hero-sub, .home-hero-work, .statement-link, .cta-main-btn, .tool-row-btn, .tool-facts > div, .faq-ic, .footer-note, .cta-head-item span',
-    scale: '.tool-row-art .tool-illustration, .cell-item-img > svg, .statement-media > svg, .cta-deco-art > svg, .footer-logo .mark, .bench-plan-panel-item-ic, .entry-part-img > .entry-art, .usecase-img-item:first-child > .usecase-art',
+    scale: '.cell-item-img > svg, .statement-media > svg, .cta-deco-art > svg, .footer-logo .mark, .bench-plan-panel-item-ic, .entry-part-img > .entry-art, .usecase-img-item:first-child > .usecase-art',
     rule: 'main .line:not(.hero-guide, .bench-plan-panel .line, .entry-parts .line, .usecase .line), .usecase-item:first-child > .line-top, .cta .line, .footer .line',
     fade: '.home-hero-img .ruler',
   };
   const REVEAL_STATES = ['rv-pending', 'rv-start', ...Object.keys(REVEAL_EFFECTS).map((effect) => `rv-${effect}`)];
 
   const clamp01 = (value) => Math.min(1, Math.max(0, value));
+  const between = ({ from, to }, share) => from + (to - from) * share;
+  const inkEdgePath = (progress, width, height) => {
+    const edge = (height * between(INK_EDGE, progress)).toFixed(1);
+    const bulge = (height * between(INK_BULGE, progress)).toFixed(1);
+    return `M0 ${edge} Q${width / 2} ${bulge} ${width} ${edge} L${width} 0 L0 0Z`;
+  };
   const token = (name, fallback = 'linear') => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 
   const scroller = { current: scrollY, target: scrollY, frame: 0, last: 0, anchor: null };
@@ -689,11 +699,47 @@
   if (inkEdge) {
     scene(statementMedia, {
       ...INK_SCRUB,
-      onProgress: (progress, { width, height }) => {
-        const edge = (height * progress).toFixed(1);
-        inkEdge.setAttribute('d', `M0 ${edge} Q${width / 2} ${(INK_BULGE * edge).toFixed(1)} ${width} ${edge} L${width} 0 L0 0Z`);
-      },
+      onProgress: (progress, { width, height }) => inkEdge.setAttribute('d', inkEdgePath(progress, width, height)),
     });
+  }
+
+  const ragged = document.getElementById('ink-ragged');
+  if (ragged) {
+    const raggedMarkup = new XMLSerializer().serializeToString(ragged);
+    const sketchMask = (progress, { width, height }) => {
+      const depth = TOOL_INK_UNITS * height / width;
+      const near = -TOOL_INK_BLEED_UNITS;
+      const far = TOOL_INK_UNITS + TOOL_INK_BLEED_UNITS;
+      const unInked = `M${near} ${near}H${far}V${(depth + TOOL_INK_BLEED_UNITS).toFixed(1)}H${near}Z${inkEdgePath(progress, TOOL_INK_UNITS, depth)}`;
+      const image = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${TOOL_INK_UNITS} ${depth.toFixed(1)}" preserveAspectRatio="none">${raggedMarkup}<path fill-rule="evenodd" filter="url(#${ragged.id})" d="${unInked}"/></svg>`;
+      return `url("data:image/svg+xml,${encodeURIComponent(image)}")`;
+    };
+    for (const art of document.querySelectorAll('.tool-row-art')) {
+      const figure = art.querySelector('.tool-illustration');
+      if (!figure) continue;
+      const sketch = document.createElement('div');
+      sketch.className = 'tool-sketch';
+      sketch.setAttribute('aria-hidden', 'true');
+      sketch.inert = true;
+      const trace = () => {
+        const copy = figure.cloneNode(true);
+        for (const node of [copy, ...copy.querySelectorAll('[id]')]) node.removeAttribute('id');
+        sketch.replaceChildren(copy);
+      };
+      trace();
+      new MutationObserver(trace).observe(figure, { subtree: true, childList: true, attributes: true, characterData: true });
+      art.append(sketch);
+      let drawn = '';
+      scene(art, {
+        ...TOOL_INK_SCRUB,
+        onProgress: (progress, bounds) => {
+          const key = `${progress} ${bounds.width} ${bounds.height}`;
+          if (!DESKTOP.matches || key === drawn) return;
+          drawn = key;
+          sketch.style.setProperty('--sketch-mask', sketchMask(progress, bounds));
+        },
+      });
+    }
   }
 
   const strip = document.querySelector('.statement-strip');

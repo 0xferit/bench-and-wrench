@@ -329,8 +329,10 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
 
 .statement { --gutter: 2rem; display: grid; grid-template-columns: repeat(12, minmax(1px, 1fr)); grid-template-rows: 1fr auto; column-gap: var(--gutter); min-height: clamp(60.4rem, var(--sheet-height), 86.7rem); }
 .statement-media { position: relative; grid-column: 1 / 7; grid-row: 1 / 3; margin-right: calc(var(--gutter) / -2); overflow: hidden; }
-.statement-drawing { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke: var(--ink); stroke-width: 1.2; }
-.statement-hatch { stroke-width: 0.6; }
+.ink-drawing { fill: none; stroke: var(--ink); }
+.ink-drawing .ink-edge { stroke: none; }
+.ink-hatch { stroke-width: 0.6; }
+.statement-drawing { position: absolute; inset: 0; width: 100%; height: 100%; stroke-width: 1.2; }
 .statement-body { position: relative; grid-column: 7 / -1; grid-row: 1; display: flex; flex-direction: column; margin-left: calc(var(--gutter) / -2); }
 .statement-body > .line-h { display: none; }
 .statement-strip-wrap { position: relative; grid-column: 7 / -1; grid-row: 2; display: flex; flex-direction: column; margin-left: calc(var(--gutter) / -2); }
@@ -845,8 +847,8 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
 .cta-main-sub { margin-bottom: 3.2rem; }
 .cta-main-btn { align-self: center; }
 .cta-deco-art { aspect-ratio: 1 / 0.542857; }
-.cta-deco-art > svg { position: absolute; inset: var(--border); width: calc(100% - 2 * var(--border)); height: calc(100% - 2 * var(--border)); padding: 5% 13%; fill: none; stroke: var(--ink); stroke-width: 1; }
-.cta-deco-art > svg > * { vector-effect: non-scaling-stroke; }
+.cta-drawing { position: absolute; inset: var(--border); width: calc(100% - 2 * var(--border)); height: calc(100% - 2 * var(--border)); stroke-width: 1; }
+.cta-drawing svg > * { vector-effect: non-scaling-stroke; }
 
 .footer { position: relative; display: block; }
 .footer-grid { display: grid; grid-template-columns: var(--frame-cols); }

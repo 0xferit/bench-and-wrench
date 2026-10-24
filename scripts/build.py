@@ -30,14 +30,9 @@ SPANNER_PATHS = (
 )
 SPANNER_VIEW = 'viewBox="0 0 204 100"'
 SPANNER_GLYPH = f'<svg {SPANNER_VIEW} aria-hidden="true">{SPANNER_PATHS}</svg>'
-STATEMENT_DRAWING_FRAME = f'{SPANNER_VIEW} x="20%" width="60%" height="100%"'
-STATEMENT_DRAWING = (
-    '<svg class="statement-drawing" aria-hidden="true"><defs>'
-    '<pattern id="statement-hatch" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path class="statement-hatch" d="M1.5 0V3"/></pattern>'
-    '<mask id="statement-ink" maskUnits="userSpaceOnUse"><path class="statement-ink-edge" fill="#fff" filter="url(#ink-ragged)"/></mask></defs>'
-    f'<svg {STATEMENT_DRAWING_FRAME}>{SPANNER_PATHS}</svg>'
-    f'<g mask="url(#statement-ink)"><svg {STATEMENT_DRAWING_FRAME} fill="url(#statement-hatch)">{SPANNER_PATHS}<path d="M60 41l82 1v16l-82 1z" stroke="none"/></svg></g></svg>'
-)
+SPANNER_SHAFT = '<path d="M60 41l82 1v16l-82 1z" stroke="none"/>'
+STATEMENT_INK_FRAME = 'x="20%" width="60%" height="100%"'
+CTA_INK_FRAME = 'x="13%" width="74%" height="100%"'
 RULER_FRAME = (
     '<div class="ruler" aria-hidden="true"><i class="ruler-edge ruler-top"></i><i class="ruler-edge ruler-bottom"></i><i class="ruler-edge ruler-left"></i>'
     '<i class="ruler-edge ruler-right"></i><i class="plus top left"></i><i class="plus top right"></i><i class="plus bot left"></i><i class="plus bot right"></i></div>'
@@ -394,6 +389,17 @@ def _balanced_lines(title):
     return min(splits, key=lambda lines: max(len(line) for line in lines)) if splits else tuple(words)
 
 
+def _ink_drawing(name, frame):
+    view = f"{SPANNER_VIEW} {frame}"
+    return (
+        f'<svg class="ink-drawing {name}-drawing" preserveAspectRatio="none" aria-hidden="true"><defs>'
+        f'<pattern id="{name}-hatch" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path class="ink-hatch" d="M1.5 0V3"/></pattern>'
+        f'<mask id="{name}-ink" maskUnits="userSpaceOnUse"><path class="ink-edge" fill="#fff" filter="url(#ink-ragged)"/></mask></defs>'
+        f'<svg {view}>{SPANNER_PATHS}</svg>'
+        f'<g mask="url(#{name}-ink)"><svg {view} fill="url(#{name}-hatch)">{SPANNER_PATHS}{SPANNER_SHAFT}</svg></g></svg>'
+    )
+
+
 def _wordmark(title):
     lines = "".join(
         f'<text x="50%" y="{index}em" text-anchor="middle">{html.escape(line)}</text>' for index, line in enumerate(_balanced_lines(title))
@@ -552,8 +558,8 @@ def _build(root):
         "title": html.escape(title),
         "tagline": _inline(intro_paragraphs[0]),
         "intro": _inline(intro_paragraphs[1]),
-        "statement_drawing": STATEMENT_DRAWING,
-        "cta_drawing": SPANNER_GLYPH,
+        "statement_drawing": _ink_drawing("statement", STATEMENT_INK_FRAME),
+        "cta_drawing": _ink_drawing("cta", CTA_INK_FRAME),
         "ruler": RULER_FRAME,
         "wordmark": _wordmark(title),
         "hero_drawing": (root / "site/illustrations/hero-spanner.svg").read_text(),

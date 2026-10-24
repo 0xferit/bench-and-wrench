@@ -26,11 +26,12 @@
   const TIMELINE_POSITION = /^(?:([<>])=?(-?\d*\.?\d+)?|([+-])=(\d*\.?\d+))$/;
   const STATEMENT_SCRUB = { start: 'center bottom+=10%', end: 'center top+=40%' };
   const STATEMENT_CHAR_STAGGER = 0.03;
-  const INK_SCRUB = { start: 'top 35%', end: 'bottom 55%' };
+  const STATEMENT_INK_SCRUB = { start: 'top 35%', end: 'bottom 55%' };
+  const CTA_INK_SCRUB = { start: 'top 75%', end: 'bottom 25%' };
   const INK_EDGE = { from: 0.001, to: 1 };
   const INK_BULGE = { from: 0.002, to: 1.25 };
+  const INK_UNITS = 1000;
   const TOOL_INK_SCRUB = { start: 'top 50%', end: 'bottom 50%' };
-  const TOOL_INK_UNITS = 1000;
   const TOOL_INK_BLEED_UNITS = 100;
   const PLAN_ENTRY = { start: 'top bottom', end: 'top top' };
   const PLAN_SCRUB = { start: 'top 50%', end: () => (WIDER_THAN_PHONE.matches ? 'bottom-=30vh bottom' : 'bottom-=180vh top') };
@@ -97,7 +98,7 @@
     ['.section-head, .entry-parts-head, .usecase-list', 0.65],
     ['.statement-strip-wrap, .cell-list, .faq-list, .footer-left, .footer-menu, .footer-info, .footer-logo, .footer-band, .footer-copyright-wrap', 0.55],
     ['.statement-body, .statement-media, .tool-row-art, .cell-item-img, .entry-part-img', 0.45],
-    ['.tool-row-left, .tool-row-right, .cta, .usecase-title-wrap', 0.4],
+    ['.tool-row-left, .tool-row-right, .cta, .cta-deco, .usecase-title-wrap', 0.4],
     ['.usecase-img-list', 0.35],
   ];
   const REVEAL_EFFECTS = {
@@ -117,6 +118,7 @@
     const bulge = (height * between(INK_BULGE, progress)).toFixed(1);
     return `M0 ${edge} Q${width / 2} ${bulge} ${width} ${edge} L${width} 0 L0 0Z`;
   };
+  const inkDepth = ({ width, height }) => INK_UNITS * height / width;
   const token = (name, fallback = 'linear') => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 
   const scroller = { current: scrollY, target: scrollY, frame: 0, last: 0, anchor: null };
@@ -694,24 +696,36 @@
     scene(statementTitle, { ...STATEMENT_SCRUB, onProgress: inking.progress });
   }
 
-  const statementMedia = document.querySelector('.statement-media');
-  const inkEdge = statementMedia && statementMedia.querySelector('.statement-ink-edge');
-  if (inkEdge) {
-    scene(statementMedia, {
-      ...INK_SCRUB,
-      onProgress: (progress, { width, height }) => inkEdge.setAttribute('d', inkEdgePath(progress, width, height)),
+  const inkDrawing = (drawing, trigger, edges, scrubbing = () => true) => {
+    const edge = drawing.querySelector('.ink-edge');
+    scene(trigger, {
+      ...edges,
+      onProgress: (progress, bounds) => {
+        if (!bounds.width) return;
+        const depth = inkDepth(bounds);
+        drawing.setAttribute('viewBox', `0 0 ${INK_UNITS} ${depth.toFixed(1)}`);
+        edge.setAttribute('d', inkEdgePath(scrubbing() ? progress : 1, INK_UNITS, depth));
+      },
     });
+  };
+  const statementDrawing = document.querySelector('.statement-media > .ink-drawing');
+  if (statementDrawing) inkDrawing(statementDrawing, statementDrawing.parentElement, STATEMENT_INK_SCRUB);
+  const ctaDeco = document.querySelector('.cta-deco');
+  const ctaDrawing = ctaDeco && ctaDeco.querySelector('.ink-drawing');
+  if (ctaDrawing) {
+    if (!WIDER_THAN_PHONE.matches) reveal.release(ctaDeco);
+    inkDrawing(ctaDrawing, ctaDrawing, CTA_INK_SCRUB, () => WIDER_THAN_PHONE.matches);
   }
 
   const ragged = document.getElementById('ink-ragged');
   if (ragged) {
     const raggedMarkup = new XMLSerializer().serializeToString(ragged);
-    const sketchMask = (progress, { width, height }) => {
-      const depth = TOOL_INK_UNITS * height / width;
+    const sketchMask = (progress, bounds) => {
+      const depth = inkDepth(bounds);
       const near = -TOOL_INK_BLEED_UNITS;
-      const far = TOOL_INK_UNITS + TOOL_INK_BLEED_UNITS;
-      const unInked = `M${near} ${near}H${far}V${(depth + TOOL_INK_BLEED_UNITS).toFixed(1)}H${near}Z${inkEdgePath(progress, TOOL_INK_UNITS, depth)}`;
-      const image = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${TOOL_INK_UNITS} ${depth.toFixed(1)}" preserveAspectRatio="none">${raggedMarkup}<path fill-rule="evenodd" filter="url(#${ragged.id})" d="${unInked}"/></svg>`;
+      const far = INK_UNITS + TOOL_INK_BLEED_UNITS;
+      const unInked = `M${near} ${near}H${far}V${(depth + TOOL_INK_BLEED_UNITS).toFixed(1)}H${near}Z${inkEdgePath(progress, INK_UNITS, depth)}`;
+      const image = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${INK_UNITS} ${depth.toFixed(1)}" preserveAspectRatio="none">${raggedMarkup}<path fill-rule="evenodd" filter="url(#${ragged.id})" d="${unInked}"/></svg>`;
       return `url("data:image/svg+xml,${encodeURIComponent(image)}")`;
     };
     for (const art of document.querySelectorAll('.tool-row-art')) {

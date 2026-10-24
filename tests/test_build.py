@@ -35,6 +35,7 @@ class WebsiteBuildTests(unittest.TestCase):
         (self.root / "tools/boundary-tool.md").write_text(
             "# Boundary tool\n\n**Relationship: Curated.**\n\nA boundary example.\n\n"
             "## Why it earns a place\n\nA singular use.\n\n"
+            "## When it is useful\n\n- A singular moment.\n\n"
             "## Limits to understand\n\nA real limitation.\n\n"
             "## Open it\n\n[Open tool](https://example.com/tool).\n"
         )
@@ -45,11 +46,29 @@ class WebsiteBuildTests(unittest.TestCase):
             self.assertIn(name, page)
         self.assertIn('href="https://example.com/tool"', page)
         self.assertIn("A real limitation.", page)
+        callouts = re.findall(r'<div class="limit-callout" id="([^"]+)"><p [^>]*>([^<]*)</p>', page)
+        self.assertEqual(len(callouts), 6)
+        self.assertEqual(callouts[-1], ("plan-limit-06", "Boundary tool · Limit 06"))
+        self.assertIn('<g class="bench-plan-limit" data-limit="plan-limit-06">', page)
+        cases = re.findall(r'<details class="faq-details" name="use-cases"[^>]*><summary><span [^>]*>\[(\d+)\]</span><span [^>]*><span [^>]*>([^<]*)</span><span class="usecase-tag[^"]*">([^<]*)</span>.*?</summary><div [^>]*>(.*?)</div></details>', page)
+        self.assertEqual(len(cases), 7)
+        self.assertEqual(cases[-1][:3], ("07", "A singular moment.", "Boundary tool"))
+        self.assertIn('href="#boundary-tool"', cases[-1][3])
+        self.assertEqual(re.findall(r'<div class="usecase-img-item[^"]*" data-tool="([^"]+)"', page)[-1], "boundary-tool")
         menu = re.search(r'<nav class="header-menu".*?</nav>', page, re.DOTALL).group(0)
         dropdown = re.findall(r'class="header-menu-dropdown-item[^"]*" href="([^"]+)"', menu)
         self.assertEqual(dropdown, ["#live-gantt", "#linear-work-tree", "#boundary-tool"])
         self.assertNotIn("{{", page)
         self.assertTrue((self.root / "dist/assets/mark.svg").is_file())
+
+    def test_an_entry_missing_one_of_the_four_parts_fails_before_producing_a_page(self):
+        entry = self.root / "tools/live-gantt.md"
+        entry.write_text(entry.read_text().replace("## When it is useful", "## When it helps"))
+        result = self.build()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("tools/live-gantt.md", result.stderr)
+        self.assertIn("When it is useful", result.stderr)
+        self.assertFalse((self.root / "dist/index.html").exists())
 
     def test_every_fragment_link_on_the_home_page_has_a_target(self):
         result = self.build()
@@ -59,6 +78,20 @@ class WebsiteBuildTests(unittest.TestCase):
         fragments = set(re.findall(r'href="#([^"]+)"', page))
         self.assertIn("linear-work-tree", fragments)
         self.assertEqual(fragments - targets, set())
+        references = {name for names in re.findall(r'aria-(?:controls|labelledby)="([^"]+)"', page) for name in names.split()}
+        self.assertIn("plan-limit-01", references)
+        self.assertEqual(references - targets, set())
+
+    def test_the_readme_credit_line_is_the_footer_credit_on_every_page(self):
+        readme = self.root / "README.md"
+        credit = "A boundary credit, used with permission."
+        readme.write_text(re.sub(r"(## Credits\n\n)[^\n]+", lambda match: match.group(1) + credit, readme.read_text()))
+        result = self.build()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for name in ("index.html", "design-system.html"):
+            page = (self.root / "dist" / name).read_text()
+            footer = re.search(r'<footer class="footer">.*?</footer>', page, re.DOTALL).group(0)
+            self.assertEqual(footer.count(credit), 1, name)
 
     def test_every_asset_a_page_links_is_published(self):
         result = self.build()

@@ -2,6 +2,7 @@
   const HIDE_AFTER_HEADER_HEIGHTS = 5;
   const SETTLE_DELAY_MS = 150;
   const DESKTOP = matchMedia('(min-width: 992px)');
+  const WIDER_THAN_PHONE = matchMedia('(min-width: 768px)');
   const HOVER_DESKTOP = matchMedia('(hover: hover) and (min-width: 992px)');
   const FILL_DURATION_MS = 580;
   const FILL_EASING = 'steps(20, jump-none)';
@@ -15,19 +16,39 @@
   const FRAME_MS = 1000 / 60;
   const CROSSHAIR_SETTLE_PX = 0.1;
   const REDUCED_MOTION = matchMedia('(prefers-reduced-motion: reduce)');
-  const SCRUB_START_VIEWPORTS = 1.1;
-  const SCRUB_SPAN_VIEWPORTS = 0.7;
-  const SCRUB_CHAR_DURATION = 0.5;
-  const SCRUB_CHAR_STAGGER = 0.03;
-  const INK_START_VIEWPORTS = 0.35;
-  const INK_END_VIEWPORTS = 0.2;
-  const INK_BULGE = 1.25;
-  const INK_MIN_SPAN_PX = 1;
+  const SCENE_EDGES = { top: 0, center: 0.5, bottom: 1 };
+  const SCENE_DEFAULT_END = 'bottom top';
+  const SCENE_MIN_SPAN_PX = 1;
+  const SCENE_LENGTH = /^(?:(top|center|bottom)|(-?\d*\.?\d+)(px|%|vh)?)?(?:([+-])=(\d*\.?\d+)(px|%|vh)?)?$/;
+  const SCENE_CLAMP = /^clamp\((.*)\)$/;
+  const PERCENT = 100;
+  const TWEEN_DURATION = 0.5;
+  const TIMELINE_POSITION = /^(?:([<>])=?(-?\d*\.?\d+)?|([+-])=(\d*\.?\d+))$/;
+  const STATEMENT_SCRUB = { start: 'center bottom+=10%', end: 'center top+=40%' };
+  const STATEMENT_CHAR_STAGGER = 0.03;
+  const STATEMENT_INK_SCRUB = { start: 'top 35%', end: 'bottom 55%' };
+  const CTA_INK_SCRUB = { start: 'top 75%', end: 'bottom 25%' };
+  const INK_EDGE = { from: 0.001, to: 1 };
+  const INK_BULGE = { from: 0.002, to: 1.25 };
+  const INK_UNITS = 1000;
+  const TOOL_INK_SCRUB = { start: 'top 50%', end: 'bottom 50%' };
+  const TOOL_INK_BLEED_UNITS = 100;
+  const PLAN_ENTRY = { start: 'top bottom', end: 'top top' };
+  const PLAN_SCRUB = { start: 'top 50%', end: 'bottom-=30vh bottom' };
+  const PLAN_HEADING_IN = { at: '>=0' };
+  const PLAN_HEADING_OUT = { at: '>=0.5' };
+  const PLAN_WALLS_IN = { at: '-=0.5' };
+  const PLAN_WALL_PIECES = { at: '<=0', stagger: { amount: 0.02, from: 'random' } };
+  const PLAN_PANEL_REVEAL_MS = 200;
+  const ENTRY_ART_PLAY_SHARE = 0.4;
   const STRIP_AUTOPLAY_MS = 3000;
   const STRIP_SPEED_MS = 600;
   const STRIP_STEP_DESKTOP = 3;
   const STRIP_STEP_NARROW = 1;
   const FAQ_SLIDE_MS = 400;
+  const SCENE_LAYOUT = matchMedia('screen and (prefers-reduced-motion: no-preference) and (min-width: 992px)');
+  const ENTRY_LINE_FOLLOW = 0.2;
+  const ENTRY_LINE_SETTLE_PX = 0.1;
   const FINE_POINTER = matchMedia('(pointer: fine)');
   const SCROLL_LERP = 0.1;
   const SCROLL_SETTLE_PX = 0.5;
@@ -71,26 +92,34 @@
   const BAND_TICK_SHARE = 0.1;
   const ROUND_LETTER = /[CDGOQS]/;
   const BAND_LETTER = /\p{L}/u;
-  const easeOutCubic = (share) => 1 - (1 - share) ** 3;
-  const easeOutQuart = (share) => 1 - (1 - share) ** 4;
+  const powerOut = (power) => (share) => 1 - (1 - share) ** (power + 1);
+  const EASES = { none: (share) => share, power1Out: powerOut(1), power2Out: powerOut(2), power3Out: powerOut(3) };
   const REVEAL_TRIGGERS = [
-    ['.home-hero', 0],
-    ['.section-head', 0.65],
+    ['.home-hero, .bench-plan-panel', 0],
+    ['.section-head, .entry-parts-head, .usecase-list', 0.65],
     ['.statement-strip-wrap, .cell-list, .faq-list, .footer-left, .footer-menu, .footer-info, .footer-logo, .footer-band, .footer-copyright-wrap', 0.55],
-    ['.statement-body, .statement-media, .tool-row-art, .cell-item-img', 0.45],
-    ['.tool-row-left, .tool-row-right, .cta', 0.4],
+    ['.statement-body, .statement-media, .tool-row-art, .cell-item-img, .entry-part-img', 0.45],
+    ['.tool-row-left, .tool-row-right, .cta, .cta-deco, .usecase-title-wrap', 0.4],
+    ['.usecase-img-list', 0.35],
   ];
   const REVEAL_EFFECTS = {
     text: '.section-head-title .heading, .section-head-title p, .section-head-label span, .cell-item-head > span, .tool-row-title, .tool-row-sub p, .cell-item-title, .cell-item-content p, .cta-main-title, .cta-main-sub, .footer-title, .footer-label, .footer-info-label, .statement-desc',
-    words: '.home-hero-title',
+    words: '.home-hero-title, .bench-plan-panel-label-text, .bench-plan-panel-title, .bench-plan-panel-sub, .bench-plan-panel-item-text, .entry-parts-label, .entry-parts-title, .entry-parts-sub, .entry-parts-cue, .usecase-label, .usecase-title, .usecase-numb, .usecase-item-title, .usecase-item:first-child .usecase-sub-text',
     block: '.home-hero-sub, .home-hero-work, .statement-link, .cta-main-btn, .tool-row-btn, .tool-facts > div, .faq-ic, .footer-note, .cta-head-item span',
-    scale: '.tool-row-art .tool-illustration, .cell-item-img > svg, .statement-media > svg, .cta-deco-art > svg, .footer-logo .mark',
-    rule: 'main .line:not(.hero-guide), .cta .line, .footer .line',
+    scale: '.cell-item-img > svg, .statement-media > svg, .cta-deco-art > svg, .footer-logo .mark, .bench-plan-panel-item-ic, .entry-part-img > .entry-art, .usecase-img-item:first-child > .usecase-art',
+    rule: 'main .line:not(.hero-guide, .bench-plan-panel .line, .entry-parts .line, .usecase .line), .usecase-item:first-child > .line-top, .cta .line, .footer .line',
     fade: '.home-hero-img .ruler',
   };
   const REVEAL_STATES = ['rv-pending', 'rv-start', ...Object.keys(REVEAL_EFFECTS).map((effect) => `rv-${effect}`)];
 
   const clamp01 = (value) => Math.min(1, Math.max(0, value));
+  const between = ({ from, to }, share) => from + (to - from) * share;
+  const inkEdgePath = (progress, width, height) => {
+    const edge = (height * between(INK_EDGE, progress)).toFixed(1);
+    const bulge = (height * between(INK_BULGE, progress)).toFixed(1);
+    return `M0 ${edge} Q${width / 2} ${bulge} ${width} ${edge} L${width} 0 L0 0Z`;
+  };
+  const inkDepth = ({ width, height }) => INK_UNITS * height / width;
   const token = (name, fallback = 'linear') => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 
   const scroller = { current: scrollY, target: scrollY, frame: 0, last: 0, anchor: null };
@@ -162,6 +191,140 @@
     startGlide();
   });
 
+  const scene = (() => {
+    const parseLength = (text) => {
+      const match = SCENE_LENGTH.exec(text);
+      if (!match) throw new Error(`Unreadable scene position: ${text}`);
+      const [, edge, base, baseUnit, sign, offset, offsetUnit] = match;
+      const length = { share: edge ? SCENE_EDGES[edge] : 0, viewports: 0, px: 0 };
+      const extend = (amount, unit) => {
+        if (unit === '%') length.share += amount / PERCENT;
+        else if (unit === 'vh') length.viewports += amount / PERCENT;
+        else length.px += amount;
+      };
+      if (base) extend(Number(base), baseUnit);
+      if (offset) extend(Number(`${sign}${offset}`), offsetUnit);
+      return length;
+    };
+    const parsePosition = (text) => {
+      const clamped = SCENE_CLAMP.exec(text.trim());
+      const [element, viewport = 'top', ...rest] = (clamped ? clamped[1] : text).trim().split(/\s+/);
+      if (rest.length) throw new Error(`Unreadable scene position: ${text}`);
+      return { clamped: Boolean(clamped), element: parseLength(element), viewport: parseLength(viewport) };
+    };
+    const positionOf = (value) => {
+      if (typeof value === 'function') return () => parsePosition(value());
+      const parsed = parsePosition(value);
+      return () => parsed;
+    };
+    const measureLength = ({ share, viewports, px }, size) => share * size + viewports * innerHeight + px;
+    const scrollPoint = ({ element, viewport }, bounds) => Math.round(bounds.top + scrollY + measureLength(element, bounds.height) - measureLength(viewport, innerHeight));
+    const live = new Set();
+    let printing = false;
+    const range = (entry, bounds) => {
+      const start = entry.start();
+      const end = entry.end();
+      const max = maxScroll();
+      let from = scrollPoint(start, bounds);
+      let to = scrollPoint(end, bounds);
+      if (start.clamped) from = from >= max ? max - SCENE_MIN_SPAN_PX : Math.max(from, 0);
+      if (end.clamped) to = Math.min(to, max);
+      return { from, span: Math.max(to - from, SCENE_MIN_SPAN_PX) };
+    };
+    const read = (entry) => {
+      const bounds = entry.trigger.getBoundingClientRect();
+      if (REDUCED_MOTION.matches || printing) return { entry, bounds, progress: 1 };
+      const { from, span } = range(entry, bounds);
+      return { entry, bounds, progress: clamp01((scrollY - from) / span) };
+    };
+    const render = ({ entry, bounds, progress }) => {
+      if (entry.onProgress) entry.onProgress(progress, bounds);
+      if (entry.onEnter && progress > 0) {
+        live.delete(entry);
+        entry.onEnter();
+      }
+    };
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      [...live].map(read).forEach(render);
+    };
+    const requestUpdate = () => { if (!frame) frame = requestAnimationFrame(update); };
+    window.addEventListener('scroll', requestUpdate, { passive: true });
+    window.addEventListener('resize', requestUpdate);
+    new ResizeObserver(requestUpdate).observe(document.body);
+    REDUCED_MOTION.addEventListener('change', requestUpdate);
+    window.addEventListener('beforeprint', () => {
+      printing = true;
+      update();
+    });
+    window.addEventListener('afterprint', () => {
+      printing = false;
+      update();
+    });
+    return (trigger, { start, end = SCENE_DEFAULT_END, onProgress, onEnter }) => {
+      const entry = { trigger, start: positionOf(start), end: positionOf(end), onProgress, onEnter };
+      live.add(entry);
+      render(read(entry));
+      return {
+        scrollAt: (progress) => {
+          const { from, span } = range(entry, trigger.getBoundingClientRect());
+          return from + span * progress;
+        },
+      };
+    };
+  })();
+  const shuffle = (items) => {
+    for (let index = items.length - 1; index > 0; index -= 1) {
+      const other = Math.floor(Math.random() * (index + 1));
+      [items[index], items[other]] = [items[other], items[index]];
+    }
+    return items;
+  };
+  const staggerDelays = (count, stagger) => {
+    const { each = 0, amount = each * (count - 1), from = 'start' } = typeof stagger === 'number' ? { each: stagger } : stagger;
+    const ranks = [...Array(count).keys()];
+    if (from === 'random') shuffle(ranks);
+    return ranks.map((rank) => (count > 1 ? amount * rank / (count - 1) : 0));
+  };
+  const timeline = () => {
+    const tracks = [];
+    let recent = { start: 0, end: 0 };
+    let length = 0;
+    const startOf = (position) => {
+      if (position === undefined) return length;
+      if (typeof position === 'number') return position;
+      const match = TIMELINE_POSITION.exec(position);
+      if (!match) throw new Error(`Unreadable timeline position: ${position}`);
+      const [, anchor, shift = 0, sign, offset] = match;
+      if (anchor) return (anchor === '<' ? recent.start : recent.end) + Number(shift);
+      return length + Number(`${sign}${offset}`);
+    };
+    const seek = (time) => {
+      for (const track of tracks) {
+        track.delays.forEach((delay, index) => {
+          const local = time - track.start - delay;
+          const linear = track.duration ? clamp01(local / track.duration) : Number(local >= 0);
+          if (linear === track.shown[index]) return;
+          track.shown[index] = linear;
+          track.render(track.ease(linear), index, linear);
+        });
+      }
+    };
+    const api = {
+      add(render, { at, duration = TWEEN_DURATION, ease = EASES.power1Out, count = 1, stagger = 0 } = {}) {
+        const start = startOf(at);
+        const delays = staggerDelays(count, stagger);
+        tracks.push({ render, start, duration, ease, delays, shown: [] });
+        recent = { start, end: start + Math.max(...delays) + duration };
+        length = Math.max(length, recent.end);
+        return api;
+      },
+      progress: (share) => seek(share * length),
+    };
+    return api;
+  };
+
   const splitLines = (element, byWord) => {
     const original = [...element.childNodes];
     const overlays = original.filter((node) => node.nodeType === Node.ELEMENT_NODE && node.classList.contains('line'));
@@ -219,10 +382,16 @@
         if (!shares.has(trigger)) shares.set(trigger, (REVEAL_TRIGGERS.find(([triggers]) => trigger.matches(triggers)) || [null, 0])[1]);
       }
     }
+    const keepingFocus = (target, move) => {
+      const focused = target.contains(document.activeElement) ? document.activeElement : null;
+      const result = move();
+      if (focused && document.activeElement !== focused) focused.focus({ preventScroll: true });
+      return result;
+    };
     const settle = async (target, original) => {
       const transitions = target.getAnimations({ subtree: true }).filter((animation) => animation instanceof CSSTransition);
       await Promise.allSettled(transitions.map((animation) => animation.finished));
-      if (original) target.replaceChildren(...original);
+      if (original) keepingFocus(target, () => target.replaceChildren(...original));
       target.classList.remove(...REVEAL_STATES);
     };
     const begin = (target) => {
@@ -232,7 +401,7 @@
         settle(target, null);
         return;
       }
-      const original = splitLines(target, byWord);
+      const original = keepingFocus(target, () => splitLines(target, byWord));
       target.classList.replace('rv-pending', 'rv-start');
       target.getBoundingClientRect();
       target.classList.remove('rv-start');
@@ -362,8 +531,8 @@
     const count = (now) => {
       const elapsed = now - started;
       const value = elapsed < LOADER_FIRST_MS
-        ? LOADER_FIRST_SHARE * easeOutCubic(elapsed / LOADER_FIRST_MS)
-        : LOADER_FIRST_SHARE + (LOADER_FULL - LOADER_FIRST_SHARE) * easeOutQuart(clamp01((elapsed - LOADER_FIRST_MS) / LOADER_SECOND_MS));
+        ? LOADER_FIRST_SHARE * EASES.power2Out(elapsed / LOADER_FIRST_MS)
+        : LOADER_FIRST_SHARE + (LOADER_FULL - LOADER_FIRST_SHARE) * EASES.power3Out(clamp01((elapsed - LOADER_FIRST_MS) / LOADER_SECOND_MS));
       counter.textContent = `${Math.round(value)}%`;
       progressBar.style.width = `${value}%`;
       if (value < LOADER_FULL) counterFrame = requestAnimationFrame(count);
@@ -530,45 +699,68 @@
       }
       node.replaceWith(fragment);
     }
-    const scrubLength = SCRUB_CHAR_DURATION + SCRUB_CHAR_STAGGER * (chars.length - 1);
-    const shares = chars.map(() => '');
-    let scrubFrame = 0;
-    const scrub = () => {
-      scrubFrame = 0;
-      const bounds = statementTitle.getBoundingClientRect();
-      const centre = bounds.top + bounds.height / 2;
-      const time = scrubLength * clamp01((SCRUB_START_VIEWPORTS * innerHeight - centre) / (SCRUB_SPAN_VIEWPORTS * innerHeight));
-      chars.forEach((char, index) => {
-        const local = clamp01((time - SCRUB_CHAR_STAGGER * index) / SCRUB_CHAR_DURATION);
-        const share = (1 - (1 - local) ** 2).toFixed(3);
-        if (share === shares[index]) return;
-        shares[index] = share;
-        char.style.setProperty('--ink-share', share);
-      });
-    };
-    const requestScrub = () => { if (!scrubFrame) scrubFrame = requestAnimationFrame(scrub); };
-    window.addEventListener('scroll', requestScrub, { passive: true });
-    window.addEventListener('resize', requestScrub);
-    scrub();
+    const inking = timeline().add((share, index) => chars[index].style.setProperty('--ink-share', share.toFixed(3)), { count: chars.length, stagger: STATEMENT_CHAR_STAGGER });
+    scene(statementTitle, { ...STATEMENT_SCRUB, onProgress: inking.progress });
   }
 
-  const statementMedia = document.querySelector('.statement-media');
-  const inkEdge = statementMedia && statementMedia.querySelector('.statement-ink-edge');
-  if (inkEdge) {
-    let revealFrame = 0;
-    const reveal = () => {
-      revealFrame = 0;
-      const { top, width, height } = statementMedia.getBoundingClientRect();
-      const span = Math.max(height - INK_END_VIEWPORTS * innerHeight, INK_MIN_SPAN_PX);
-      const progress = REDUCED_MOTION.matches ? 1 : clamp01((INK_START_VIEWPORTS * innerHeight - top) / span);
-      const edge = (height * progress).toFixed(1);
-      inkEdge.setAttribute('d', `M0 ${edge} Q${width / 2} ${(INK_BULGE * edge).toFixed(1)} ${width} ${edge} L${width} 0 L0 0Z`);
+  const inkDrawing = (drawing, trigger, edges, scrubbing = () => true) => {
+    const edge = drawing.querySelector('.ink-edge');
+    scene(trigger, {
+      ...edges,
+      onProgress: (progress, bounds) => {
+        if (!bounds.width) return;
+        const depth = inkDepth(bounds);
+        drawing.setAttribute('viewBox', `0 0 ${INK_UNITS} ${depth.toFixed(1)}`);
+        edge.setAttribute('d', inkEdgePath(scrubbing() ? progress : 1, INK_UNITS, depth));
+      },
+    });
+  };
+  const statementDrawing = document.querySelector('.statement-media > .ink-drawing');
+  if (statementDrawing) inkDrawing(statementDrawing, statementDrawing.parentElement, STATEMENT_INK_SCRUB);
+  const ctaDeco = document.querySelector('.cta-deco');
+  const ctaDrawing = ctaDeco && ctaDeco.querySelector('.ink-drawing');
+  if (ctaDrawing) {
+    if (!WIDER_THAN_PHONE.matches) reveal.release(ctaDeco);
+    inkDrawing(ctaDrawing, ctaDrawing, CTA_INK_SCRUB, () => WIDER_THAN_PHONE.matches);
+  }
+
+  const ragged = document.getElementById('ink-ragged');
+  if (ragged) {
+    const raggedMarkup = new XMLSerializer().serializeToString(ragged);
+    const sketchMask = (progress, bounds) => {
+      const depth = inkDepth(bounds);
+      const near = -TOOL_INK_BLEED_UNITS;
+      const far = INK_UNITS + TOOL_INK_BLEED_UNITS;
+      const unInked = `M${near} ${near}H${far}V${(depth + TOOL_INK_BLEED_UNITS).toFixed(1)}H${near}Z${inkEdgePath(progress, INK_UNITS, depth)}`;
+      const image = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${INK_UNITS} ${depth.toFixed(1)}" preserveAspectRatio="none">${raggedMarkup}<path fill-rule="evenodd" filter="url(#${ragged.id})" d="${unInked}"/></svg>`;
+      return `url("data:image/svg+xml,${encodeURIComponent(image)}")`;
     };
-    const requestReveal = () => { if (!revealFrame) revealFrame = requestAnimationFrame(reveal); };
-    window.addEventListener('scroll', requestReveal, { passive: true });
-    window.addEventListener('resize', requestReveal);
-    REDUCED_MOTION.addEventListener('change', requestReveal);
-    reveal();
+    for (const art of document.querySelectorAll('.tool-row-art')) {
+      const figure = art.querySelector('.tool-illustration');
+      if (!figure) continue;
+      const sketch = document.createElement('div');
+      sketch.className = 'tool-sketch';
+      sketch.setAttribute('aria-hidden', 'true');
+      sketch.inert = true;
+      const trace = () => {
+        const copy = figure.cloneNode(true);
+        for (const node of [copy, ...copy.querySelectorAll('[id]')]) node.removeAttribute('id');
+        sketch.replaceChildren(copy);
+      };
+      trace();
+      new MutationObserver(trace).observe(figure, { subtree: true, childList: true, attributes: true, characterData: true });
+      art.append(sketch);
+      let drawn = '';
+      scene(art, {
+        ...TOOL_INK_SCRUB,
+        onProgress: (progress, bounds) => {
+          const key = `${progress} ${bounds.width} ${bounds.height}`;
+          if (!DESKTOP.matches || key === drawn) return;
+          drawn = key;
+          sketch.style.setProperty('--sketch-mask', sketchMask(progress, bounds));
+        },
+      });
+    }
   }
 
   const strip = document.querySelector('.statement-strip');
@@ -651,6 +843,198 @@
     REDUCED_MOTION.addEventListener('change', startAutoplay);
   }
 
+  const plan = document.querySelector('.bench-plan');
+  const planStage = plan && plan.querySelector('.bench-plan-stage');
+  const planCanvas = planStage && planStage.querySelector('.bench-plan-canvas');
+  if (planCanvas) {
+    scene(plan, {
+      ...PLAN_ENTRY,
+      onProgress: (progress, { top }) => {
+        const pinnedAt = parseFloat(getComputedStyle(planStage).top);
+        const below = progress < 1 && DESKTOP.matches ? Math.min(Math.max(top - pinnedAt, 0), planStage.offsetHeight) : 0;
+        planCanvas.style.setProperty('--plan-entry', `${-below}px`);
+      },
+    });
+    const sequence = timeline();
+    for (const heading of planCanvas.querySelectorAll('.bench-plan-heading')) {
+      sequence
+        .add((share) => heading.style.setProperty('--heading-in', share.toFixed(4)), PLAN_HEADING_IN)
+        .add((share) => heading.style.setProperty('--heading-out', share.toFixed(4)), PLAN_HEADING_OUT);
+    }
+    const [wallLayer, ...detailLayers] = planCanvas.querySelectorAll('.bench-plan-layer');
+    const walls = [...planCanvas.querySelectorAll('.bench-plan-wall')];
+    const begun = new Set();
+    const showLayer = (layer) => (share, index, linear) => {
+      layer.style.setProperty('--layer-share', share.toFixed(4));
+      if (linear > 0) begun.add(layer);
+      else begun.delete(layer);
+    };
+    const limitsLayer = planCanvas.querySelector('.bench-plan-limits');
+    const limits = [...plan.querySelectorAll('.limit-marker')].map((marker) => {
+      const callout = document.getElementById(marker.getAttribute('aria-controls'));
+      return { marker, callout, body: callout.querySelector('.limit-callout-body'), mark: limitsLayer && limitsLayer.querySelector(`[data-limit="${callout.id}"]`), slide: null };
+    });
+    const markLimit = (limit, state, on) => {
+      limit.callout.classList.toggle(state, on);
+      if (limit.mark) limit.mark.classList.toggle(state, on);
+    };
+    const slideLimit = (limit, open) => {
+      const { body } = limit;
+      const from = body.classList.contains('is-open') ? body.getBoundingClientRect().height : 0;
+      if (limit.slide) limit.slide.cancel();
+      body.classList.add('is-open');
+      const to = open ? body.scrollHeight : 0;
+      limit.slide = body.animate({ height: [`${from}px`, `${to}px`] }, { duration: REDUCED_MOTION.matches || !WIDER_THAN_PHONE.matches ? 0 : FAQ_SLIDE_MS, easing: token('--ease-swing') });
+      limit.slide.onfinish = () => {
+        limit.slide = null;
+        body.classList.toggle('is-open', open);
+      };
+    };
+    const openLimit = (chosen) => {
+      for (const limit of limits) {
+        const open = limit === chosen;
+        if (limit.marker.getAttribute('aria-expanded') === String(open)) continue;
+        limit.marker.setAttribute('aria-expanded', String(open));
+        markLimit(limit, 'is-active', open);
+        slideLimit(limit, open);
+      }
+    };
+    let limitsTurning = false;
+    const showLimits = limitsLayer && showLayer(limitsLayer);
+    const turnLimits = (share, index, linear) => {
+      showLimits(share, index, linear);
+      const turning = linear > 0 && linear < 1;
+      if (!turning && (limitsTurning || linear === 0)) openLimit(null);
+      limitsTurning = turning;
+    };
+    if (wallLayer && walls.length) {
+      sequence
+        .add(showLayer(wallLayer), PLAN_WALLS_IN)
+        .add((share, index) => walls[index].style.setProperty('--wall', share.toFixed(4)), { ...PLAN_WALL_PIECES, count: walls.length });
+      for (const layer of detailLayers) sequence.add(layer === limitsLayer ? turnLimits : showLayer(layer));
+    }
+    const captionBox = plan.querySelector('.caption-box');
+    const captionList = captionBox && captionBox.querySelector('.caption-box-list');
+    const captions = captionList ? [...captionList.querySelectorAll('.caption-box-item')] : [];
+    const captionHeights = new Map();
+    const showCaption = () => {
+      if (!captions.length) return;
+      const latestLayer = detailLayers.findLastIndex((layer) => begun.has(layer));
+      const step = Math.min(Math.max(latestLayer, 0), captions.length - 1);
+      captionBox.classList.toggle('is-active', begun.has(wallLayer));
+      captions.forEach((caption, index) => caption.classList.toggle('is-active', index === step));
+      if (captionHeights.has(captions[step])) captionList.style.setProperty('--caption-height', `${captionHeights.get(captions[step])}px`);
+    };
+    const captionSizes = new ResizeObserver((entries) => {
+      for (const { target, borderBoxSize: [size] } of entries) captionHeights.set(target, size.blockSize);
+      showCaption();
+    });
+    for (const caption of captions) captionSizes.observe(caption);
+    const planPanel = plan.querySelector('.bench-plan-panel');
+    let panelRevealQueued = false;
+    if (planPanel && SCENE_LAYOUT.matches) reveal.hold(planPanel);
+    else if (planPanel) reveal.release(planPanel);
+    const expand = (expanded) => {
+      plan.classList.toggle('expanded', expanded);
+      if (!expanded || !planPanel || panelRevealQueued) return;
+      panelRevealQueued = true;
+      setTimeout(() => reveal.release(planPanel), PLAN_PANEL_REVEAL_MS);
+    };
+    const planScrub = scene(plan, {
+      ...PLAN_SCRUB,
+      onProgress: (progress) => {
+        sequence.progress(progress);
+        showCaption();
+        plan.classList.toggle('is-started', progress > 0);
+        plan.classList.toggle('is-limits-live', begun.has(limitsLayer));
+        expand(progress === 1);
+      },
+    });
+    for (const limit of limits) {
+      const { marker } = limit;
+      marker.addEventListener('mouseenter', () => markLimit(limit, 'is-hover', true));
+      marker.addEventListener('mouseleave', () => markLimit(limit, 'is-hover', false));
+      marker.addEventListener('focus', () => {
+        if (SCENE_LAYOUT.matches && !begun.has(limitsLayer)) scrollTo(0, planScrub.scrollAt(1));
+        if (marker.matches(':focus-visible')) markLimit(limit, 'is-hover', true);
+      });
+      marker.addEventListener('blur', () => markLimit(limit, 'is-hover', false));
+      marker.addEventListener('click', () => openLimit(marker.getAttribute('aria-expanded') === 'true' ? null : limit));
+    }
+    if (limits.length) {
+      document.addEventListener('click', (event) => {
+        if (!event.target.closest('.limit-marker')) openLimit(null);
+      });
+      document.addEventListener('keydown', (event) => {
+        const open = limits.find(({ marker }) => marker.getAttribute('aria-expanded') === 'true');
+        if (event.key !== 'Escape' || !open) return;
+        if (open.callout.contains(document.activeElement)) open.marker.focus();
+        openLimit(null);
+      });
+    }
+  }
+
+  const entryParts = document.querySelector('.entry-parts');
+  const entryTrack = entryParts && entryParts.querySelector('.entry-parts-track');
+  if (entryTrack) {
+    const entryMain = entryParts.querySelector('.entry-parts-main');
+    const parts = [...entryTrack.querySelectorAll('.entry-part')];
+    if (!WIDER_THAN_PHONE.matches) for (const trigger of [entryParts.querySelector('.entry-parts-head'), ...entryTrack.querySelectorAll('.entry-part-img')]) reveal.release(trigger);
+    const artPlays = new IntersectionObserver((entries) => {
+      for (const { target, isIntersecting } of entries) {
+        if (!isIntersecting) continue;
+        target.classList.add('is-playing');
+        artPlays.unobserve(target);
+      }
+    }, { threshold: ENTRY_ART_PLAY_SHARE });
+    for (const art of entryTrack.querySelectorAll('.entry-art')) artPlays.observe(art);
+    const pointer = { y: null };
+    let lineY = 0;
+    let lastFrame = 0;
+    let followFrame = 0;
+    const inView = () => {
+      const { top, bottom } = entryMain.getBoundingClientRect();
+      return top <= innerHeight && bottom >= 0;
+    };
+    const follow = (time) => {
+      followFrame = 0;
+      const following = SCENE_LAYOUT.matches && inView();
+      entryParts.classList.toggle('is-following', following);
+      if (!following) {
+        lastFrame = 0;
+        for (const part of parts) part.classList.remove('is-active');
+        return;
+      }
+      const elapsed = lastFrame ? time - lastFrame : FRAME_MS;
+      const probe = pointer.y ?? innerHeight / 2;
+      const target = probe - entryTrack.getBoundingClientRect().top;
+      lineY += (target - lineY) * (1 - (1 - ENTRY_LINE_FOLLOW) ** (elapsed / FRAME_MS));
+      const settled = Math.abs(target - lineY) < ENTRY_LINE_SETTLE_PX;
+      if (settled) lineY = target;
+      entryTrack.style.setProperty('--entry-line-y', `${lineY.toFixed(2)}px`);
+      for (const part of parts) {
+        const { top, bottom } = part.getBoundingClientRect();
+        part.classList.toggle('is-active', probe >= top && probe <= bottom);
+      }
+      lastFrame = settled ? 0 : time;
+      if (!settled) followFrame = requestAnimationFrame(follow);
+    };
+    const wake = () => { if (!followFrame) followFrame = requestAnimationFrame(follow); };
+    window.addEventListener('pointermove', (event) => {
+      pointer.y = event.pointerType === 'mouse' ? event.clientY : null;
+      wake();
+    }, { passive: true });
+    window.addEventListener('pointerout', (event) => {
+      if (event.relatedTarget) return;
+      pointer.y = null;
+      wake();
+    });
+    window.addEventListener('scroll', wake, { passive: true });
+    window.addEventListener('resize', wake);
+    SCENE_LAYOUT.addEventListener('change', wake);
+    wake();
+  }
+
   const toolInfos = [...document.querySelectorAll('.tool-row-info')];
   if (toolInfos.length) {
     const infoFor = (art) => toolInfos.find((info) => info.dataset.tool === art.dataset.tool);
@@ -673,9 +1057,9 @@
     }
   }
 
-  const cellList = document.querySelector('.cell-list');
-  const cellBars = cellList && [...cellList.parentElement.querySelectorAll('.cell-pagi span')];
-  if (cellBars && cellBars.length) {
+  for (const cellList of document.querySelectorAll('.cell-list, .entry-parts-list')) {
+    const cellBars = [...cellList.parentElement.querySelectorAll('.cell-pagi span')];
+    if (!cellBars.length) continue;
     const cells = [...cellList.children];
     let cellFrame = 0;
     const markCell = () => {
@@ -697,6 +1081,7 @@
       const body = details.querySelector('.faq-body');
       if (slides.has(details)) slides.get(details).cancel();
       opened.set(details, open);
+      details.closest('.faq-item').classList.toggle('active', open);
       details.open = true;
       const shut = { height: '0px', paddingTop: '0px', overflow: 'hidden' };
       const full = { height: `${body.getBoundingClientRect().height}px`, paddingTop: getComputedStyle(body).paddingTop, overflow: 'hidden' };
@@ -708,7 +1093,10 @@
       };
     };
     const items = [...list.querySelectorAll('.faq-details')];
-    for (const details of items) details.removeAttribute('name');
+    for (const details of items) {
+      details.removeAttribute('name');
+      details.closest('.faq-item').classList.toggle('active', details.open);
+    }
     list.addEventListener('click', (event) => {
       const item = event.target.closest('.faq-item');
       if (!item || event.target.closest('.faq-body')) return;
@@ -717,6 +1105,19 @@
       const open = !isOpening(details);
       if (open) for (const other of items) if (other !== details && isOpening(other)) slide(other, false);
       slide(details, open);
+    });
+  }
+
+  const useCases = document.querySelector('.usecase');
+  if (useCases) {
+    const caseImages = [...useCases.querySelectorAll('.usecase-img-item')];
+    const caseItems = [...useCases.querySelectorAll('.usecase-item')];
+    if (!WIDER_THAN_PHONE.matches) for (const trigger of useCases.querySelectorAll('.usecase-img-list, .usecase-title-wrap, .usecase-list')) reveal.release(trigger);
+    useCases.querySelector('.usecase-list').addEventListener('click', (event) => {
+      const item = event.target.closest('.usecase-item');
+      if (!item || event.target.closest('.faq-body')) return;
+      const shown = caseItems.indexOf(item);
+      caseImages.forEach((image, position) => image.classList.toggle('active', position === shown));
     });
   }
 

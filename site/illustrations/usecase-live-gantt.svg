@@ -1,0 +1,27 @@
+<svg class="usecase-art" viewBox="0 0 560 600" aria-hidden="true">
+<rect class="usecase-art-paper" x="40" y="40" width="480" height="520"/>
+<path class="usecase-art-axis" d="M150 90V290M266.7 90V290M383.3 90V290M500 90V290"/>
+<path class="usecase-art-rule" d="M150 84H500M150 80V88M266.7 80V88M383.3 80V88M500 80V88M56 130H500M56 170H500M56 210H500M56 250H500M56 290H500M56 340H500M40 500H520M330 500V560M430 500V560"/>
+<text x="150" y="74" text-anchor="middle">12:00</text><text x="266.7" y="74" text-anchor="middle">14:00</text><text x="383.3" y="74" text-anchor="middle">16:00</text><text x="500" y="74" text-anchor="end">18:00</text>
+<text x="56" y="114">Design</text><text x="56" y="154">Build</text><text x="56" y="194">Test</text><text x="56" y="234">Review</text><text x="56" y="274">Release</text>
+<rect class="usecase-art-fill" x="150" y="102" width="80" height="16"/>
+<rect class="usecase-art-ink" x="230" y="142" width="110" height="16"/><rect class="usecase-art-fill" x="230" y="142" width="70" height="16"/>
+<rect class="usecase-art-ink" x="340" y="182" width="70" height="16"/>
+<text x="56" y="330">Agents and runs</text><text x="56" y="366">Agent 1</text><text x="56" y="394">Agent 2</text><text x="56" y="422">CI run</text>
+<text x="54" y="526">Live Gantt</text><text x="54" y="546">A plan as a timeline</text><text x="344" y="526">Fig.</text><text x="344" y="546">02</text><text x="444" y="526">Scale</text><text x="444" y="546">Hours</text>
+<g class="usecase-focus">
+<rect class="usecase-art-fill" x="124" y="106" width="8" height="8"/><rect x="124" y="146" width="8" height="8"/><rect class="usecase-art-fill" x="124" y="146" width="4" height="8"/><rect x="124" y="186" width="8" height="8"/><rect x="124" y="226" width="8" height="8"/><rect x="124" y="266" width="8" height="8"/>
+<path class="usecase-art-axis" d="M300 90V290"/><text x="296" y="302" text-anchor="end">Now</text>
+<text x="56" y="466">Milestone</text><rect x="150" y="456" width="350" height="12"/><rect class="usecase-art-fill" x="150" y="456" width="234" height="12"/><text x="500" y="450" text-anchor="end">67%</text>
+</g>
+<g class="usecase-focus">
+<rect class="usecase-art-ink" x="236" y="356" width="60" height="12"/><rect class="usecase-art-ink" x="300" y="384" width="36" height="12"/><rect class="usecase-art-ink" x="352" y="412" width="40" height="12"/>
+<path class="usecase-art-link" d="M246 356V158M318 384V158M372 412V198"/><circle class="usecase-art-fill" cx="246" cy="158" r="2.5"/><circle class="usecase-art-fill" cx="318" cy="158" r="2.5"/><circle class="usecase-art-fill" cx="372" cy="198" r="2.5"/>
+</g>
+<g class="usecase-focus">
+<path class="usecase-art-ink" d="M230 118V142M226 136l4 6 4-6M340 158V182M336 176l4 6 4-6M410 198V222M406 216l4 6 4-6M470 238V262M466 256l4 6 4-6"/>
+<path class="usecase-art-link" d="M470 222H410V238H470"/><text x="478" y="234">?</text>
+<path class="usecase-art-ink" d="M470 262L478 270L470 278L462 270Z"/>
+<path class="usecase-art-ink" d="M346 158V136L358 140L346 144"/><text x="362" y="144">Report stale</text>
+</g>
+</svg>

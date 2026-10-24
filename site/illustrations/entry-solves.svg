@@ -1,0 +1,17 @@
+<svg class="entry-art" viewBox="0 0 464 464" aria-hidden="true">
+  <path class="entry-art-axis" d="M100 200V400M200 200V400M24 300H420"/>
+  <rect class="entry-art-paper" x="56" y="236" width="188" height="128"/>
+  <circle cx="100" cy="300" r="21"/><path d="M100 286l12.12 7v14L100 314l-12.12-7v-14z"/>
+  <circle cx="200" cy="300" r="21"/>
+  <path d="M87.88 312V392M112.12 312V392M87.88 386H112.12"/>
+  <text class="entry-art-mono" x="100" y="404" text-anchor="middle">A/F 13</text>
+  <g class="entry-art-ink" transform="rotate(-25 200 300)"><svg x="158" y="241.67" width="238" height="116.67" viewBox="0 0 204 100">{{spanner_paths}}</svg></g>
+  <g class="entry-box" style="--box-delay: 0s">
+    <g class="entry-box-body"><rect class="entry-box-bg" x="102" y="134" width="136" height="79"/><text class="entry-box-label" x="112" y="151">01 · Problem</text><text class="entry-box-title" x="112" y="186">Hex head,</text><text class="entry-box-title" x="112" y="200">13 mm across</text></g>
+    <g class="entry-box-ic"><g class="entry-box-ic-face"><rect x="220" y="140" width="12" height="12"/><path d="M223.5 143.5l5 5M228.5 143.5l-5 5"/></g><rect class="entry-box-ic-bg" x="220" y="140" width="12" height="12"/><rect class="entry-box-ic-border" x="220" y="140" width="12" height="12"/></g>
+  </g>
+  <g class="entry-box" style="--box-delay: 0.8s">
+    <g class="entry-box-body"><rect class="entry-box-bg" x="218" y="263" width="180" height="99"/><text class="entry-box-label" x="228" y="280">02 · Fit</text><text class="entry-box-title" x="228" y="335">Ring takes</text><text class="entry-box-title" x="228" y="349">all six flats</text></g>
+    <g class="entry-box-ic"><g class="entry-box-ic-face"><rect x="380" y="269" width="12" height="12"/><path d="M383.5 272.5l5 5M388.5 272.5l-5 5"/></g><rect class="entry-box-ic-bg" x="380" y="269" width="12" height="12"/><rect class="entry-box-ic-border" x="380" y="269" width="12" height="12"/></g>
+  </g>
+</svg>

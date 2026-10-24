@@ -1,0 +1,23 @@
+<svg class="entry-art" viewBox="0 0 464 464" aria-hidden="true">
+  <path class="entry-art-axis" d="M24 220H440M210 40V420"/>
+  <g class="entry-art-ink"><svg x="40" y="50" width="350" height="340" viewBox="130 16 70 68">{{spanner_paths}}</svg></g>
+  <path d="M332 160H412M332 280H412M404 160V280M400 166l4-6 4 6M400 274l4 6 4-6"/>
+  <text class="entry-art-mono" x="414" y="224">13</text>
+  <path class="entry-limit-line" style="--limit-line: 0" d="M325 160V280"/>
+  <path class="entry-limit-line" style="--limit-line: 1" d="M325 160H210"/>
+  <path class="entry-limit-line" style="--limit-line: 2" d="M325 280H210"/>
+  <path class="entry-limit-line" style="--limit-line: 3" d="M210 160V280"/>
+  <path class="entry-limit-line" style="--limit-line: 4" d="M210 160V90"/>
+  <path class="entry-limit-line" style="--limit-line: 5" d="M210 280V350"/>
+  <path class="entry-limit-line" style="--limit-line: 6" d="M80 220L210 160"/>
+  <path class="entry-limit-line" style="--limit-line: 7" d="M80 220L210 280"/>
+  <g class="entry-point" style="--point: 0"><rect x="320" y="155" width="10" height="10"/><rect class="entry-point-core" x="323" y="158" width="4" height="4"/></g>
+  <g class="entry-point" style="--point: 1"><rect x="205" y="155" width="10" height="10"/><rect class="entry-point-core" x="208" y="158" width="4" height="4"/></g>
+  <g class="entry-point" style="--point: 2"><rect x="205" y="275" width="10" height="10"/><rect class="entry-point-core" x="208" y="278" width="4" height="4"/></g>
+  <g class="entry-point" style="--point: 3"><rect x="320" y="275" width="10" height="10"/><rect class="entry-point-core" x="323" y="278" width="4" height="4"/></g>
+  <g class="entry-point" style="--point: 4"><rect x="205" y="85" width="10" height="10"/><rect class="entry-point-core" x="208" y="88" width="4" height="4"/></g>
+  <g class="entry-point" style="--point: 5"><rect x="205" y="345" width="10" height="10"/><rect class="entry-point-core" x="208" y="348" width="4" height="4"/></g>
+  <g class="entry-point" style="--point: 6"><rect x="75" y="215" width="10" height="10"/><rect class="entry-point-core" x="78" y="218" width="4" height="4"/></g>
+  <g class="entry-point" style="--point: 7"><rect x="399" y="215" width="10" height="10"/><rect class="entry-point-core" x="402" y="218" width="4" height="4"/></g>
+  <g class="entry-card"><rect class="entry-art-paper" x="30" y="369" width="114" height="60"/><rect class="entry-card-head" x="30" y="369" width="114" height="18"/><text class="entry-card-head-text" x="38" y="381">Stops at</text><text class="entry-art-mono" x="38" y="404">13 mm A/F</text><text class="entry-art-mono" x="38" y="420">Not 14</text></g>
+</svg>

@@ -30,14 +30,9 @@ SPANNER_PATHS = (
 )
 SPANNER_VIEW = 'viewBox="0 0 204 100"'
 SPANNER_GLYPH = f'<svg {SPANNER_VIEW} aria-hidden="true">{SPANNER_PATHS}</svg>'
-STATEMENT_DRAWING_FRAME = f'{SPANNER_VIEW} x="20%" width="60%" height="100%"'
-STATEMENT_DRAWING = (
-    '<svg class="statement-drawing" aria-hidden="true"><defs>'
-    '<pattern id="statement-hatch" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path class="statement-hatch" d="M1.5 0V3"/></pattern>'
-    '<mask id="statement-ink" maskUnits="userSpaceOnUse"><path class="statement-ink-edge" fill="#fff" filter="url(#ink-ragged)"/></mask></defs>'
-    f'<svg {STATEMENT_DRAWING_FRAME}>{SPANNER_PATHS}</svg>'
-    f'<g mask="url(#statement-ink)"><svg {STATEMENT_DRAWING_FRAME} fill="url(#statement-hatch)">{SPANNER_PATHS}<path d="M60 41l82 1v16l-82 1z" stroke="none"/></svg></g></svg>'
-)
+SPANNER_SHAFT = '<path d="M60 41l82 1v16l-82 1z" stroke="none"/>'
+STATEMENT_INK_FRAME = 'x="20%" width="60%" height="100%"'
+CTA_INK_FRAME = 'x="13%" width="74%" height="100%"'
 RULER_FRAME = (
     '<div class="ruler" aria-hidden="true"><i class="ruler-edge ruler-top"></i><i class="ruler-edge ruler-bottom"></i><i class="ruler-edge ruler-left"></i>'
     '<i class="ruler-edge ruler-right"></i><i class="plus top left"></i><i class="plus top right"></i><i class="plus bot left"></i><i class="plus bot right"></i></div>'
@@ -49,6 +44,38 @@ BAND_INK_FILTER = (
     '<feComponentTransfer><feFuncA type="linear" slope="5" intercept="-2.15"/></feComponentTransfer></filter>'
 )
 BAND_BLOTS = '<circle class="band-blot" r="0" fill="#fff" filter="url(#band-ragged)"/><circle class="band-blot" r="0" opacity="0" fill="#fff" filter="url(#band-ragged)"/>'
+PLAN_CAPTIONS = (
+    "Development work hides in long message threads and flat issue lists, where progress and purpose are hard to read.",
+    "Most of the effort goes to piecing that picture back together, the same way, every time.",
+    "Each tool here puts one picture back in view: a plan as a timeline, an issue inside its project.",
+    "No tool fits every job. Each one is marked where it stops, so you know before you reach for it.",
+)
+SCROLL_CUE = "[Scroll to continue]"
+PLAN_CAPTION_PROMPT = "[Select a limit]"
+PLAN_LIMIT_ZONE = re.compile(r'<rect class="(?:[a-z-]+ )?bench-plan-limit-zone" id="([a-z0-9-]+)" data-tool="([a-z0-9-]*)" x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"/>')
+PLAN_VIEW_BOX = re.compile(r'viewBox="0 0 ([\d.]+) ([\d.]+)"')
+SENTENCE_END = re.compile(r"(?<=[.!?])\s+(?=[A-Z])")
+PLAN_LIMIT_MARK = 42
+PLAN_LIMIT_GAP = 21
+PLAN_LIMIT_DOT = 9
+PLAN_LIMIT_DOT_CORE = 7
+PLAN_LIMITS_LABEL = "Limits marked on the plan"
+PLAN_LIMIT_LINK = "See the {} entry"
+REASON_HEADING = "Why it earns a place"
+USE_HEADING = "When it is useful"
+LIMITS_HEADING = "Limits to understand"
+ENTRY_PARTS = (
+    ("Solves", "The problem it meets, in a paragraph", None),
+    ("Earns", "Why it has a place on the bench", REASON_HEADING),
+    ("Helps", "When reaching for it pays off", USE_HEADING),
+    ("Stops", "Where it ends, stated before you install", LIMITS_HEADING),
+)
+ENTRY_SECTIONS = tuple(heading for *_, heading in ENTRY_PARTS if heading)
+PLUS_CORNERS = ("top left", "top right", "bot left", "bot right")
+USE_CASE_SUB = "Reach for {}. Its entry says what it solves and where it stops."
+USE_CASE_FOCUS = 'class="usecase-focus"'
+USE_CASE_FOCUSED = 'class="usecase-focus is-focus"'
+USE_CASE_FALLBACK = f'<svg class="usecase-art" {SPANNER_VIEW} aria-hidden="true">{SPANNER_PATHS}</svg>'
 DESIGN_SOURCE = "DESIGN.md"
 DESIGN_PAGE = "design-system.html"
 
@@ -136,8 +163,15 @@ def _tool_exhibit(root, path, position):
         raise ValueError(f"Missing relationship in {path}")
     relation = relation_match.group(1)
     intro = _render([(kind, value) for kind, value in opening_blocks if kind == "p" and value != relationship])
-    reason = _first_paragraph(sections.get("Why it earns a place", []))
-    caveat = _first_paragraph(sections.get("Limits to understand", []))
+    missing = [heading for heading in ENTRY_SECTIONS if heading not in sections]
+    if not intro:
+        missing.insert(0, "an opening paragraph")
+    if missing:
+        raise ValueError(f"{path} is missing {', '.join(missing)}")
+    reason = _first_paragraph(sections[REASON_HEADING])
+    uses = [item for kind, value in sections[USE_HEADING] if kind == "ul" for item in value]
+    limits = [value for kind, value in sections[LIMITS_HEADING] if kind == "p"]
+    caveat = limits[0] if limits else ""
     last_heading = next(reversed(sections))
     links = INLINE_TOKEN.findall(_markdown_text(sections[last_heading]))
     primary = next(((label, target) for label, target, _, _ in links if target), None)
@@ -152,7 +186,7 @@ def _tool_exhibit(root, path, position):
     )
     notes = [f'<section class="faq-section"><h4>About this entry</h4><p>{_inline(relationship)}</p></section>']
     for heading, blocks in sections.items():
-        remaining = blocks[1:] if heading in ("Why it earns a place", "Limits to understand") else blocks
+        remaining = blocks[1:] if heading in (REASON_HEADING, LIMITS_HEADING) else blocks
         if remaining:
             notes.append(f'<section class="faq-section"><h4>{html.escape(heading)}</h4>{_render(remaining)}</section>')
     info_state = " active" if position == 1 else ""
@@ -161,7 +195,7 @@ def _tool_exhibit(root, path, position):
   <div class="tool-row-info{info_state}" data-tool="{slug}">
     <div class="tool-row-left"><i class="line line-h line-top line-solid"></i><span class="txt-mono txt-14 disabled" aria-hidden="true">[{position:02d}]</span><div><span class="relationship relationship-{html.escape(relation.lower())}">{html.escape(relation)}</span><h3 class="tool-row-title heading h4 tb-h6 mb-h4">{html.escape(title)}</h3></div><i class="line line-h line-bottom line-solid"></i></div>
     <div class="tool-row-right"><i class="line line-h line-top line-solid"></i>
-      <div class="tool-row-sub"><div class="tool-intro">{intro}</div><dl class="tool-facts"><div><dt class="txt-mono txt-12">Why it earns a place</dt><dd>{_inline(reason)}</dd></div><div><dt class="txt-mono txt-12">Keep in mind</dt><dd>{_inline(caveat)}</dd></div></dl></div>
+      <div class="tool-row-sub"><div class="tool-intro">{intro}</div><dl class="tool-facts"><div><dt class="txt-mono txt-12">{REASON_HEADING}</dt><dd>{_inline(reason)}</dd></div><div><dt class="txt-mono txt-12">Keep in mind</dt><dd>{_inline(caveat)}</dd></div></dl></div>
       <a class="tool-row-btn btn-fill btn-fill-ghost" href="{html.escape(primary[1], quote=True)}"><i class="line line-h line-top line-solid"></i><span class="btn-fill-bg" aria-hidden="true"></span>{_swap_label(action)}<span class="btn-fill-icon"><span class="slide">{ARROW_ICON}{ARROW_ICON}</span></span></a>
     <i class="line line-h line-bottom line-solid"></i></div>
   </div>
@@ -169,7 +203,7 @@ def _tool_exhibit(root, path, position):
 </article>'''
     field_notes = f'''
 <div class="faq-item"><details class="faq-details" name="field-notes" id="notes-{slug}"><summary><span class="faq-title heading h6 tb-h20 mb-h18">Field notes: {html.escape(title)}</span><span class="faq-ic" aria-hidden="true"></span></summary><div class="faq-body">{''.join(notes)}</div></details><i class="line line-h line-top line-solid"></i><i class="line line-h line-bottom line-dash"></i><i class="line line-h line-bottom line-dash line-ink faq-line-hover"></i></div>'''
-    return title, slug, relation, row, field_notes
+    return title, slug, relation, row, field_notes, uses, limits
 
 
 def _markdown_text(blocks):
@@ -327,7 +361,7 @@ def _design_main(root, palette):
 
 
 def _relationship_cell(position, label, description):
-    plus_marks = "".join(f'<i class="plus cell-item-plus {corner}"></i>' for corner in ("top left", "top right", "bot left", "bot right"))
+    plus_marks = "".join(f'<i class="plus cell-item-plus {corner}"></i>' for corner in PLUS_CORNERS)
     return (
         '<article class="cell-item"><i class="line line-v line-left line-solid"></i>'
         f'<div class="cell-item-head txt-mono txt-14"><i class="cell-item-dot" aria-hidden="true"></i><span>Relationship</span><span class="disabled" aria-hidden="true">[{position:02d}]</span><i class="line line-h line-bottom line-dash"></i></div>'
@@ -355,6 +389,17 @@ def _balanced_lines(title):
     return min(splits, key=lambda lines: max(len(line) for line in lines)) if splits else tuple(words)
 
 
+def _ink_drawing(name, frame):
+    view = f"{SPANNER_VIEW} {frame}"
+    return (
+        f'<svg class="ink-drawing {name}-drawing" preserveAspectRatio="none" aria-hidden="true"><defs>'
+        f'<pattern id="{name}-hatch" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path class="ink-hatch" d="M1.5 0V3"/></pattern>'
+        f'<mask id="{name}-ink" maskUnits="userSpaceOnUse"><path class="ink-edge" fill="#fff" filter="url(#ink-ragged)"/></mask></defs>'
+        f'<svg {view}>{SPANNER_PATHS}</svg>'
+        f'<g mask="url(#{name}-ink)"><svg {view} fill="url(#{name}-hatch)">{SPANNER_PATHS}{SPANNER_SHAFT}</svg></g></svg>'
+    )
+
+
 def _wordmark(title):
     lines = "".join(
         f'<text x="50%" y="{index}em" text-anchor="middle">{html.escape(line)}</text>' for index, line in enumerate(_balanced_lines(title))
@@ -373,15 +418,116 @@ def _strip_item(name, slug, relation):
     )
 
 
+def _plan_caption_items():
+    scroll = f'<span class="caption-box-cue caption-box-scroll txt-mono txt-12" aria-hidden="true">{html.escape(SCROLL_CUE)}</span>'
+    steps = "".join(f'<li class="caption-box-item"><p class="txt-14">{html.escape(text)}</p>{scroll}</li>' for text in PLAN_CAPTIONS)
+    return f'{steps}<li class="caption-box-item"><span class="caption-box-prompt txt-mono txt-12">{html.escape(PLAN_CAPTION_PROMPT)}</span></li>'
+
+
+def _plan_limit_mark(ident, number, zone, left, top):
+    centre_x, centre_y = left + PLAN_LIMIT_MARK / 2, top + PLAN_LIMIT_MARK / 2
+    dot = "".join(
+        f'<rect class="{part}" x="{centre_x - size / 2:g}" y="{centre_y - size / 2:g}" width="{size}" height="{size}"/>'
+        for part, size in (("bench-plan-limit-dot", PLAN_LIMIT_DOT), ("bench-plan-limit-dot-core", PLAN_LIMIT_DOT_CORE))
+    )
+    return (
+        f'<g class="bench-plan-limit" data-limit="{ident}"><use class="bench-plan-limit-area" href="#{zone}"/>{dot}'
+        f'<g class="bench-plan-limit-tag"><rect x="{left:g}" y="{top:g}" width="{PLAN_LIMIT_MARK}" height="{PLAN_LIMIT_MARK}"/>'
+        f'<text x="{centre_x:g}" y="{centre_y:g}" text-anchor="middle" dominant-baseline="central">{number}</text></g></g>'
+    )
+
+
+def _plan_limit_item(ident, number, name, slug, text, left, top):
+    title, *rest = SENTENCE_END.split(text, maxsplit=1)
+    desc = f'<p class="limit-callout-desc txt-14 mb-txt-12">{_inline(rest[0])}</p>' if rest else ""
+    return (
+        f'<li class="bench-plan-limit-item" style="--limit-x: {left:g}; --limit-y: {top:g}; --limit-size: {PLAN_LIMIT_MARK}">'
+        f'<button class="limit-marker" type="button" aria-expanded="false" aria-controls="{ident}" aria-labelledby="{ident}-label {ident}-title"></button>'
+        f'<div class="limit-callout" id="{ident}"><p class="limit-callout-label txt-mono txt-12" id="{ident}-label">{html.escape(name)} · Limit {number}</p>'
+        f'<p class="limit-callout-title txt-16 mb-txt-14" id="{ident}-title">{_inline(title)}</p>'
+        f'<div class="limit-callout-body">{desc}<a class="limit-callout-link txt-mono txt-12" href="#{slug}">{html.escape(PLAN_LIMIT_LINK.format(name))}</a></div></div></li>'
+    )
+
+
+def _plan_limits(drawing, exhibits):
+    view = PLAN_VIEW_BOX.search(drawing)
+    if view is None:
+        raise ValueError("site/illustrations/bench-plan.svg needs a viewBox that starts at 0 0")
+    zones = {tool: (zone, *map(float, box)) for zone, tool, *box in PLAN_LIMIT_ZONE.findall(drawing)}
+    if "" not in zones:
+        raise ValueError("site/illustrations/bench-plan.svg needs a limit zone with an empty data-tool for tools it does not draw")
+    placed = {}
+    marks, items = [], []
+    for name, slug, *_, limits in exhibits:
+        zone, x, y, width, _ = zones.get(slug, zones[""])
+        for text in limits:
+            row = placed.get(zone, 0)
+            placed[zone] = row + 1
+            number = f"{len(items) + 1:02d}"
+            ident = f"plan-limit-{number}"
+            left, top = x + width - PLAN_LIMIT_MARK, y + PLAN_LIMIT_GAP + row * (PLAN_LIMIT_MARK + PLAN_LIMIT_GAP)
+            marks.append(_plan_limit_mark(ident, number, zone, left, top))
+            items.append(_plan_limit_item(ident, number, name, slug, text, left, top))
+    view_width, view_height = view.groups()
+    listing = (
+        f'<ol class="bench-plan-limit-list" aria-label="{PLAN_LIMITS_LABEL}" style="--plan-view-w: {view_width}; --plan-view-h: {view_height}">{"".join(items)}</ol>'
+        if items else ""
+    )
+    return "".join(marks), listing
+
+
+def _entry_part(root, position, verb, sub):
+    drawing = _fill((root / "site/illustrations" / f"entry-{verb.lower()}.svg").read_text(), {"spanner_paths": SPANNER_PATHS})
+    side = "left" if position % 2 else "right"
+    corners = "".join(f'<i class="plus {corner}"></i>' for corner in PLUS_CORNERS)
+    return (
+        f'<li class="entry-part entry-part-img-{side}"><div class="entry-part-img"><span class="entry-part-frame" aria-hidden="true">{corners}</span>{drawing}</div>'
+        f'<div class="entry-part-bar"><div class="entry-part-bar-content"><h3 class="entry-part-title heading h6 tb-h20">{html.escape(verb)}</h3>'
+        f'<p class="entry-part-sub txt-16 txt-reg">{html.escape(sub)}</p><i class="entry-part-ic" aria-hidden="true"></i></div></div>'
+        '<i class="line line-h entry-part-line" aria-hidden="true"></i></li>'
+    )
+
+
+def _focused(drawing, focus):
+    groups = drawing.split(USE_CASE_FOCUS)
+    if focus + 1 >= len(groups):
+        return drawing
+    return USE_CASE_FOCUS.join(groups[:focus + 1]) + USE_CASE_FOCUSED + USE_CASE_FOCUS.join(groups[focus + 1:])
+
+
+def _use_cases(root, exhibits):
+    items, images = [], []
+    for name, slug, *_, uses, _ in exhibits:
+        drawing_path = root / "site/illustrations" / f"usecase-{slug}.svg"
+        drawing = drawing_path.read_text() if drawing_path.exists() else USE_CASE_FALLBACK
+        for focus, text in enumerate(uses):
+            position = len(items) + 1
+            first = position == 1
+            link = f'<a href="#{slug}">{html.escape(name)}</a>'
+            items.append(
+                f'<div class="faq-item usecase-item" style="--item: {position - 1}"><details class="faq-details" name="use-cases"{" open" if first else ""}>'
+                f'<summary><span class="usecase-numb txt-mono txt-14" aria-hidden="true">[{position:02d}]</span><span class="usecase-item-title-inner">'
+                f'<span class="faq-title usecase-item-title heading h6 tb-h20 mb-h18">{_inline(text)}</span><span class="usecase-tag txt-mono txt-12">{html.escape(name)}</span></span>'
+                f'<span class="faq-ic" aria-hidden="true"></span></summary><div class="faq-body usecase-sub"><p class="usecase-sub-text txt-16">{html.escape(USE_CASE_SUB).format(link)}</p></div></details>'
+                '<i class="line line-h line-top line-solid"></i><i class="line line-h line-bottom line-dash"></i><i class="line line-h line-bottom line-dash line-ink faq-line-hover"></i></div>'
+            )
+            images.append(f'<div class="usecase-img-item{" active" if first else ""}" data-tool="{slug}">{_focused(drawing, focus)}</div>')
+    return "".join(items), "".join(images)
+
+
+def _pagination(count):
+    return "".join('<span class="active"></span>' if position == 1 else "<span></span>" for position in range(1, count + 1))
+
+
 def _footer_tool_links(exhibits, home):
-    return "".join(f'<a class="footer-link txt-16 mb-txt-14" href="{home}#{slug}">{html.escape(name)}</a>' for name, slug, _, _, _ in exhibits)
+    return "".join(f'<a class="footer-link txt-16 mb-txt-14" href="{home}#{slug}">{html.escape(name)}</a>' for name, slug, *_ in exhibits)
 
 
 def _menu_tool_links(exhibits, home):
     return "".join(
         f'<a class="header-menu-dropdown-item btn-fill btn-fill-ghost" href="{home}#{slug}"><span class="btn-fill-bg" aria-hidden="true"></span>'
         f'<span class="swap txt-mono txt-14"><span>{html.escape(name)}</span><span aria-hidden="true">{html.escape(name)}</span></span></a>'
-        for name, slug, _, _, _ in exhibits
+        for name, slug, *_ in exhibits
     )
 
 
@@ -397,6 +543,9 @@ def _build(root):
     exhibits = [_tool_exhibit(root, path, position) for position, (_, path) in enumerate(catalog, start=1)]
     labels = _relationship_labels(sections)
     palette = Palette((root / "site/style.css").read_text())
+    plan_drawing = (root / "site/illustrations/bench-plan.svg").read_text()
+    plan_limit_marks, plan_limits = _plan_limits(plan_drawing, exhibits)
+    use_cases, use_case_images = _use_cases(root, exhibits)
     values = {
         "profile_url": PROFILE_URL,
         "repository_url": REPOSITORY_URL,
@@ -409,19 +558,28 @@ def _build(root):
         "title": html.escape(title),
         "tagline": _inline(intro_paragraphs[0]),
         "intro": _inline(intro_paragraphs[1]),
-        "statement_drawing": STATEMENT_DRAWING,
-        "cta_drawing": SPANNER_GLYPH,
+        "credit": _inline(_first_paragraph(sections["Credits"])),
+        "statement_drawing": _ink_drawing("statement", STATEMENT_INK_FRAME),
+        "cta_drawing": _ink_drawing("cta", CTA_INK_FRAME),
         "ruler": RULER_FRAME,
         "wordmark": _wordmark(title),
         "hero_drawing": (root / "site/illustrations/hero-spanner.svg").read_text(),
-        "exhibits": "\n".join(row for _, _, _, row, _ in exhibits),
-        "field_notes": "\n".join(notes for _, _, _, _, notes in exhibits),
+        "plan_captions": _plan_caption_items(),
+        "plan_drawing": _fill(plan_drawing, {"spanner_paths": SPANNER_PATHS, "plan_limit_marks": plan_limit_marks}),
+        "plan_limits": plan_limits,
+        "exhibits": "\n".join(row for _, _, _, row, *_ in exhibits),
+        "field_notes": "\n".join(notes for _, _, _, _, notes, *_ in exhibits),
         "tool_total": str(len(exhibits)),
-        "tool_work_items": "".join(f'<span class="home-hero-work-item txt-mono txt-14">{WORK_ICON}{html.escape(name)}</span>' for name, _, _, _, _ in exhibits),
-        "tool_strip_items": "".join(_strip_item(name, slug, relation) for name, slug, relation, _, _ in exhibits),
+        "tool_work_items": "".join(f'<span class="home-hero-work-item txt-mono txt-14">{WORK_ICON}{html.escape(name)}</span>' for name, *_ in exhibits),
+        "tool_strip_items": "".join(_strip_item(name, slug, relation) for name, slug, relation, *_ in exhibits),
         "criteria": _render(sections["What belongs here"][:1]),
         "legend_cells": "".join(_relationship_cell(position, label, description) for position, (label, description) in enumerate(labels, start=1)),
-        "cell_pagination": "".join('<span class="active"></span>' if position == 1 else "<span></span>" for position in range(1, len(labels) + 1)),
+        "cell_pagination": _pagination(len(labels)),
+        "scroll_cue": html.escape(SCROLL_CUE),
+        "entry_parts": "".join(_entry_part(root, position, verb, sub) for position, (verb, sub, _) in enumerate(ENTRY_PARTS, start=1)),
+        "entry_parts_pagination": _pagination(len(ENTRY_PARTS)),
+        "use_cases": use_cases,
+        "use_case_images": use_case_images,
     }
     shell = (root / "site/template.html").read_text()
     home = _fill((root / "site/home.html").read_text(), values)

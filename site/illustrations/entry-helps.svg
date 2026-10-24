@@ -1,0 +1,16 @@
+<svg class="entry-art" viewBox="0 0 464 464" aria-hidden="true">
+  <rect class="entry-art-paper" x="40" y="48" width="384" height="340"/><path d="M40 76H424"/>
+  <text class="entry-art-mono" x="52" y="66">Plan · week 43</text>
+  <path class="entry-art-axis" d="M150 76V388M210 76V388M270 76V388M330 76V388"/>
+  <path class="entry-art-axis" d="M56 112H120M56 176H112M56 240H124M56 304H108"/>
+  <rect class="entry-art-fill" x="132" y="104" width="104" height="16"/>
+  <rect x="196" y="168" width="110" height="16"/><rect class="entry-art-fill" x="196" y="168" width="70" height="16"/>
+  <rect class="entry-art-axis" x="262" y="232" width="74" height="16"/>
+  <rect class="entry-art-axis" x="300" y="296" width="52" height="16"/>
+  <rect class="entry-row-active" x="46" y="156" width="372" height="40"/>
+  <g class="entry-pill"><rect x="374" y="103" width="18" height="18" rx="9"/><path d="M378.5 112.5l3 3 6-6.5"/></g>
+  <g class="entry-pill"><rect x="374" y="167" width="18" height="18" rx="9"/><g class="entry-pill-loading"><path class="entry-pill-spin" d="M383 170.5a5.5 5.5 0 1 1-5.5 5.5"/></g><path class="entry-pill-check" d="M378.5 176.5l3 3 6-6.5"/></g>
+  <g class="entry-pill"><rect x="374" y="231" width="18" height="18" rx="9"/><circle cx="383" cy="240" r="3"/></g>
+  <g class="entry-pill"><rect x="374" y="295" width="18" height="18" rx="9"/><circle cx="383" cy="304" r="3"/></g>
+  <g class="entry-card entry-card-running"><rect class="entry-art-paper" x="52" y="364" width="135" height="64"/><rect class="entry-card-head" x="52" y="364" width="135" height="18"/><text class="entry-card-head-text" x="60" y="376">Running</text><text class="entry-art-mono" x="60" y="402">Row 2 · 64%</text><g class="entry-card-dots"><circle class="entry-card-dot" style="--dot: 0" cx="162" cy="373" r="1.6"/><circle class="entry-card-dot" style="--dot: 1" cx="168" cy="373" r="1.6"/><circle class="entry-card-dot" style="--dot: 2" cx="174" cy="373" r="1.6"/></g></g>
+</svg>

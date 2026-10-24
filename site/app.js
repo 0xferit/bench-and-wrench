@@ -381,10 +381,16 @@
         if (!shares.has(trigger)) shares.set(trigger, (REVEAL_TRIGGERS.find(([triggers]) => trigger.matches(triggers)) || [null, 0])[1]);
       }
     }
+    const keepingFocus = (target, move) => {
+      const focused = target.contains(document.activeElement) ? document.activeElement : null;
+      const result = move();
+      if (focused && document.activeElement !== focused) focused.focus({ preventScroll: true });
+      return result;
+    };
     const settle = async (target, original) => {
       const transitions = target.getAnimations({ subtree: true }).filter((animation) => animation instanceof CSSTransition);
       await Promise.allSettled(transitions.map((animation) => animation.finished));
-      if (original) target.replaceChildren(...original);
+      if (original) keepingFocus(target, () => target.replaceChildren(...original));
       target.classList.remove(...REVEAL_STATES);
     };
     const begin = (target) => {
@@ -394,7 +400,7 @@
         settle(target, null);
         return;
       }
-      const original = splitLines(target, byWord);
+      const original = keepingFocus(target, () => splitLines(target, byWord));
       target.classList.replace('rv-pending', 'rv-start');
       target.getBoundingClientRect();
       target.classList.remove('rv-start');

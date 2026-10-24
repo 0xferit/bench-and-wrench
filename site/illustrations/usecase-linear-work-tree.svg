@@ -1,0 +1,26 @@
+<svg class="usecase-art" viewBox="0 0 560 600" aria-hidden="true">
+<rect class="usecase-art-paper" x="40" y="40" width="480" height="520"/>
+<path class="usecase-art-rule" d="M40 500H520M330 500V560M430 500V560"/>
+<rect class="usecase-art-paper usecase-art-ink" x="200" y="70" width="160" height="30"/><text x="280" y="89" text-anchor="middle">Initiative</text>
+<path class="usecase-art-ink" d="M280 100V124M120 124V140M440 124V140"/>
+<path d="M76 168V296M76 236H88M76 266H88M76 296H88M236 168V296M236 236H248M236 266H248M236 296H248M396 168V296M396 236H408M396 266H408M396 296H408"/>
+<path d="M76 192L84 200L76 208L68 200ZM236 192L244 200L236 208L228 200ZM396 192L404 200L396 208L388 200Z"/>
+<path class="usecase-art-rule" d="M90 200H170M250 200H330M410 200H490M108 240H160M108 270H150M108 300H164M268 240H316M268 270H300M268 300H322M428 240H480M428 270H470M428 300H476"/>
+<rect x="88" y="232" width="8" height="8"/><rect x="88" y="262" width="8" height="8"/><rect x="248" y="232" width="8" height="8"/><rect x="248" y="292" width="8" height="8"/><rect x="408" y="232" width="8" height="8"/><rect x="408" y="292" width="8" height="8"/>
+<text x="56" y="356">Folded</text><path class="usecase-art-rule" d="M56 366H500"/>
+<path d="M56 392H68M76 386L82 392L76 398M96 392H200M56 422H68M76 416L82 422L76 428M96 422H180M56 452H68M76 446L82 452L76 458M96 452H220"/>
+<text x="54" y="526">Linear Work Tree</text><text x="54" y="546">Work in context</text><text x="344" y="526">Fig.</text><text x="344" y="546">03</text><text x="444" y="526">Scope</text><text x="444" y="546">Assigned</text>
+<g class="usecase-focus">
+<path class="usecase-art-ink" d="M120 124H440"/>
+<rect class="usecase-art-paper usecase-art-ink" x="60" y="140" width="120" height="28"/><rect class="usecase-art-paper usecase-art-ink" x="220" y="140" width="120" height="28"/><rect class="usecase-art-paper usecase-art-ink" x="380" y="140" width="120" height="28"/>
+<text x="120" y="158" text-anchor="middle">Project A</text><text x="280" y="158" text-anchor="middle">Project B</text><text x="440" y="158" text-anchor="middle">Project C</text>
+</g>
+<g class="usecase-focus">
+<path class="usecase-art-ink" d="M248 266H236V208M236 192V168M280 140V124M280 124V100"/><rect class="usecase-art-fill" x="248" y="262" width="8" height="8"/>
+<text x="306" y="274">Assigned</text>
+</g>
+<g class="usecase-focus">
+<rect class="usecase-art-fill" x="88" y="292" width="8" height="8"/><text x="170" y="304">Overdue</text>
+<rect class="usecase-art-fill" x="408" y="262" width="8" height="8"/><text x="476" y="274">Late</text>
+</g>
+</svg>

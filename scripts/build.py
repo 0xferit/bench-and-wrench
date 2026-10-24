@@ -77,6 +77,10 @@ ENTRY_PARTS = (
 )
 ENTRY_SECTIONS = tuple(heading for *_, heading in ENTRY_PARTS if heading)
 PLUS_CORNERS = ("top left", "top right", "bot left", "bot right")
+USE_CASE_SUB = "Reach for {}. Its entry says what it solves and where it stops."
+USE_CASE_FOCUS = 'class="usecase-focus"'
+USE_CASE_FOCUSED = 'class="usecase-focus is-focus"'
+USE_CASE_FALLBACK = f'<svg class="usecase-art" {SPANNER_VIEW} aria-hidden="true">{SPANNER_PATHS}</svg>'
 DESIGN_SOURCE = "DESIGN.md"
 DESIGN_PAGE = "design-system.html"
 
@@ -170,6 +174,7 @@ def _tool_exhibit(root, path, position):
     if missing:
         raise ValueError(f"{path} is missing {', '.join(missing)}")
     reason = _first_paragraph(sections[REASON_HEADING])
+    uses = [item for kind, value in sections[USE_HEADING] if kind == "ul" for item in value]
     limits = [value for kind, value in sections[LIMITS_HEADING] if kind == "p"]
     caveat = limits[0] if limits else ""
     last_heading = next(reversed(sections))
@@ -203,7 +208,7 @@ def _tool_exhibit(root, path, position):
 </article>'''
     field_notes = f'''
 <div class="faq-item"><details class="faq-details" name="field-notes" id="notes-{slug}"><summary><span class="faq-title heading h6 tb-h20 mb-h18">Field notes: {html.escape(title)}</span><span class="faq-ic" aria-hidden="true"></span></summary><div class="faq-body">{''.join(notes)}</div></details><i class="line line-h line-top line-solid"></i><i class="line line-h line-bottom line-dash"></i><i class="line line-h line-bottom line-dash line-ink faq-line-hover"></i></div>'''
-    return title, slug, relation, row, field_notes, limits
+    return title, slug, relation, row, field_notes, uses, limits
 
 
 def _markdown_text(blocks):
@@ -477,6 +482,33 @@ def _entry_part(root, position, verb, sub):
     )
 
 
+def _focused(drawing, focus):
+    groups = drawing.split(USE_CASE_FOCUS)
+    if focus + 1 >= len(groups):
+        return drawing
+    return USE_CASE_FOCUS.join(groups[:focus + 1]) + USE_CASE_FOCUSED + USE_CASE_FOCUS.join(groups[focus + 1:])
+
+
+def _use_cases(root, exhibits):
+    items, images = [], []
+    for name, slug, *_, uses, _ in exhibits:
+        drawing_path = root / "site/illustrations" / f"usecase-{slug}.svg"
+        drawing = drawing_path.read_text() if drawing_path.exists() else USE_CASE_FALLBACK
+        for focus, text in enumerate(uses):
+            position = len(items) + 1
+            first = position == 1
+            link = f'<a href="#{slug}">{html.escape(name)}</a>'
+            items.append(
+                f'<div class="faq-item usecase-item" style="--item: {position - 1}"><details class="faq-details" name="use-cases"{" open" if first else ""}>'
+                f'<summary><span class="usecase-numb txt-mono txt-14" aria-hidden="true">[{position:02d}]</span><span class="usecase-item-title-inner">'
+                f'<span class="faq-title usecase-item-title heading h6 tb-h20 mb-h18">{_inline(text)}</span><span class="usecase-tag txt-mono txt-12">{html.escape(name)}</span></span>'
+                f'<span class="faq-ic" aria-hidden="true"></span></summary><div class="faq-body usecase-sub"><p class="usecase-sub-text txt-16">{html.escape(USE_CASE_SUB).format(link)}</p></div></details>'
+                '<i class="line line-h line-top line-solid"></i><i class="line line-h line-bottom line-dash"></i><i class="line line-h line-bottom line-dash line-ink faq-line-hover"></i></div>'
+            )
+            images.append(f'<div class="usecase-img-item{" active" if first else ""}" data-tool="{slug}">{_focused(drawing, focus)}</div>')
+    return "".join(items), "".join(images)
+
+
 def _pagination(count):
     return "".join('<span class="active"></span>' if position == 1 else "<span></span>" for position in range(1, count + 1))
 
@@ -507,6 +539,7 @@ def _build(root):
     palette = Palette((root / "site/style.css").read_text())
     plan_drawing = (root / "site/illustrations/bench-plan.svg").read_text()
     plan_limit_marks, plan_limits = _plan_limits(plan_drawing, exhibits)
+    use_cases, use_case_images = _use_cases(root, exhibits)
     values = {
         "profile_url": PROFILE_URL,
         "repository_url": REPOSITORY_URL,
@@ -528,7 +561,7 @@ def _build(root):
         "plan_drawing": _fill(plan_drawing, {"spanner_paths": SPANNER_PATHS, "plan_limit_marks": plan_limit_marks}),
         "plan_limits": plan_limits,
         "exhibits": "\n".join(row for _, _, _, row, *_ in exhibits),
-        "field_notes": "\n".join(notes for _, _, _, _, notes, _ in exhibits),
+        "field_notes": "\n".join(notes for _, _, _, _, notes, *_ in exhibits),
         "tool_total": str(len(exhibits)),
         "tool_work_items": "".join(f'<span class="home-hero-work-item txt-mono txt-14">{WORK_ICON}{html.escape(name)}</span>' for name, *_ in exhibits),
         "tool_strip_items": "".join(_strip_item(name, slug, relation) for name, slug, relation, *_ in exhibits),
@@ -538,6 +571,8 @@ def _build(root):
         "scroll_cue": html.escape(SCROLL_CUE),
         "entry_parts": "".join(_entry_part(root, position, verb, sub) for position, (verb, sub, _) in enumerate(ENTRY_PARTS, start=1)),
         "entry_parts_pagination": _pagination(len(ENTRY_PARTS)),
+        "use_cases": use_cases,
+        "use_case_images": use_case_images,
     }
     shell = (root / "site/template.html").read_text()
     home = _fill((root / "site/home.html").read_text(), values)

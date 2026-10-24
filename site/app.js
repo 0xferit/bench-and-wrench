@@ -90,17 +90,18 @@
   const EASES = { none: (share) => share, power1Out: powerOut(1), power2Out: powerOut(2), power3Out: powerOut(3) };
   const REVEAL_TRIGGERS = [
     ['.home-hero, .bench-plan-panel', 0],
-    ['.section-head, .entry-parts-head', 0.65],
+    ['.section-head, .entry-parts-head, .usecase-list', 0.65],
     ['.statement-strip-wrap, .cell-list, .faq-list, .footer-left, .footer-menu, .footer-info, .footer-logo, .footer-band, .footer-copyright-wrap', 0.55],
     ['.statement-body, .statement-media, .tool-row-art, .cell-item-img, .entry-part-img', 0.45],
-    ['.tool-row-left, .tool-row-right, .cta', 0.4],
+    ['.tool-row-left, .tool-row-right, .cta, .usecase-title-wrap', 0.4],
+    ['.usecase-img-list', 0.35],
   ];
   const REVEAL_EFFECTS = {
     text: '.section-head-title .heading, .section-head-title p, .section-head-label span, .cell-item-head > span, .tool-row-title, .tool-row-sub p, .cell-item-title, .cell-item-content p, .cta-main-title, .cta-main-sub, .footer-title, .footer-label, .footer-info-label, .statement-desc',
-    words: '.home-hero-title, .bench-plan-panel-label-text, .bench-plan-panel-title, .bench-plan-panel-sub, .bench-plan-panel-item-text, .entry-parts-label, .entry-parts-title, .entry-parts-sub, .entry-parts-cue',
+    words: '.home-hero-title, .bench-plan-panel-label-text, .bench-plan-panel-title, .bench-plan-panel-sub, .bench-plan-panel-item-text, .entry-parts-label, .entry-parts-title, .entry-parts-sub, .entry-parts-cue, .usecase-label, .usecase-title, .usecase-numb, .usecase-item-title, .usecase-item:first-child .usecase-sub-text',
     block: '.home-hero-sub, .home-hero-work, .statement-link, .cta-main-btn, .tool-row-btn, .tool-facts > div, .faq-ic, .footer-note, .cta-head-item span',
-    scale: '.tool-row-art .tool-illustration, .cell-item-img > svg, .statement-media > svg, .cta-deco-art > svg, .footer-logo .mark, .bench-plan-panel-item-ic, .entry-part-img > .entry-art',
-    rule: 'main .line:not(.hero-guide, .bench-plan-panel .line, .entry-parts .line), .cta .line, .footer .line',
+    scale: '.tool-row-art .tool-illustration, .cell-item-img > svg, .statement-media > svg, .cta-deco-art > svg, .footer-logo .mark, .bench-plan-panel-item-ic, .entry-part-img > .entry-art, .usecase-img-item:first-child > .usecase-art',
+    rule: 'main .line:not(.hero-guide, .bench-plan-panel .line, .entry-parts .line, .usecase .line), .usecase-item:first-child > .line-top, .cta .line, .footer .line',
     fade: '.home-hero-img .ruler',
   };
   const REVEAL_STATES = ['rv-pending', 'rv-start', ...Object.keys(REVEAL_EFFECTS).map((effect) => `rv-${effect}`)];
@@ -1005,6 +1006,7 @@
       const body = details.querySelector('.faq-body');
       if (slides.has(details)) slides.get(details).cancel();
       opened.set(details, open);
+      details.closest('.faq-item').classList.toggle('active', open);
       details.open = true;
       const shut = { height: '0px', paddingTop: '0px', overflow: 'hidden' };
       const full = { height: `${body.getBoundingClientRect().height}px`, paddingTop: getComputedStyle(body).paddingTop, overflow: 'hidden' };
@@ -1016,7 +1018,10 @@
       };
     };
     const items = [...list.querySelectorAll('.faq-details')];
-    for (const details of items) details.removeAttribute('name');
+    for (const details of items) {
+      details.removeAttribute('name');
+      details.closest('.faq-item').classList.toggle('active', details.open);
+    }
     list.addEventListener('click', (event) => {
       const item = event.target.closest('.faq-item');
       if (!item || event.target.closest('.faq-body')) return;
@@ -1025,6 +1030,19 @@
       const open = !isOpening(details);
       if (open) for (const other of items) if (other !== details && isOpening(other)) slide(other, false);
       slide(details, open);
+    });
+  }
+
+  const useCases = document.querySelector('.usecase');
+  if (useCases) {
+    const caseImages = [...useCases.querySelectorAll('.usecase-img-item')];
+    const caseItems = [...useCases.querySelectorAll('.usecase-item')];
+    if (!WIDER_THAN_PHONE.matches) for (const trigger of useCases.querySelectorAll('.usecase-img-list, .usecase-title-wrap, .usecase-list')) reveal.release(trigger);
+    useCases.querySelector('.usecase-list').addEventListener('click', (event) => {
+      const item = event.target.closest('.usecase-item');
+      if (!item || event.target.closest('.faq-body')) return;
+      const shown = caseItems.indexOf(item);
+      caseImages.forEach((image, position) => image.classList.toggle('active', position === shown));
     });
   }
 

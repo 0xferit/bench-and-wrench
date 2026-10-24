@@ -742,6 +742,74 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
   .entry-parts .cell-pagi { padding-inline: 1.6rem; }
 }
 
+.usecase { position: relative; }
+.usecase-grid { display: grid; grid-template-columns: repeat(12, minmax(1px, 1fr)); column-gap: 2rem; }
+.usecase-img { position: relative; grid-area: 1 / 1 / 3 / 7; display: grid; min-height: var(--sheet-height); margin-right: -1.1rem; overflow: hidden; isolation: isolate; }
+.usecase-img::before { position: absolute; inset: 1.2rem; z-index: -1; background: var(--rule); -webkit-mask: url("assets/grid-tile.svg") center / 6.4rem 6.4rem; mask: url("assets/grid-tile.svg") center / 6.4rem 6.4rem; content: ""; }
+.usecase-img-list { display: grid; grid-template-columns: minmax(1px, 1fr); height: 100%; }
+.usecase-img-item { grid-area: 1 / 1; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; opacity: 0; transform: scale(1.04); transition: transform 0.4s ease, opacity 0.4s ease; }
+.usecase-img-item.active { opacity: 1; transform: none; }
+.usecase-img-item:first-child > .usecase-art { --rv-delay: 0.15s; }
+.usecase-art.rv-scale { transition-duration: 1.8s; transition-timing-function: cubic-bezier(0.4, 0.5, 0.25, 0.55); }
+.usecase-art { width: 100%; height: 100%; fill: none; stroke: var(--surface); stroke-width: 1.5; }
+.usecase-art * { vector-effect: non-scaling-stroke; }
+.usecase-art text { fill: var(--granite); stroke: none; font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0; text-transform: uppercase; }
+.usecase-art-paper { fill: var(--cell); }
+.usecase-art-ink, .usecase-focus { stroke: var(--ink); }
+.usecase-art-rule { stroke: var(--rule); stroke-width: 1; }
+.usecase-art-axis { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 1 3 10 2; }
+.usecase-art-link { stroke-dasharray: 4 4; }
+.usecase-art-fill { fill: var(--ink); stroke: none; }
+.usecase-art .is-focus, .usecase-art .is-focus :not(text) { stroke: var(--brand); }
+.usecase-art .is-focus .usecase-art-fill, .usecase-art .is-focus text { fill: var(--brand); }
+.usecase-title-wrap { position: relative; grid-area: 1 / 7 / 2 / -1; margin-left: -1rem; padding: 3.2rem 15.4rem 6rem; }
+.usecase-title-line { display: none; }
+.usecase-label { --rv-delay: 0.1s; margin-bottom: 1.6rem; }
+.usecase-title { --rv-delay: 0.2s; width: 100%; max-width: 64.7rem; }
+.usecase-content { position: relative; grid-area: 2 / 7 / 3 / -1; align-self: end; display: flex; flex-direction: column; margin-left: -1rem; }
+.usecase-list { --usecase-stagger: 0.03s; --usecase-first-slots: 6; --usecase-item-slots: 4; --usecase-numb-width: 3.6rem; --usecase-indent: calc(var(--usecase-numb-width) + 3.2rem); }
+.usecase-item { --usecase-slot: calc(var(--usecase-first-slots) + var(--usecase-item-slots) * (var(--item) - 1) + 1); padding-left: 15.4rem; }
+.usecase-item:first-child { --usecase-slot: 2; }
+.usecase-item:first-child > .line-top { --rv-delay: var(--usecase-stagger); }
+.usecase-numb { --rv-delay: calc(var(--usecase-slot) * var(--usecase-stagger)); flex: none; align-self: flex-start; width: var(--usecase-numb-width); margin-top: 0.4rem; margin-right: 1.6rem; color: var(--disabled); transition: color 0.4s; }
+.usecase-item-title-inner { display: flex; flex: 1; flex-wrap: wrap; row-gap: 0.4rem; }
+.usecase-item-title { --rv-delay: calc((var(--usecase-slot) + 1) * var(--usecase-stagger)); flex: 1 0 100%; }
+.usecase-item .faq-ic { --rv-delay: calc((var(--usecase-slot) + 2) * var(--usecase-stagger)); }
+.usecase-tag { color: var(--granite); }
+.usecase-sub { padding-left: var(--usecase-indent); }
+.usecase-sub-text { --rv-delay: calc((var(--usecase-slot) + 3) * var(--usecase-stagger)); }
+:where(.faq-details[open]) .usecase-numb { color: var(--brand); }
+:where(.js .faq-list) .usecase-item:not(.active) .usecase-numb { color: var(--disabled); }
+.js .faq-list .usecase-item:not(.active) .faq-ic::after { transform: rotate(90deg); }
+@media (hover: hover) and (min-width: 992px) {
+  .usecase-item:hover .usecase-numb { color: var(--brand); }
+  .faq-item.usecase-item:hover .faq-ic { color: var(--ink); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .usecase-img-item { transform: none; transition: none; }
+}
+@media (max-width: 991px) {
+  .usecase-img { grid-area: 1 / 1 / 2 / -1; min-height: auto; margin-right: 0; }
+  .usecase-img-item { height: 80rem; }
+  .usecase-title-wrap { grid-area: 2 / 1 / 3 / -1; margin-left: 0; padding: 6.4rem 2.4rem 2.4rem; }
+  .usecase-title-line.line-top { display: block; }
+  .usecase-title { max-width: 36rem; }
+  .usecase-content { grid-area: 3 / 1 / 4 / -1; margin-left: 0; }
+  .usecase-list { --usecase-indent: calc(var(--usecase-numb-width) + 1.2rem); }
+  .usecase-numb { margin-top: 0.3rem; margin-right: 0; }
+}
+@media (max-width: 767px) {
+  .usecase-img { grid-row: 2 / 3; }
+  .usecase-img > .line-v, .usecase-title-line.line-top { display: none; }
+  .usecase-img-item { height: 25.6rem; }
+  .usecase-title-wrap { grid-row: 1 / 2; padding: 6.4rem 1.6rem 2.4rem; }
+  .usecase-title-line.line-bottom { display: block; }
+  .usecase-title br { display: none; }
+  .usecase-label { margin-bottom: 1.2rem; }
+  .usecase-list { --usecase-indent: calc(var(--usecase-numb-width) + 0.8rem); }
+  .usecase-numb { margin-top: 0.2rem; }
+}
+
 .cell-content { position: relative; }
 .cell-list { display: flex; }
 .cell-pagi { position: relative; display: none; gap: 0.4rem; padding: 2rem 0 2rem 1.2rem; }
@@ -911,12 +979,12 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
 .rv-line { display: block; transition: transform 0.8s var(--ease-out-cubic), opacity 0.8s var(--ease-out-cubic); transition-delay: calc(var(--rv-delay, 0s) + var(--line, 0) * 0.02s); }
 .rv-start .rv-line { opacity: 0; transform: translateY(100%); }
 .rv-word { display: inline-block; }
-.rv-block { transition: transform 1s var(--ease-out-quart), opacity 1s var(--ease-out-quart); }
+.rv-block { transition: transform 1s var(--ease-out-quart), opacity 1s var(--ease-out-quart); transition-delay: var(--rv-delay, 0s); }
 .rv-block.rv-pending { opacity: 0; transform: translateY(3.2rem); }
 .rv-scale { transition: transform 1.6s var(--ease-out-expo), opacity 1.6s var(--ease-out-expo); transition-delay: var(--rv-delay, 0s); }
 .rv-scale.rv-pending { opacity: 0; transform: scale(1.25); }
 :has(> .rv-scale) { overflow: clip; }
-.rv-rule { transform-origin: 0 0; transition: transform 1.2s linear; }
+.rv-rule { transform-origin: 0 0; transition: transform 1.2s linear; transition-delay: var(--rv-delay, 0s); }
 .rv-rule.rv-pending.line-h { transform: scaleX(0); }
 .rv-rule.rv-pending.line-v { transform: scaleY(0); }
 .rv-fade { transition: opacity 0.7s; }

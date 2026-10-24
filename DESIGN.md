@@ -11,6 +11,7 @@ The drawing-sheet design system keeps Ferit's Bench and Wrench and every tool in
 - **Measure, do not decorate.** Rules, ticks, indices and plus marks carry information: a tick is an interval, a bracketed index is a position in a sequence, a plus mark is a registered corner. If a mark carries nothing, leave it out.
 - **Statements in grotesque, labels in mono.** Archivo sets headlines and prose. Geist Mono, always uppercase, sets labels, indices, status and buttons.
 - **One accent.** Vermilion marks what to act on or what to look at. It is never decoration, and no screen carries more than a few uses.
+- **Drawn, not photographed.** Every image is a drawing made for the site, and a tool's screen appears only as a drawing labelled as an illustration. There is no photography.
 - **Quiet motion.** Motion answers the reader's pointer and the scroll, plus one orchestrated opening on the home page. Reduced motion shows the resting state.
 
 ## Colour

@@ -93,6 +93,17 @@ class WebsiteBuildTests(unittest.TestCase):
             footer = re.search(r'<footer class="footer">.*?</footer>', page, re.DOTALL).group(0)
             self.assertEqual(footer.count(credit), 1, name)
 
+    def test_the_link_preview_image_is_an_absolute_address_under_the_site_address_in_the_readme(self):
+        readme = self.root / "README.md"
+        readme.write_text(readme.read_text().replace("https://bench-and-wrench.0xferit.workers.dev/", "https://example.test/bench/"))
+        result = self.build()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for name in ("index.html", "design-system.html"):
+            page = (self.root / "dist" / name).read_text()
+            for meta in ('property="og:image"', 'name="twitter:image"'):
+                self.assertIn(f'<meta {meta} content="https://example.test/bench/assets/og-image.png">', page, f"{name} {meta}")
+        self.assertTrue((self.root / "dist/assets/og-image.png").is_file())
+
     def test_every_asset_a_page_links_is_published(self):
         result = self.build()
         self.assertEqual(result.returncode, 0, result.stderr)

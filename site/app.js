@@ -40,6 +40,9 @@
   const STRIP_STEP_DESKTOP = 3;
   const STRIP_STEP_NARROW = 1;
   const FAQ_SLIDE_MS = 400;
+  const ENTRY_FOLLOW_LAYOUT = matchMedia('screen and (prefers-reduced-motion: no-preference) and (min-width: 992px)');
+  const ENTRY_LINE_FOLLOW = 0.2;
+  const ENTRY_LINE_SETTLE_PX = 0.1;
   const FINE_POINTER = matchMedia('(pointer: fine)');
   const SCROLL_LERP = 0.1;
   const SCROLL_SETTLE_PX = 0.5;
@@ -87,17 +90,17 @@
   const EASES = { none: (share) => share, power1Out: powerOut(1), power2Out: powerOut(2), power3Out: powerOut(3) };
   const REVEAL_TRIGGERS = [
     ['.home-hero, .bench-plan-panel', 0],
-    ['.section-head', 0.65],
+    ['.section-head, .entry-parts-head', 0.65],
     ['.statement-strip-wrap, .cell-list, .faq-list, .footer-left, .footer-menu, .footer-info, .footer-logo, .footer-band, .footer-copyright-wrap', 0.55],
-    ['.statement-body, .statement-media, .tool-row-art, .cell-item-img', 0.45],
+    ['.statement-body, .statement-media, .tool-row-art, .cell-item-img, .entry-part-img', 0.45],
     ['.tool-row-left, .tool-row-right, .cta', 0.4],
   ];
   const REVEAL_EFFECTS = {
     text: '.section-head-title .heading, .section-head-title p, .section-head-label span, .cell-item-head > span, .tool-row-title, .tool-row-sub p, .cell-item-title, .cell-item-content p, .cta-main-title, .cta-main-sub, .footer-title, .footer-label, .footer-info-label, .statement-desc',
-    words: '.home-hero-title, .bench-plan-panel-label-text, .bench-plan-panel-title, .bench-plan-panel-sub, .bench-plan-panel-item-text',
+    words: '.home-hero-title, .bench-plan-panel-label-text, .bench-plan-panel-title, .bench-plan-panel-sub, .bench-plan-panel-item-text, .entry-parts-label, .entry-parts-title, .entry-parts-sub, .entry-parts-cue',
     block: '.home-hero-sub, .home-hero-work, .statement-link, .cta-main-btn, .tool-row-btn, .tool-facts > div, .faq-ic, .footer-note, .cta-head-item span',
-    scale: '.tool-row-art .tool-illustration, .cell-item-img > svg, .statement-media > svg, .cta-deco-art > svg, .footer-logo .mark, .bench-plan-panel-item-ic',
-    rule: 'main .line:not(.hero-guide, .bench-plan-panel .line), .cta .line, .footer .line',
+    scale: '.tool-row-art .tool-illustration, .cell-item-img > svg, .statement-media > svg, .cta-deco-art > svg, .footer-logo .mark, .bench-plan-panel-item-ic, .entry-part-img > .entry-art',
+    rule: 'main .line:not(.hero-guide, .bench-plan-panel .line, .entry-parts .line), .cta .line, .footer .line',
     fade: '.home-hero-img .ruler',
   };
   const REVEAL_STATES = ['rv-pending', 'rv-start', ...Object.keys(REVEAL_EFFECTS).map((effect) => `rv-${effect}`)];
@@ -903,6 +906,59 @@
     }
   }
 
+  const entryParts = document.querySelector('.entry-parts');
+  const entryTrack = entryParts && entryParts.querySelector('.entry-parts-track');
+  if (entryTrack) {
+    const entryMain = entryParts.querySelector('.entry-parts-main');
+    const parts = [...entryTrack.querySelectorAll('.entry-part')];
+    if (!WIDER_THAN_PHONE.matches) for (const trigger of [entryParts.querySelector('.entry-parts-head'), ...entryTrack.querySelectorAll('.entry-part-img')]) reveal.release(trigger);
+    const pointer = { y: null };
+    let lineY = 0;
+    let lastFrame = 0;
+    let followFrame = 0;
+    const inView = () => {
+      const { top, bottom } = entryMain.getBoundingClientRect();
+      return top <= innerHeight && bottom >= 0;
+    };
+    const follow = (time) => {
+      followFrame = 0;
+      const following = ENTRY_FOLLOW_LAYOUT.matches && inView();
+      entryParts.classList.toggle('is-following', following);
+      if (!following) {
+        lastFrame = 0;
+        for (const part of parts) part.classList.remove('is-active');
+        return;
+      }
+      const elapsed = lastFrame ? time - lastFrame : FRAME_MS;
+      const probe = pointer.y ?? innerHeight / 2;
+      const target = probe - entryTrack.getBoundingClientRect().top;
+      lineY += (target - lineY) * (1 - (1 - ENTRY_LINE_FOLLOW) ** (elapsed / FRAME_MS));
+      const settled = Math.abs(target - lineY) < ENTRY_LINE_SETTLE_PX;
+      if (settled) lineY = target;
+      entryTrack.style.setProperty('--entry-line-y', `${lineY.toFixed(2)}px`);
+      for (const part of parts) {
+        const { top, bottom } = part.getBoundingClientRect();
+        part.classList.toggle('is-active', probe >= top && probe <= bottom);
+      }
+      lastFrame = settled ? 0 : time;
+      if (!settled) followFrame = requestAnimationFrame(follow);
+    };
+    const wake = () => { if (!followFrame) followFrame = requestAnimationFrame(follow); };
+    window.addEventListener('pointermove', (event) => {
+      pointer.y = event.pointerType === 'mouse' ? event.clientY : null;
+      wake();
+    }, { passive: true });
+    window.addEventListener('pointerout', (event) => {
+      if (event.relatedTarget) return;
+      pointer.y = null;
+      wake();
+    });
+    window.addEventListener('scroll', wake, { passive: true });
+    window.addEventListener('resize', wake);
+    ENTRY_FOLLOW_LAYOUT.addEventListener('change', wake);
+    wake();
+  }
+
   const toolInfos = [...document.querySelectorAll('.tool-row-info')];
   if (toolInfos.length) {
     const infoFor = (art) => toolInfos.find((info) => info.dataset.tool === art.dataset.tool);
@@ -925,9 +981,9 @@
     }
   }
 
-  const cellList = document.querySelector('.cell-list');
-  const cellBars = cellList && [...cellList.parentElement.querySelectorAll('.cell-pagi span')];
-  if (cellBars && cellBars.length) {
+  for (const cellList of document.querySelectorAll('.cell-list, .entry-parts-list')) {
+    const cellBars = [...cellList.parentElement.querySelectorAll('.cell-pagi span')];
+    if (!cellBars.length) continue;
     const cells = [...cellList.children];
     let cellFrame = 0;
     const markCell = () => {

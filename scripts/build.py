@@ -69,7 +69,14 @@ PLAN_LIMIT_LINK = "See the {} entry"
 REASON_HEADING = "Why it earns a place"
 USE_HEADING = "When it is useful"
 LIMITS_HEADING = "Limits to understand"
-ENTRY_SECTIONS = (REASON_HEADING, USE_HEADING, LIMITS_HEADING)
+ENTRY_PARTS = (
+    ("Solves", "The problem it meets, in a paragraph", None),
+    ("Earns", "Why it has a place on the bench", REASON_HEADING),
+    ("Helps", "When reaching for it pays off", USE_HEADING),
+    ("Stops", "Where it ends, stated before you install", LIMITS_HEADING),
+)
+ENTRY_SECTIONS = tuple(heading for *_, heading in ENTRY_PARTS if heading)
+PLUS_CORNERS = ("top left", "top right", "bot left", "bot right")
 DESIGN_SOURCE = "DESIGN.md"
 DESIGN_PAGE = "design-system.html"
 
@@ -354,7 +361,7 @@ def _design_main(root, palette):
 
 
 def _relationship_cell(position, label, description):
-    plus_marks = "".join(f'<i class="plus cell-item-plus {corner}"></i>' for corner in ("top left", "top right", "bot left", "bot right"))
+    plus_marks = "".join(f'<i class="plus cell-item-plus {corner}"></i>' for corner in PLUS_CORNERS)
     return (
         '<article class="cell-item"><i class="line line-v line-left line-solid"></i>'
         f'<div class="cell-item-head txt-mono txt-14"><i class="cell-item-dot" aria-hidden="true"></i><span>Relationship</span><span class="disabled" aria-hidden="true">[{position:02d}]</span><i class="line line-h line-bottom line-dash"></i></div>'
@@ -458,6 +465,22 @@ def _plan_limits(drawing, exhibits):
     return "".join(marks), listing
 
 
+def _entry_part(root, position, verb, sub):
+    drawing = _fill((root / "site/illustrations" / f"entry-{verb.lower()}.svg").read_text(), {"spanner_paths": SPANNER_PATHS})
+    side = "left" if position % 2 else "right"
+    corners = "".join(f'<i class="plus {corner}"></i>' for corner in PLUS_CORNERS)
+    return (
+        f'<li class="entry-part entry-part-img-{side}"><div class="entry-part-img"><span class="entry-part-frame" aria-hidden="true">{corners}</span>{drawing}</div>'
+        f'<div class="entry-part-bar"><div class="entry-part-bar-content"><h3 class="entry-part-title heading h6 tb-h20">{html.escape(verb)}</h3>'
+        f'<p class="entry-part-sub txt-16 txt-reg">{html.escape(sub)}</p><i class="entry-part-ic" aria-hidden="true"></i></div></div>'
+        '<i class="line line-h entry-part-line" aria-hidden="true"></i></li>'
+    )
+
+
+def _pagination(count):
+    return "".join('<span class="active"></span>' if position == 1 else "<span></span>" for position in range(1, count + 1))
+
+
 def _footer_tool_links(exhibits, home):
     return "".join(f'<a class="footer-link txt-16 mb-txt-14" href="{home}#{slug}">{html.escape(name)}</a>' for name, slug, *_ in exhibits)
 
@@ -511,7 +534,10 @@ def _build(root):
         "tool_strip_items": "".join(_strip_item(name, slug, relation) for name, slug, relation, *_ in exhibits),
         "criteria": _render(sections["What belongs here"][:1]),
         "legend_cells": "".join(_relationship_cell(position, label, description) for position, (label, description) in enumerate(labels, start=1)),
-        "cell_pagination": "".join('<span class="active"></span>' if position == 1 else "<span></span>" for position in range(1, len(labels) + 1)),
+        "cell_pagination": _pagination(len(labels)),
+        "scroll_cue": html.escape(SCROLL_CUE),
+        "entry_parts": "".join(_entry_part(root, position, verb, sub) for position, (verb, sub, _) in enumerate(ENTRY_PARTS, start=1)),
+        "entry_parts_pagination": _pagination(len(ENTRY_PARTS)),
     }
     shell = (root / "site/template.html").read_text()
     home = _fill((root / "site/home.html").read_text(), values)

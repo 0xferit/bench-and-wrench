@@ -86,7 +86,7 @@ node --check site/app.js
 
 The public website is [bench-and-wrench.0xferit.workers.dev](https://bench-and-wrench.0xferit.workers.dev/), hosted by the `bench-and-wrench` Worker in the personal Cloudflare account named `Ferit`.
 
-Build and run the checks above before deploying. Upload only the generated `dist/` directory through Cloudflare's [Workers static-assets direct-upload interface](https://developers.cloudflare.com/workers/static-assets/direct-upload/), then attach the completed upload to the existing Worker. The deployment serves static assets without a Worker script. Unknown paths return a not-found response instead of the homepage.
+Pushing to `main` deploys. The `site` workflow runs the checks above and the build on every pull request, and on a push to `main` it then rebuilds `dist/` and uploads it to the existing Worker with Wrangler, which serves static assets without a Worker script. Unknown paths return a not-found response instead of the homepage. The deploy job runs in the `production` environment and reads one repository secret, `CLOUDFLARE_API_TOKEN`, a Cloudflare API token limited to editing the `bench-and-wrench` Worker. To deploy by hand, run the same build and `wrangler deploy --assets dist` with the same account.
 
 The existing private ChatGPT Site remains a separate preview snapshot. Its identity is recorded in [.openai/hosting.json](.openai/hosting.json); deploying to Cloudflare does not update that preview.
 

@@ -40,6 +40,7 @@
   const PLAN_WALLS_IN = { at: '-=0.5' };
   const PLAN_WALL_PIECES = { at: '<=0', stagger: { amount: 0.02, from: 'random' } };
   const PLAN_PANEL_REVEAL_MS = 200;
+  const ENTRY_ART_PLAY_SHARE = 0.4;
   const STRIP_AUTOPLAY_MS = 3000;
   const STRIP_SPEED_MS = 600;
   const STRIP_STEP_DESKTOP = 3;
@@ -979,6 +980,14 @@
     const entryMain = entryParts.querySelector('.entry-parts-main');
     const parts = [...entryTrack.querySelectorAll('.entry-part')];
     if (!WIDER_THAN_PHONE.matches) for (const trigger of [entryParts.querySelector('.entry-parts-head'), ...entryTrack.querySelectorAll('.entry-part-img')]) reveal.release(trigger);
+    const artPlays = new IntersectionObserver((entries) => {
+      for (const { target, isIntersecting } of entries) {
+        if (!isIntersecting) continue;
+        target.classList.add('is-playing');
+        artPlays.unobserve(target);
+      }
+    }, { threshold: ENTRY_ART_PLAY_SHARE });
+    for (const art of entryTrack.querySelectorAll('.entry-art')) artPlays.observe(art);
     const pointer = { y: null };
     let lineY = 0;
     let lastFrame = 0;

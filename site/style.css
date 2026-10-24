@@ -579,19 +579,20 @@ main > section + section, main + .cta, .cta + .footer { border-top: var(--border
 @media screen and (prefers-reduced-motion: no-preference) {
   .entry-art { --entry-cycle: 5s; --entry-open-ease: cubic-bezier(0.16, 1, 0.3, 1); --entry-smooth-ease: cubic-bezier(0.22, 1, 0.36, 1); --entry-close-ease: cubic-bezier(0.64, 0, 0.78, 0); --entry-fade-ease: cubic-bezier(0.4, 0, 1, 1); }
   .entry-box-body, .entry-box-ic-face, .entry-box-ic-border, .entry-point, .entry-pill-loading, .entry-pill-spin, .entry-pill-check, .entry-card-dot { transform-box: fill-box; transform-origin: center; }
-  .entry-box-body { transform-origin: right top; animation: entry-box-reveal var(--entry-cycle) linear var(--box-delay, 0s) infinite both; }
-  .entry-box-ic-bg { animation: entry-ic-bg-swap var(--entry-cycle) linear var(--box-delay, 0s) infinite both; }
-  .entry-box-ic-face { animation: entry-ic-reveal var(--entry-cycle) linear var(--box-delay, 0s) infinite both; }
-  .entry-box-ic-border { animation: entry-ic-pulse var(--entry-cycle) linear var(--box-delay, 0s) infinite both; }
-  .entry-point { animation: entry-point-reveal var(--entry-cycle) linear calc(var(--point) * 0.06s) infinite both; }
-  .entry-limit-line { animation: entry-limit-line var(--entry-cycle) linear calc(var(--limit-line) * 0.03s) infinite both, entry-dash-move 0.8s linear infinite; }
+  .entry-box-body { transform-origin: right top; animation: entry-box-reveal var(--entry-cycle) linear var(--box-delay, 0s) 1 both; }
+  .entry-box-ic-bg { animation: entry-ic-bg-swap var(--entry-cycle) linear var(--box-delay, 0s) 1 both; }
+  .entry-box-ic-face { animation: entry-ic-reveal var(--entry-cycle) linear var(--box-delay, 0s) 1 both; }
+  .entry-box-ic-border { animation: entry-ic-pulse var(--entry-cycle) linear var(--box-delay, 0s) 1 both; }
+  .entry-point { animation: entry-point-reveal var(--entry-cycle) linear calc(var(--point) * 0.06s) 1 both; }
+  .entry-limit-line { animation: entry-limit-line var(--entry-cycle) linear calc(var(--limit-line) * 0.03s) 1 both, entry-dash-move 0.8s linear infinite; }
   .entry-pill-spin { animation: entry-spin 1s linear infinite; }
-  .entry-pill-loading { animation: entry-loading var(--entry-cycle) linear infinite; }
-  .entry-pill-check { animation: entry-check var(--entry-cycle) linear infinite; }
-  .entry-row-active { animation: entry-row-active var(--entry-cycle) linear infinite; }
-  .entry-card-running { animation: entry-card-reveal var(--entry-cycle) linear infinite; }
-  .entry-card-dots { animation: entry-dots var(--entry-cycle) linear infinite; }
+  .entry-pill-loading { animation: entry-loading var(--entry-cycle) linear 1; }
+  .entry-pill-check { animation: entry-check var(--entry-cycle) linear 1; }
+  .entry-row-active { animation: entry-row-active var(--entry-cycle) linear 1; }
+  .entry-card-running { animation: entry-card-reveal var(--entry-cycle) linear 1; }
+  .entry-card-dots { animation: entry-dots var(--entry-cycle) linear 1; }
   .entry-card-dot { animation: entry-dot 1.2s ease-in-out calc(var(--dot) * 0.2s) infinite; }
+  .js .entry-art:not(.is-playing) * { animation-play-state: paused; }
 }
 @keyframes entry-box-reveal {
   0%, 11% { opacity: 0; transform: scale(0.001); }

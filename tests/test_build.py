@@ -35,6 +35,7 @@ class WebsiteBuildTests(unittest.TestCase):
         (self.root / "tools/boundary-tool.md").write_text(
             "# Boundary tool\n\n**Relationship: Curated.**\n\nA boundary example.\n\n"
             "## Why it earns a place\n\nA singular use.\n\n"
+            "## When it is useful\n\n- A singular moment.\n\n"
             "## Limits to understand\n\nA real limitation.\n\n"
             "## Open it\n\n[Open tool](https://example.com/tool).\n"
         )
@@ -54,6 +55,15 @@ class WebsiteBuildTests(unittest.TestCase):
         self.assertEqual(dropdown, ["#live-gantt", "#linear-work-tree", "#boundary-tool"])
         self.assertNotIn("{{", page)
         self.assertTrue((self.root / "dist/assets/mark.svg").is_file())
+
+    def test_an_entry_missing_one_of_the_four_parts_fails_before_producing_a_page(self):
+        entry = self.root / "tools/live-gantt.md"
+        entry.write_text(entry.read_text().replace("## When it is useful", "## When it helps"))
+        result = self.build()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("tools/live-gantt.md", result.stderr)
+        self.assertIn("When it is useful", result.stderr)
+        self.assertFalse((self.root / "dist/index.html").exists())
 
     def test_every_fragment_link_on_the_home_page_has_a_target(self):
         result = self.build()

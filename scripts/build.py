@@ -55,7 +55,7 @@ PLAN_CAPTIONS = (
     "Each tool here puts one picture back in view: a plan as a timeline, an issue inside its project.",
     "No tool fits every job. Each one is marked where it stops, so you know before you reach for it.",
 )
-PLAN_CAPTION_SCROLL = "[Scroll to continue]"
+SCROLL_CUE = "[Scroll to continue]"
 PLAN_CAPTION_PROMPT = "[Select a limit]"
 PLAN_LIMIT_ZONE = re.compile(r'<rect class="(?:[a-z-]+ )?bench-plan-limit-zone" id="([a-z0-9-]+)" data-tool="([a-z0-9-]*)" x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"/>')
 PLAN_VIEW_BOX = re.compile(r'viewBox="0 0 ([\d.]+) ([\d.]+)"')
@@ -66,6 +66,10 @@ PLAN_LIMIT_DOT = 9
 PLAN_LIMIT_DOT_CORE = 7
 PLAN_LIMITS_LABEL = "Limits marked on the plan"
 PLAN_LIMIT_LINK = "See the {} entry"
+REASON_HEADING = "Why it earns a place"
+USE_HEADING = "When it is useful"
+LIMITS_HEADING = "Limits to understand"
+ENTRY_SECTIONS = (REASON_HEADING, USE_HEADING, LIMITS_HEADING)
 DESIGN_SOURCE = "DESIGN.md"
 DESIGN_PAGE = "design-system.html"
 
@@ -153,8 +157,13 @@ def _tool_exhibit(root, path, position):
         raise ValueError(f"Missing relationship in {path}")
     relation = relation_match.group(1)
     intro = _render([(kind, value) for kind, value in opening_blocks if kind == "p" and value != relationship])
-    reason = _first_paragraph(sections.get("Why it earns a place", []))
-    limits = [value for kind, value in sections.get("Limits to understand", []) if kind == "p"]
+    missing = [heading for heading in ENTRY_SECTIONS if heading not in sections]
+    if not intro:
+        missing.insert(0, "an opening paragraph")
+    if missing:
+        raise ValueError(f"{path} is missing {', '.join(missing)}")
+    reason = _first_paragraph(sections[REASON_HEADING])
+    limits = [value for kind, value in sections[LIMITS_HEADING] if kind == "p"]
     caveat = limits[0] if limits else ""
     last_heading = next(reversed(sections))
     links = INLINE_TOKEN.findall(_markdown_text(sections[last_heading]))
@@ -170,7 +179,7 @@ def _tool_exhibit(root, path, position):
     )
     notes = [f'<section class="faq-section"><h4>About this entry</h4><p>{_inline(relationship)}</p></section>']
     for heading, blocks in sections.items():
-        remaining = blocks[1:] if heading in ("Why it earns a place", "Limits to understand") else blocks
+        remaining = blocks[1:] if heading in (REASON_HEADING, LIMITS_HEADING) else blocks
         if remaining:
             notes.append(f'<section class="faq-section"><h4>{html.escape(heading)}</h4>{_render(remaining)}</section>')
     info_state = " active" if position == 1 else ""
@@ -179,7 +188,7 @@ def _tool_exhibit(root, path, position):
   <div class="tool-row-info{info_state}" data-tool="{slug}">
     <div class="tool-row-left"><i class="line line-h line-top line-solid"></i><span class="txt-mono txt-14 disabled" aria-hidden="true">[{position:02d}]</span><div><span class="relationship relationship-{html.escape(relation.lower())}">{html.escape(relation)}</span><h3 class="tool-row-title heading h4 tb-h6 mb-h4">{html.escape(title)}</h3></div><i class="line line-h line-bottom line-solid"></i></div>
     <div class="tool-row-right"><i class="line line-h line-top line-solid"></i>
-      <div class="tool-row-sub"><div class="tool-intro">{intro}</div><dl class="tool-facts"><div><dt class="txt-mono txt-12">Why it earns a place</dt><dd>{_inline(reason)}</dd></div><div><dt class="txt-mono txt-12">Keep in mind</dt><dd>{_inline(caveat)}</dd></div></dl></div>
+      <div class="tool-row-sub"><div class="tool-intro">{intro}</div><dl class="tool-facts"><div><dt class="txt-mono txt-12">{REASON_HEADING}</dt><dd>{_inline(reason)}</dd></div><div><dt class="txt-mono txt-12">Keep in mind</dt><dd>{_inline(caveat)}</dd></div></dl></div>
       <a class="tool-row-btn btn-fill btn-fill-ghost" href="{html.escape(primary[1], quote=True)}"><i class="line line-h line-top line-solid"></i><span class="btn-fill-bg" aria-hidden="true"></span>{_swap_label(action)}<span class="btn-fill-icon"><span class="slide">{ARROW_ICON}{ARROW_ICON}</span></span></a>
     <i class="line line-h line-bottom line-solid"></i></div>
   </div>
@@ -392,7 +401,7 @@ def _strip_item(name, slug, relation):
 
 
 def _plan_caption_items():
-    scroll = f'<span class="caption-box-cue caption-box-scroll txt-mono txt-12" aria-hidden="true">{html.escape(PLAN_CAPTION_SCROLL)}</span>'
+    scroll = f'<span class="caption-box-cue caption-box-scroll txt-mono txt-12" aria-hidden="true">{html.escape(SCROLL_CUE)}</span>'
     steps = "".join(f'<li class="caption-box-item"><p class="txt-14">{html.escape(text)}</p>{scroll}</li>' for text in PLAN_CAPTIONS)
     return f'{steps}<li class="caption-box-item"><span class="caption-box-prompt txt-mono txt-12">{html.escape(PLAN_CAPTION_PROMPT)}</span></li>'
 

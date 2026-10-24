@@ -558,6 +558,7 @@ def _build(root):
         "title": html.escape(title),
         "tagline": _inline(intro_paragraphs[0]),
         "intro": _inline(intro_paragraphs[1]),
+        "credit": _inline(_first_paragraph(sections["Credits"])),
         "statement_drawing": _ink_drawing("statement", STATEMENT_INK_FRAME),
         "cta_drawing": _ink_drawing("cta", CTA_INK_FRAME),
         "ruler": RULER_FRAME,

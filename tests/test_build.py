@@ -82,6 +82,17 @@ class WebsiteBuildTests(unittest.TestCase):
         self.assertIn("plan-limit-01", references)
         self.assertEqual(references - targets, set())
 
+    def test_the_readme_credit_line_is_the_footer_credit_on_every_page(self):
+        readme = self.root / "README.md"
+        credit = "A boundary credit, used with permission."
+        readme.write_text(re.sub(r"(## Credits\n\n)[^\n]+", lambda match: match.group(1) + credit, readme.read_text()))
+        result = self.build()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for name in ("index.html", "design-system.html"):
+            page = (self.root / "dist" / name).read_text()
+            footer = re.search(r'<footer class="footer">.*?</footer>', page, re.DOTALL).group(0)
+            self.assertEqual(footer.count(credit), 1, name)
+
     def test_every_asset_a_page_links_is_published(self):
         result = self.build()
         self.assertEqual(result.returncode, 0, result.stderr)

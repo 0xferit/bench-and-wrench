@@ -2,7 +2,7 @@
 
 The drawing-sheet design system keeps Ferit's Bench and Wrench and every tool in it looking like one family.
 
-`site/style.css` is the only definition of the tokens. This document explains what they mean and how to use them. The website and the tool illustrations are the reference implementation, and the specimens below are the real components, not pictures of them. The proportions, tokens and interaction patterns follow the Heron AI website by Bearplus, which Ferit chose as the reference; no asset, font, image or copy was taken from it.
+`site/style.css` is the only definition of the tokens. This document explains what they mean and how to use them. The website and the tool illustrations are the reference implementation, and the specimens below are the real components, not pictures of them. The proportions, tokens, interaction patterns and scroll scenes follow the Heron AI website by Bearplus, which Ferit chose as the reference and the README credits. Its stylesheet and script logic are ported; its copy, fonts, images and script libraries are not used.
 
 ## Principles
 

@@ -34,6 +34,7 @@
   const PLAN_HEADING_OUT = { at: '>=0.5' };
   const PLAN_WALLS_IN = { at: '-=0.5' };
   const PLAN_WALL_PIECES = { at: '<=0', stagger: { amount: 0.02, from: 'random' } };
+  const PLAN_PANEL_REVEAL_MS = 200;
   const STRIP_AUTOPLAY_MS = 3000;
   const STRIP_SPEED_MS = 600;
   const STRIP_STEP_DESKTOP = 3;
@@ -85,7 +86,7 @@
   const powerOut = (power) => (share) => 1 - (1 - share) ** (power + 1);
   const EASES = { none: (share) => share, power1Out: powerOut(1), power2Out: powerOut(2), power3Out: powerOut(3) };
   const REVEAL_TRIGGERS = [
-    ['.home-hero', 0],
+    ['.home-hero, .bench-plan-panel', 0],
     ['.section-head', 0.65],
     ['.statement-strip-wrap, .cell-list, .faq-list, .footer-left, .footer-menu, .footer-info, .footer-logo, .footer-band, .footer-copyright-wrap', 0.55],
     ['.statement-body, .statement-media, .tool-row-art, .cell-item-img', 0.45],
@@ -93,10 +94,10 @@
   ];
   const REVEAL_EFFECTS = {
     text: '.section-head-title .heading, .section-head-title p, .section-head-label span, .cell-item-head > span, .tool-row-title, .tool-row-sub p, .cell-item-title, .cell-item-content p, .cta-main-title, .cta-main-sub, .footer-title, .footer-label, .footer-info-label, .statement-desc',
-    words: '.home-hero-title',
+    words: '.home-hero-title, .bench-plan-panel-label-text, .bench-plan-panel-title, .bench-plan-panel-sub, .bench-plan-panel-item-text',
     block: '.home-hero-sub, .home-hero-work, .statement-link, .cta-main-btn, .tool-row-btn, .tool-facts > div, .faq-ic, .footer-note, .cta-head-item span',
-    scale: '.tool-row-art .tool-illustration, .cell-item-img > svg, .statement-media > svg, .cta-deco-art > svg, .footer-logo .mark',
-    rule: 'main .line:not(.hero-guide), .cta .line, .footer .line',
+    scale: '.tool-row-art .tool-illustration, .cell-item-img > svg, .statement-media > svg, .cta-deco-art > svg, .footer-logo .mark, .bench-plan-panel-item-ic',
+    rule: 'main .line:not(.hero-guide, .bench-plan-panel .line), .cta .line, .footer .line',
     fade: '.home-hero-img .ruler',
   };
   const REVEAL_STATES = ['rv-pending', 'rv-start', ...Object.keys(REVEAL_EFFECTS).map((effect) => `rv-${effect}`)];
@@ -858,6 +859,16 @@
       showCaption();
     });
     for (const caption of captions) captionSizes.observe(caption);
+    const planPanel = plan.querySelector('.bench-plan-panel');
+    let panelRevealQueued = false;
+    if (planPanel && WIDER_THAN_PHONE.matches) reveal.hold(planPanel);
+    else if (planPanel) reveal.release(planPanel);
+    const expand = (expanded) => {
+      plan.classList.toggle('expanded', expanded);
+      if (!expanded || !planPanel || panelRevealQueued) return;
+      panelRevealQueued = true;
+      setTimeout(() => reveal.release(planPanel), PLAN_PANEL_REVEAL_MS);
+    };
     const planScrub = scene(plan, {
       ...PLAN_SCRUB,
       onProgress: (progress) => {
@@ -865,7 +876,7 @@
         showCaption();
         plan.classList.toggle('is-started', progress > 0);
         plan.classList.toggle('is-limits-live', begun.has(limitsLayer));
-        plan.classList.toggle('expanded', progress === 1);
+        expand(progress === 1);
       },
     });
     for (const limit of limits) {

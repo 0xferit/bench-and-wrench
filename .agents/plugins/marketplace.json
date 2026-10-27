@@ -9,8 +9,8 @@
       "source": {
         "source": "url",
         "url": "https://github.com/alkindilabs/live-gantt.git",
-        "ref": "live-gantt--v0.6.0",
-        "sha": "d963f519887a5b3126bf5a06865045ba00e2ded9"
+        "ref": "live-gantt--v0.6.1",
+        "sha": "861a7f3b30908d076421b48c1a8f2fb1326749b4"
       },
       "policy": {
         "installation": "AVAILABLE",

@@ -15,6 +15,11 @@
         "ref": "live-gantt--v0.6.6",
         "sha": "8a6475800c4835822ab259a2a6baeeb393430dcb"
       }
+    },
+    {
+      "name": "solidity-storage-optimizer",
+      "source": "./plugins/solidity-storage-optimizer",
+      "category": "Developer Tools"
     }
   ]
 }

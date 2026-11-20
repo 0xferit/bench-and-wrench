@@ -9,6 +9,7 @@ PLUGIN = ROOT / "plugins/solidity-storage-optimizer"
 SKILL = PLUGIN / "skills/solidity-storage-optimizer"
 SKILL_FILE = SKILL / "SKILL.md"
 BUNDLED_PATH = re.compile(r"(?<![\w/.-])(?:scripts|references|examples)/[\w./-]*")
+RELATIVE_LINK = re.compile(r"\]\((?!https?://|#)([^)]+)\)")
 PINNED_DEPENDENCY = re.compile(r'^([a-z0-9-]+) = "([0-9.]+)"$', re.MULTILINE)
 HOST_SPECIFIC = {
     "a Claude Code path variable": re.compile(r"\$\{CLAUDE_"),
@@ -78,6 +79,13 @@ class SkillPackageTests(unittest.TestCase):
         for heading in ("## Stop and report", "## Ask and wait"):
             with self.subTest(heading=heading):
                 self.assertLess(headings[heading], STOPS_AND_GATES_BY_LINE)
+
+    def test_every_file_the_package_readme_links_exists(self):
+        linked = RELATIVE_LINK.findall((PLUGIN / "README.md").read_text())
+        self.assertTrue(linked)
+        for path in linked:
+            with self.subTest(path=path):
+                self.assertTrue((PLUGIN / path).exists())
 
     def test_long_references_open_with_a_contents_list(self):
         references = sorted((SKILL / "references").glob("*.md"))

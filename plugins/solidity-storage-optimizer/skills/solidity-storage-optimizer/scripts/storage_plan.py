@@ -207,11 +207,11 @@ def check_field_domain(checks, entry, name, encoded, discarded):
 
 
 def check_passthrough(checks, entry, name, encoded, discarded):
-    original = entry.get("originalBitWidth")
+    original = as_integer(entry.get("originalBitWidth"))
     if original is None:
         checks.fail(
             "passthrough_unmodified",
-            "PASSTHROUGH field needs originalBitWidth (address 160, bool 8, bytesN N*8)", field=name,
+            "PASSTHROUGH field needs originalBitWidth as a whole number (address 160, bool 8, bytesN N*8)", field=name,
         )
         return
     checks.record(

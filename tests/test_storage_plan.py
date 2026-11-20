@@ -168,6 +168,22 @@ class CheckTests(StoragePlanTool):
         self.assertIs(out["valid"], False)
         self.assertIn("field_entry_object", self.check_names(out))
 
+    def test_a_passthrough_width_given_as_digits_is_read_as_a_number(self):
+        out, code = self.check({"targetSlots": 1, "fields": [{
+            "name": "addr", "category": "PASSTHROUGH", "originalBitWidth": "160",
+            "encodedBitWidth": 160, "discardedBitWidth": 0, "slot": 0,
+        }]})
+        self.assertEqual(code, 0)
+        self.assertIs(out["valid"], True)
+
+    def test_a_passthrough_width_that_is_not_a_whole_number_fails(self):
+        out, code = self.check({"targetSlots": 1, "fields": [{
+            "name": "addr", "category": "PASSTHROUGH", "originalBitWidth": 160.0,
+            "encodedBitWidth": 160, "discardedBitWidth": 0, "slot": 0,
+        }]})
+        self.assertEqual(code, 1)
+        self.assertIs(out["valid"], False)
+
     def test_a_shrunk_passthrough_field_fails(self):
         out, code = self.check({"targetSlots": 1, "fields": [{
             "name": "addr", "category": "PASSTHROUGH", "originalBitWidth": 160,

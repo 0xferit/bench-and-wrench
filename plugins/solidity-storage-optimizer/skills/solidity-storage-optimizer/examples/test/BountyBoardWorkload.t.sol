@@ -11,6 +11,8 @@ import {SlotCreation} from "./SlotCreation.sol";
 ///         recycled. The workload posts a batch of bounties, awards them all, and posts the batch again.
 /// @dev What fitting saves is the first board against the second. What recycling adds is the second
 ///      against the third, and only that comparison says whether recycling pays.
+///      The first two boards are controls that make the third board's checks, emit its events and pay
+///      the same way, so the three differ in storage only.
 ///      Run with `forge test --isolate -vv`: every call is then its own transaction, so the logged gas
 ///      includes the base cost and cold access, and it is what the sender pays after refunds.
 contract BountyBoardWorkloadTest is Test {

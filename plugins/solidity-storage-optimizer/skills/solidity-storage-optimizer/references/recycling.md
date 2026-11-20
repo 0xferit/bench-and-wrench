@@ -153,6 +153,8 @@ Run the same workload on three versions, with two controls kept beside the tests
 
 The first against the second is what fitting saves. The second against the third is what recycling adds, and it is the only comparison that says whether recycling pays. Measuring only the first against the third credits recycling with fitting's saving.
 
+A control makes the same checks, emits the same events and pays the same way as the contract it is compared with, so that the versions differ in storage only. Work a control leaves out is charged to the other side of the comparison. The example keeps the rules that do not depend on storage in `examples/src/BountyTerms.sol`, which the board and both controls apply, and `examples/test/BountyBoardControls.t.sol` holds the controls to the board.
+
 Report two numbers for each version:
 
 - **Storage slots created**, counted from the state diff by `examples/test/SlotCreation.sol`. Assert it. It is what a gas schedule charges as new state, and it does not change when prices do.

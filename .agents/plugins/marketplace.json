@@ -17,6 +17,15 @@
         "authentication": "ON_INSTALL"
       },
       "category": "Productivity"
+    },
+    {
+      "name": "solidity-storage-optimizer",
+      "source": "./plugins/solidity-storage-optimizer",
+      "category": "Developer Tools",
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      }
     }
   ]
 }

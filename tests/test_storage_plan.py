@@ -95,6 +95,11 @@ class WidthTests(StoragePlanTool):
         self.assertEqual(code, 1)
         self.assertIn("error", out)
 
+    def test_a_domain_maximum_that_is_not_a_whole_number_is_an_error_in_json(self):
+        out, code = self.run_tool("width", "1e27", 0)
+        self.assertEqual(code, 1)
+        self.assertIn("error", out)
+
 
 class PackTests(StoragePlanTool):
     def test_first_fit_decreasing_reaches_the_target(self):
@@ -110,7 +115,7 @@ class PackTests(StoragePlanTool):
         self.assertEqual(out["slots"], 2)
 
     def test_an_impossible_target_is_reported_as_infeasible(self):
-        out, code = self.run_tool("pack", 1, 200, 100)
+        out, code = self.run_tool("pack", 1, 200, 104)
         self.assertEqual(code, 1)
         self.assertEqual(out["method"], "infeasible")
 
@@ -127,6 +132,11 @@ class PackTests(StoragePlanTool):
 
     def test_a_target_below_one_slot_is_an_error(self):
         out, code = self.run_tool("pack", 0, 8)
+        self.assertEqual(code, 1)
+        self.assertIn("error", out)
+
+    def test_a_width_that_is_not_a_whole_number_of_bytes_is_an_error(self):
+        out, code = self.run_tool("pack", 1, 7, 9)
         self.assertEqual(code, 1)
         self.assertIn("error", out)
 
@@ -258,6 +268,27 @@ class CheckTests(StoragePlanTool):
         self.assertEqual(code, 1)
         self.assertIs(out["valid"], False)
 
+    def test_a_category_outside_the_four_names_fails(self):
+        misspelled_identity = field(category="IDENTIY", encodedBitWidth=128, discardedBitWidth=8)
+        for entry in (misspelled_identity, without(field(), "category")):
+            with self.subTest(category=entry.get("category")):
+                out, code = self.check({"targetSlots": 1, "fields": [entry]})
+                self.assertEqual(code, 1)
+                self.assertIn("category_known", self.failed_checks(out))
+
+    def test_a_number_that_is_not_whole_fails(self):
+        cases = (
+            ({"domainMax": 255.9}, "domain_max_integer"),
+            ({"encodedBitWidth": 8.9}, "width_integer"),
+            ({"encodedBitWidth": True}, "width_integer"),
+            ({"slot": 0.5}, "slot_id_invalid"),
+        )
+        for override, failed in cases:
+            with self.subTest(override=override):
+                out, code = self.check({"targetSlots": 1, "fields": [field(**override)]})
+                self.assertEqual(code, 1)
+                self.assertIn(failed, self.failed_checks(out))
+
 
 class LayoutTests(StoragePlanTool):
     def test_layout_assigns_offsets_from_bit_zero(self):
@@ -307,6 +338,9 @@ class LayoutTests(StoragePlanTool):
 
     def test_layout_rejects_an_unknown_vacancy_field(self):
         self.assert_rejected({**BOUNTY, "vacancy": "missing"}, "vacancy_field_exists")
+
+    def test_layout_rejects_a_vacancy_entry_that_is_not_a_field_name(self):
+        self.assert_rejected({**BOUNTY, "vacancy": ["amount"]}, "vacancy_field_exists")
 
     def test_layout_rejects_a_vacancy_field_as_wide_as_the_word(self):
         self.assert_rejected(

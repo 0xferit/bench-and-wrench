@@ -15,7 +15,8 @@ pack    Field widths packed into 256-bit slots: first-fit-decreasing, then an ex
 check   A packing plan checked field by field and slot by slot. Input:
         {"targetSlots": 1, "fields": [{"name", "category", "domainMax", "encodedBitWidth",
         "discardedBitWidth", "slot"}]}; category is NATIVE_PACKABLE, FULL_RANGE_QUANTIZABLE,
-        IDENTITY or PASSTHROUGH, and a PASSTHROUGH field states "originalBitWidth" instead of "domainMax".
+        IDENTITY or PASSTHROUGH, nothing else, and a PASSTHROUGH field states "originalBitWidth" instead
+        of "domainMax". Numbers are integers or strings of decimal digits.
 layout  One recycled record laid out in a single word: offsets, masks, the SlotRecyclingLib.create
         call for the vacancy field and the tombstone. Input, fields listed from bit 0 upward:
         {"fields": [{"name", "bits"}], "vacancy": <field name>, "tombstone": <one of the two below>}
@@ -33,6 +34,7 @@ BYTE_BITS = 8
 EXACT_SEARCH_FIELD_LIMIT = 12
 VACANCY_MIN_BITS = 8
 VACANCY_MAX_BITS = 248
+FIELD_CATEGORIES = ("NATIVE_PACKABLE", "FULL_RANGE_QUANTIZABLE", "IDENTITY", "PASSTHROUGH")
 BITS_PER_HEX_DIGIT = 4
 HEX_DIGITS_PER_WORD = WORD_BITS // BITS_PER_HEX_DIGIT
 
@@ -128,9 +130,9 @@ def spare_bits(widths, assignments):
 def plan_pack(target, widths):
     if target < 1:
         return {"error": "targetSlots must be >= 1"}
-    unplaceable = [width for width in widths if not 0 < width <= WORD_BITS]
+    unplaceable = [width for width in widths if not 0 < width <= WORD_BITS or not is_byte_aligned(width)]
     if unplaceable:
-        return {"error": f"every width must be between 1 and {WORD_BITS}, got {unplaceable}"}
+        return {"error": f"every width must be a whole number of bytes, from {BYTE_BITS} to {WORD_BITS} bits; got {unplaceable}"}
     greedy = first_fit_decreasing(widths)
     if len(greedy) <= target:
         return {"method": "ffd", "slots": len(greedy), "assignments": greedy, "sparePerSlot": spare_bits(widths, greedy)}
@@ -147,10 +149,10 @@ def plan_pack(target, widths):
 
 
 def as_integer(value):
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return None
+    """Return a whole number given as an integer or as decimal digits, or None for anything else."""
+    is_whole_number = isinstance(value, int) and not isinstance(value, bool)
+    is_digit_string = isinstance(value, str) and value.removeprefix("-").isdecimal()
+    return int(value) if is_whole_number or is_digit_string else None
 
 
 class Checks:
@@ -209,7 +211,7 @@ def check_passthrough(checks, entry, name, encoded, discarded):
     if original is None:
         checks.fail(
             "passthrough_unmodified",
-            "PASSTHROUGH field needs originalBitWidth (address 160, bool 8, bytesN N*8, uintN N)", field=name,
+            "PASSTHROUGH field needs originalBitWidth (address 160, bool 8, bytesN N*8)", field=name,
         )
         return
     checks.record(
@@ -228,7 +230,9 @@ def check_field(checks, entry):
     if widths is None:
         return 0
     encoded, discarded = widths
-    category = entry.get("category", "UNKNOWN")
+    category = entry.get("category")
+    if not checks.record("category_known", category in FIELD_CATEGORIES, field=name, category=category):
+        return encoded
     if category == "PASSTHROUGH":
         check_passthrough(checks, entry, name, encoded, discarded)
     else:
@@ -371,8 +375,9 @@ def plan_layout(plan):
     used = sum(field["bits"] for field in placed)
     layout = {"usedBits": used, "spareBits": WORD_BITS - used, "fields": placed}
     by_name = {field["name"]: field for field in placed}
-    vacancy = by_name.get(plan.get("vacancy"))
-    if not checks.record("vacancy_field_exists", vacancy is not None, vacancy=plan.get("vacancy")):
+    named = plan.get("vacancy")
+    vacancy = by_name.get(named) if isinstance(named, str) else None
+    if not checks.record("vacancy_field_exists", vacancy is not None, vacancy=named):
         return checks.report(**layout)
     in_range = checks.record(
         "vacancy_width_in_range", VACANCY_MIN_BITS <= vacancy["bits"] <= VACANCY_MAX_BITS,
@@ -401,20 +406,25 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     commands = parser.add_subparsers(dest="command", required=True)
     width = commands.add_parser("width")
-    width.add_argument("domain_max", type=int)
-    width.add_argument("discarded_bits", type=int)
+    width.add_argument("domain_max")
+    width.add_argument("discarded_bits")
     pack = commands.add_parser("pack")
-    pack.add_argument("target", type=int)
-    pack.add_argument("widths", type=int, nargs="+")
+    pack.add_argument("target")
+    pack.add_argument("widths", nargs="+")
     plan_readers = {"check": check_plan, "layout": plan_layout}
     for name in plan_readers:
         commands.add_parser(name).add_argument("plan")
     arguments = parser.parse_args()
 
-    if arguments.command == "width":
-        result = plan_width(arguments.domain_max, arguments.discarded_bits)
-    elif arguments.command == "pack":
-        result = plan_pack(arguments.target, arguments.widths)
+    if arguments.command in ("width", "pack"):
+        given = [arguments.domain_max, arguments.discarded_bits] if arguments.command == "width" else [arguments.target, *arguments.widths]
+        numbers = [as_integer(value) for value in given]
+        if None in numbers:
+            result = {"error": f"every argument must be a whole number, got {given}"}
+        elif arguments.command == "width":
+            result = plan_width(*numbers)
+        else:
+            result = plan_pack(numbers[0], numbers[1:])
     else:
         try:
             plan = read_plan(arguments.plan)

@@ -294,6 +294,24 @@ contract BountyBoardTest is Test {
         board.extend(id, deadline);
     }
 
+    function test_extend_atDeadline_keepsTheBountyAwardable() public {
+        uint256 id = post(0, step);
+        vm.warp(deadline);
+        vm.startPrank(funder);
+        board.extend(id, deadline + 1 days);
+        vm.warp(deadline + 1);
+        board.award(id, winner);
+        assertEq(winner.balance, step);
+    }
+
+    function test_extend_afterDeadline_reverts() public {
+        uint256 id = post(0, step);
+        vm.warp(deadline + 1);
+        vm.prank(funder);
+        vm.expectRevert(abi.encodeWithSelector(BountyTerms.BountyExpired.selector, deadline));
+        board.extend(id, deadline + 1 days);
+    }
+
     function test_extend_deadlineBeyondItsField_reverts() public {
         uint256 id = post(0, step);
         uint256 tooFar = board.maxDeadline() + 1;

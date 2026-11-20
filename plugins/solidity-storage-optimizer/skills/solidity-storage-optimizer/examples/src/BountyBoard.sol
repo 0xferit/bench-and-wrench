@@ -16,8 +16,9 @@ import {BountyTerms} from "./BountyTerms.sol";
 ///      generation, so the slot reads as vacant and stays non-zero.
 ///      A bounty identifier is its slot index with the slot's generation above it. A slot serves
 ///      many bounties over time, but each gets a different identifier, and an identifier stops
-///      resolving once its bounty is removed. A slot whose generations run out is retired: it
-///      stays occupied for good instead of handing out a repeated identifier.
+///      resolving once its bounty is removed. A slot whose generations run out is retired: its word
+///      is overwritten with a fixed one that reads as occupied and carries a generation no identifier
+///      has, so the slot is never handed out again and nothing resolves to it.
 contract BountyBoard {
     uint256 internal constant FUNDER_BITS = 160;
     uint256 internal constant DEADLINE_BITS = 32;
@@ -74,11 +75,13 @@ contract BountyBoard {
         emit BountyPosted(bountyId, msg.sender, msg.value, deadline);
     }
 
-    /// @notice Moves a bounty's deadline later, which keeps it awardable. Only its funder may.
+    /// @notice Moves a bounty's deadline later, which keeps it awardable. Only its funder may, and only
+    ///         until the deadline: an expired bounty can only be withdrawn.
     function extend(uint256 bountyId, uint256 newDeadline) external {
         (uint256 slot, uint256 word) = _bountyOfCaller(bountyId);
         if (newDeadline > MAX_DEADLINE) revert DeadlineTooFar(newDeadline);
         uint256 current = _deadlineOf(word);
+        BountyTerms.requireOpen(current);
         if (newDeadline <= current) revert DeadlineNotLater(newDeadline, current);
         _update(slot, _pack(msg.sender, newDeadline, _amountUnitsOf(word), _generationOf(word)));
         emit BountyExtended(bountyId, newDeadline);

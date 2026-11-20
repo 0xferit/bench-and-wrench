@@ -1,6 +1,6 @@
 [profile.default]
-src = "src"
-test = "test"
+src = "../../plugins/solidity-storage-optimizer/skills/solidity-storage-optimizer/examples/src"
+test = "../../plugins/solidity-storage-optimizer/skills/solidity-storage-optimizer/examples/test"
 out = "out"
 libs = ["dependencies"]
 solc_version = "0.8.25"

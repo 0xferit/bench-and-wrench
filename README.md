@@ -66,10 +66,10 @@ claude plugin validate plugins/solidity-storage-optimizer --strict
 
 The first validation covers the catalog and each package's manifest. A package's skills are checked only when its own directory is validated.
 
-Solidity Storage Optimizer carries a small Foundry project of example contracts that its instructions point at. After changing them or the library versions they pin, run them, since the site workflow has no Solidity toolchain. A new library version also means new commit pins in the skill's install section.
+Solidity Storage Optimizer carries example contracts that its instructions point at. The Foundry project that builds and tests them is in [tests/storage-optimizer-examples](tests/storage-optimizer-examples), outside the package, because Anthropic's plugin directory accepts no package manager configuration inside a plugin. After changing the examples or the library versions that project pins, run it, since the site workflow has no Solidity toolchain. A new library version also means new commit pins in the skill's install section.
 
 ```sh
-cd plugins/solidity-storage-optimizer/skills/solidity-storage-optimizer/examples
+cd tests/storage-optimizer-examples
 forge soldeer install
 forge test --isolate
 ```

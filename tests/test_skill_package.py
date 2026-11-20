@@ -64,7 +64,7 @@ class SkillPackageTests(unittest.TestCase):
                     self.assertIsNone(pattern.search(text))
 
     def test_skill_pins_the_library_versions_the_examples_verify(self):
-        pinned = dict(PINNED_DEPENDENCY.findall((SKILL / "examples/foundry.toml").read_text()))
+        pinned = dict(PINNED_DEPENDENCY.findall((ROOT / "tests/storage-optimizer-examples/foundry.toml").read_text()))
         skill = SKILL_FILE.read_text()
         for library in LIBRARIES:
             version = re.escape(pinned[library])

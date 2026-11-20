@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "solidity-storage-optimizer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Reduces what a Solidity contract pays for storage: fewer slots per record, and freed slots reused.",
   "author": {
     "name": "Ferit",

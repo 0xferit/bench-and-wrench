@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {Test} from "forge-std/src/Test.sol";
+import {Test, Vm} from "forge-std/src/Test.sol";
+import {NotAligned} from "uint-quantization-lib/src/UintQuantizationLib.sol";
 import {BountyBoard} from "../src/BountyBoard.sol";
 import {BountyTerms} from "../src/BountyTerms.sol";
 import {RejectingReceiver} from "./BountyBoard.t.sol";
@@ -12,6 +13,9 @@ import {RawBountyBoard} from "./RawBountyBoard.sol";
 ///         they apply its terms, emit its events and pay the same way. Work a control left out would
 ///         be charged to the board alone, and the measurement would no longer compare storage.
 contract BountyBoardControlsTest is Test {
+    uint256 constant BOARDS = 3;
+    uint256 constant EVENTS_PER_CALL = 1;
+
     RawBountyBoard raw;
     FittedBountyBoard fitted;
     BountyBoard board;
@@ -38,7 +42,16 @@ contract BountyBoardControlsTest is Test {
         vm.stopPrank();
     }
 
+    function eventsEmittedByTheBoards() internal view returns (uint256 count) {
+        Vm.Log[] memory logs = vm.getRecordedLogs();
+        for (uint256 i; i < logs.length; ++i) {
+            address emitter = logs[i].emitter;
+            if (emitter == address(raw) || emitter == address(fitted) || emitter == address(board)) ++count;
+        }
+    }
+
     function test_post_emitsTheBoardsEventOnEveryBoard() public {
+        vm.recordLogs();
         vm.startPrank(funder);
         vm.expectEmit(address(raw));
         emit BountyBoard.BountyPosted(0, funder, step, deadline);
@@ -49,10 +62,12 @@ contract BountyBoardControlsTest is Test {
         vm.expectEmit(address(board));
         emit BountyBoard.BountyPosted(0, funder, step, deadline);
         board.post{value: step}(0, deadline);
+        assertEq(eventsEmittedByTheBoards(), EVENTS_PER_CALL * BOARDS);
     }
 
     function test_award_emitsTheBoardsEventAndPaysOnEveryBoard() public {
         (uint256 rawId, uint256 fittedId, uint256 boardId) = postOnEveryBoard();
+        vm.recordLogs();
         vm.startPrank(funder);
         vm.expectEmit(address(raw));
         emit BountyBoard.BountyAwarded(rawId, winner, step);
@@ -63,7 +78,8 @@ contract BountyBoardControlsTest is Test {
         vm.expectEmit(address(board));
         emit BountyBoard.BountyAwarded(boardId, winner, step);
         board.award(boardId, winner);
-        assertEq(winner.balance, 3 * step);
+        assertEq(eventsEmittedByTheBoards(), EVENTS_PER_CALL * BOARDS);
+        assertEq(winner.balance, BOARDS * step);
     }
 
     function test_post_ofNothing_revertsOnEveryBoard() public {
@@ -130,7 +146,7 @@ contract BountyBoardControlsTest is Test {
         vm.startPrank(funder);
         vm.expectRevert(abi.encodeWithSelector(FittedBountyBoard.AmountNotStorable.selector, unaligned));
         fitted.post{value: unaligned}(deadline);
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(NotAligned.selector, unaligned, step));
         board.post{value: unaligned}(0, deadline);
     }
 

@@ -10,28 +10,30 @@ Two ways to pay less for storage, applied in this order. **Fit** each record int
 
 Two libraries do the bit work: `uint-quantization-lib` and `slot-recycling-lib`. Your work is the judgment they cannot make: what each field really needs, what may be rounded, what an identifier means once slots are reused, and whether the saving is real.
 
-Paths in this skill are relative to the directory that holds this file. Run the bundled tool as `python3 <that directory>/scripts/storage_plan.py`.
+Paths in this skill are relative to the directory that holds this file. Run the bundled tool as `python3 <that directory>/scripts/storage_plan.py`; the references shorten that to `storage_plan.py`.
 
 ## Stop and report
 
-Check these before you edit anything. If one holds, change no file. Report what you found and what you need.
+Check the first, third and fourth before anything else, and the second as soon as the plan says which library it needs. If one holds, change no file. Report what you found and what you need.
 
 1. **The contract is deployed, or upgradeable.** Look for deployment records, addresses in the README or configuration, a proxy, `initialize`, an upgrade function, a storage gap. If you cannot tell, ask. An upgradeable contract that has never been deployed is free to change, but get that confirmed; do not assume it.
 2. **A library the plan needs is not installed.** Print the install command from [Libraries](#libraries) and stop. Do not install it, copy its source into the project, or write your own version of what it does.
 3. **The compiler is older than 0.8.25 and the plan needs a library.** Say so. Packing with native types alone can still go through the gates below.
-4. **The record holds a mapping, a dynamic array, `bytes`, `string` or a nested struct.** Ask for the scalar fields to be split out first. For `int`, `enum` and user-defined value types, ask how they convert to an unsigned integer.
+4. **The record holds a mapping, an array of any kind, `bytes`, `string` or a nested struct.** Ask for the scalar fields to be split out first. For `int`, `enum` and user-defined value types, ask how they convert to an unsigned integer.
 
 ### A deployed layout is not yours to change
 
 Changing a field's type or order moves fields to other slots. Every record already in storage is then read through the new layout: amounts read as zero, timestamps read as amounts, funds lock. This holds when "only the types change".
 
-So on a deployed or upgradeable contract you edit nothing: no packed struct, no migration, no second version beside the first, no tests around either. You report:
+So on a deployed contract, and on an upgradeable one nobody has confirmed as never deployed, you edit nothing: no packed struct, no migration, no second version beside the first, no tests around either. You report:
 
 - the evidence that it is live;
 - which fields would move, and what existing records would read as;
 - one question: is there an approved migration plan, and who owns it?
 
 You may name the safe directions as questions: a migration the team writes and rehearses against the live state, or new storage for new records only. You do not build either.
+
+If the answer is that an approved plan exists, the layout change belongs to that plan. Work to it, through the gates below, and still write no migration unless you are asked for one.
 
 | What you will tell yourself | What is true |
 |---|---|
@@ -58,7 +60,7 @@ Ask before:
 
 | Phase | What you do | Read first |
 |---|---|---|
-| 0 Scope | Find the target record and every collection that stores it. Run the stop checks. | this file |
+| 0 Scope | Find the target record and every collection that stores it. Run the stop checks that need no plan. | this file |
 | 1 Measure | For every field: the largest value it can hold and the source of that bound. | `references/fitting.md` |
 | 2 Fit | Exact native packing first. Quantize only what exact types cannot fit. Validate the plan with the tool. | `references/fitting.md` |
 | 3 Recycle check | For each collection that both adds and removes records: does recycling apply, and would it pay? | `references/recycling.md` |
@@ -92,27 +94,31 @@ forge soldeer install 'uint-quantization-lib~8.0.0'
 forge soldeer install 'slot-recycling-lib~1.1.1'
 ```
 
-A project with `.gitmodules` or a `lib/` directory uses git submodules. The imports then need the remappings `uint-quantization-lib/=lib/uint-quantization-lib/` and `slot-recycling-lib/=lib/slot-recycling-lib/`.
+A project with `.gitmodules` or a `lib/` directory uses git submodules. Pin the commit each release tag names, because a tag can be moved. The imports then need the remappings `uint-quantization-lib/=lib/uint-quantization-lib/` and `slot-recycling-lib/=lib/slot-recycling-lib/`.
 
 ```sh
-forge install 0xferit/uint-quantization-lib@v8.0.0
-forge install 0xferit/slot-recycling-lib@v1.1.1
+forge install 0xferit/uint-quantization-lib@e400de4ff88658f1c1822b608c74d422e7e3e06e  # v8.0.0
+forge install 0xferit/slot-recycling-lib@a04873a48b5ddceb421a64eb695ed26c51d85fd4  # v1.1.1
 ```
+
+If the project shows signs of both managers, ask which one new dependencies go through. If a library's source is present and only its import fails, the remapping is missing: say that, not that the library is.
 
 Neither library has a published independent audit. Say so in the report.
 
 ## Verify and report
 
 1. `forge build`, then the whole suite with `forge test`.
-2. `forge inspect <Contract> storageLayout` for the slots per record, before and after.
-3. A workload that looks like real use, run against the contract before and after. Count the storage slots it creates and the gas it pays; `references/recycling.md` shows the test. Report what you measured, on the project's configured hardfork. Never quote a saving from memory or from another project.
+2. `forge inspect <Contract> storageLayout --json` for the slots per record, before and after. Read the record's struct under `types`: its `numberOfBytes` and its members' slots. The table form shows a mapping as 32 bytes whatever it holds.
+3. A workload that looks like real use, run on every version: the contract as it was, the fitted one, and the fitted and recycled one when recycling is in the plan. Count the storage slots each creates and the gas each pays; `references/recycling.md` shows the test. What fitting saves is the first against the second. What recycling adds is the second against the third, and only that comparison decides whether recycling stays. Report what you measured, on the project's configured hardfork. Never quote a saving from memory or from another project.
 
 Report in this form:
 
 ```text
 Records     <record>: <n> -> <m> slots per entry; lossless | lossy: <field>, step <s>, worst-case error <e>
 Recycling   <collection>: applied | not applied, because <reason>
-Measured    <workload>: created slots <a> -> <b>; gas paid <x> -> <y>; <hardfork>
+Measured    <workload>, <hardfork>
+            created slots: <as it was> -> <fitted> -> <fitted and recycled>
+            gas paid:      <as it was> -> <fitted> -> <fitted and recycled>
 Libraries   <calls introduced, with versions>; no published independent audit
 Approved    <each decision the developer made>
 Interface   <what callers now see differently>

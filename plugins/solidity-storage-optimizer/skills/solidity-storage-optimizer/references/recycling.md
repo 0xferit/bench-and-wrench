@@ -41,14 +41,18 @@ It costs three things. Removal stops clearing the slot, so it gives up the refun
 
 So the result depends on one number: the share of inserts that find a tombstone. A queue that stays the same size reuses almost always; a ledger that keeps growing almost never. State that share in the plan and say where you took it from. Then measure, as the last section shows.
 
+Judge recycling against the fitted record, not against the record as it was. Fitting the record into one word usually takes most of the saving, and recycling is only worth its costs for what it adds on top.
+
 Do not quote a saving per operation. Prices differ between gas schedules, and a workload with few reuses can come out level or worse. The library publishes what it measured, per schedule: https://github.com/0xferit/slot-recycling-lib/blob/main/docs/gas.md
 
 ## One word per record
 
-Lay the word out with the tool. Fields are listed from bit 0 upward and every width is a whole number of bytes. The input format is in `python3 scripts/storage_plan.py --help`.
+Lay the word out with the tool. Fields are listed from bit 0 upward and every width is a whole number of bytes. The input format is in `storage_plan.py --help`; SKILL.md gives the tool's full path. Pass the plan on standard input, so no file lands in the project before approval:
 
 ```sh
-python3 scripts/storage_plan.py layout plan.json
+storage_plan.py layout - <<'PLAN'
+{"fields": [ ... ], "vacancy": "...", "tombstone": { ... }}
+PLAN
 ```
 
 It returns each field's offset and mask, the `SlotRecyclingLib.create` call for the vacancy field, and the clear mask or the sentinel. It rejects a layout the library would refuse.
@@ -66,7 +70,7 @@ Choose in this order:
 
 A field that updates can lower, such as a balance that is drawn down, is not a vacancy field.
 
-A quantized vacancy field needs care: flooring maps every positive value below one step to zero. Use exact encoding and reject zero, as the example does. With floor encoding, reject values below one step with `requireMinStep` before the write.
+A quantized vacancy field needs care: flooring maps every positive value below one step to zero. Use exact encoding and reject zero, as the example does. With floor encoding, reject zero yourself and reject anything below one step with `requireMinStep`, which lets zero through, before the write.
 
 ## The tombstone
 
@@ -87,9 +91,13 @@ A slot index serves many records over time. Anything that remembers an index can
 
 1. Insert: find the slot with `findVacant`, read the generation its tombstone left with `load`, write the record with that generation through `allocate` at that slot.
 2. The identifier is the generation placed above the slot index. Bound the index so the two cannot overlap.
-3. Lookup: the slot must be occupied and its generation must equal the identifier's. Otherwise revert.
+3. Lookup: the slot must be occupied, its generation must equal the identifier's, and that generation must not be the reserved one of step 5. Otherwise revert.
 4. Removal: `freeWithSentinel` with a sentinel that carries the next generation.
-5. When a slot's generations run out, retire it: leave it occupied for good. Wrapping would repeat an identifier; reverting would make its last record impossible to remove.
+5. Reserve the highest generation value: it is never issued. When a slot's next generation would be that value, retire the slot instead of freeing it. Retiring overwrites the word with a fixed word that reads as occupied and carries the reserved generation, so the removed record's identifier stops resolving like any other and the slot is never handed out again.
+
+Leaving the last record's own word in place is not retirement: its identifier would keep resolving, and it could be paid out again. Wrapping the counter would repeat an identifier. Reverting would make the last record impossible to remove.
+
+Size the generation field by what running out costs. A slot serves as many records as the field has values, less the reserved one, and anyone can spend them by inserting and removing through the same hint. With retirement that costs the contract one fresh slot per exhausted one, so a narrow field is safe. It is the retirement, not the width, that protects the records.
 
 **Reuse accepted.** The index is the identifier. Then the word itself holds what authorizes every action, such as the owner, and it is checked each time; every other piece of state keyed by the identifier is cleared on removal; events carry enough to tell two records apart.
 
@@ -116,7 +124,7 @@ Read `examples/src/BountyBoard.sol` before writing. What to carry over:
 - width constants, offsets derived from them, and both library configurations built from them, each created once into an `immutable`;
 - `_pack` and one reader per field, used everywhere a word is built or read;
 - insert as find, read the generation, allocate; removal through a sentinel that carries the next generation; the retirement branch;
-- one lookup that every action goes through, which rejects a vacant slot and a stale generation;
+- one lookup that every action goes through, which rejects a vacant slot, a stale generation and the reserved generation;
 - the single update wrapper around `store`;
 - a `findVacant` view and a bounded hint parameter.
 
@@ -129,7 +137,7 @@ Read `examples/test/BountyBoard.t.sol`. A pool needs, beyond the boundary and gu
 - the old identifier reverts on every entry point once its slot is reused;
 - a positive value below one step cannot be inserted;
 - the update wrapper refuses a vacant slot and a word that would read as vacant;
-- a slot at its last generation is retired, and a forged identifier for it reverts;
+- a slot at its last generation is retired: the removed record's identifier reverts on every entry point, so does a forged identifier carrying the reserved generation, and the next insert lands on another slot;
 - an insert skips occupied slots, and a hint or index past the bound reverts;
 - a random sequence of inserts and removals keeps the balance equal to the sum of live records, with every live identifier still reading its own record.
 
@@ -137,9 +145,15 @@ A test harness that inherits the contract can reach the internal helpers; the ex
 
 ## Measuring
 
-Keep the contract as it was before the change beside the tests, as a control, and run the same workload against both. `examples/test/BountyBoardWorkload.t.sol` does this with `examples/test/RawBountyBoard.sol`.
+Run the same workload on three versions, with two controls kept beside the tests. `examples/test/BountyBoardWorkload.t.sol` does this.
 
-Report two numbers for each:
+- **As it was**: the contract before any change (`examples/test/RawBountyBoard.sol`).
+- **Fitted**: the record in one word, a new identifier for every insert, the slot cleared on removal (`examples/test/FittedBountyBoard.sol`).
+- **Fitted and recycled**: the contract you generated.
+
+The first against the second is what fitting saves. The second against the third is what recycling adds, and it is the only comparison that says whether recycling pays. Measuring only the first against the third credits recycling with fitting's saving.
+
+Report two numbers for each version:
 
 - **Storage slots created**, counted from the state diff by `examples/test/SlotCreation.sol`. Assert it. It is what a gas schedule charges as new state, and it does not change when prices do.
 - **Gas paid**, summed per call from `vm.lastFrameGas()` as total minus refund. Log it. Leaving the refund out flatters recycling, because the control earns refunds for the slots it clears. When the project's forge-std does not declare `lastFrameGas` yet, `lastCallGas` returns the same reading; a current Foundry warns that it is deprecated.
@@ -150,4 +164,6 @@ forge test --isolate -vv
 
 `--isolate` makes every call its own transaction, so the figures include the base cost and cold access. Measure on the hardfork the project is configured for. Do not project a draft schedule from these readings: a call's own gas reading can miss charges a later schedule applies to the whole transaction.
 
-Choose a workload that matches the reuse share you stated in the plan. If the measured saving is small or negative, report it and recommend against recycling.
+Choose a workload that matches the reuse share you stated in the plan. Give every account that receives a payment a balance before the workload starts, or the first version to run pays to create it. If recycling adds little or costs more than the fitted version, report that and recommend keeping the fitted shape without recycling.
+
+The example files import forge-std as `forge-std/src/...`. In a project whose remapping already ends in `src/`, the same files are imported as `forge-std/...`.

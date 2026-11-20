@@ -18,6 +18,11 @@ HOST_SPECIFIC = {
     "a private skill command": re.compile(r"(?<![\w-])/solidity(?![\w-])"),
 }
 LIBRARIES = ("uint-quantization-lib", "slot-recycling-lib")
+RETIREMENT_RULES = (
+    "that generation must not be the reserved one",
+    "Retiring overwrites the word",
+    "Leaving the last record's own word in place is not retirement",
+)
 SKILL_LINE_LIMIT = 300
 STOPS_AND_GATES_BY_LINE = 150
 DESCRIPTION_LIMIT = 1024
@@ -43,7 +48,7 @@ class SkillPackageTests(unittest.TestCase):
                 with self.subTest(document=document.name, path=path):
                     self.assertTrue((SKILL / path).exists())
 
-    def test_references_link_only_to_scripts_and_examples(self):
+    def test_references_do_not_link_to_each_other(self):
         references = sorted((SKILL / "references").glob("*.md"))
         self.assertTrue(references)
         for reference in references:
@@ -61,9 +66,12 @@ class SkillPackageTests(unittest.TestCase):
         pinned = dict(PINNED_DEPENDENCY.findall((SKILL / "examples/foundry.toml").read_text()))
         skill = SKILL_FILE.read_text()
         for library in LIBRARIES:
-            with self.subTest(library=library):
-                self.assertIn(f"{library}~{pinned[library]}", skill)
-                self.assertIn(f"0xferit/{library}@v{pinned[library]}", skill)
+            version = re.escape(pinned[library])
+            by_registry = rf"forge soldeer install '{library}~{version}'"
+            by_commit = rf"forge install 0xferit/{library}@[0-9a-f]{{40}}\s+# v{version}\n"
+            for how, command in (("registry", by_registry), ("commit", by_commit)):
+                with self.subTest(library=library, how=how):
+                    self.assertTrue(re.search(command, skill), f"no install command for {library} {pinned[library]}")
 
     def test_skill_frontmatter_matches_the_package(self):
         declared = frontmatter(SKILL_FILE.read_text())
@@ -86,6 +94,12 @@ class SkillPackageTests(unittest.TestCase):
         for path in linked:
             with self.subTest(path=path):
                 self.assertTrue((PLUGIN / path).exists())
+
+    def test_the_recycling_reference_says_what_retiring_a_slot_means(self):
+        reference = (SKILL / "references/recycling.md").read_text()
+        for rule in RETIREMENT_RULES:
+            with self.subTest(rule=rule):
+                self.assertTrue(rule in reference, f"the retirement rule lost: {rule}")
 
     def test_long_references_open_with_a_contents_list(self):
         references = sorted((SKILL / "references").glob("*.md"))

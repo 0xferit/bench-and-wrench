@@ -28,10 +28,10 @@ Write one record per field before choosing any width. It is the table you show a
 
 - `PASSTHROUGH`: `address`, `bool` and `bytesN`. It keeps its width: 160, 8 and 8N bits.
 - `IDENTITY`: a `uint256` whose exact bits something else depends on: a mapping key, a hash input, an identifier handed to another contract. Exact width only; it is never quantized. An amount of money is not an identity field: exact encoding keeps every unit of it and only restricts it to multiples of the step.
-- `NATIVE_PACKABLE`: an unsigned integer of any declared width whose maximum fits a smaller `uintN`. A `uint64` timestamp is one: it fits 40 bits. Narrowing a field declared smaller than `uint256` makes values its old type accepted revert, so it goes through the fourth gate.
-- `FULL_RANGE_QUANTIZABLE`: a `uint256` whose maximum fits no smaller type. Only quantization can narrow it.
+- `NATIVE_PACKABLE`: an unsigned integer of any declared width whose maximum needs fewer than 256 bits. It is stored at the width its maximum needs, which can be less than it was declared with: a `uint64` timestamp fits 40 bits. Narrowing a field declared smaller than `uint256` makes values its old type accepted revert, so it goes through the fourth gate. It may also be quantized when exact widths miss the target.
+- `FULL_RANGE_QUANTIZABLE`: a `uint256` whose maximum needs all 256 bits. Only quantization can narrow it.
 
-The tool computes a width from a maximum: `python3 scripts/storage_plan.py width <maximum> 0`.
+The tool computes a width from a maximum: `storage_plan.py width <maximum> 0`. SKILL.md gives the tool's full path.
 
 ## Where a maximum comes from
 
@@ -54,7 +54,7 @@ A field that no function reads and no interface exposes can leave storage and be
 Total bits do not decide whether fields fit: three 136-bit fields add up to 408 bits, less than two slots, and still need three. Run the trial.
 
 ```sh
-python3 scripts/storage_plan.py pack <targetSlots> <width> <width> ...
+storage_plan.py pack <targetSlots> <width> <width> ...
 ```
 
 Start from the current slot count minus one and go down. The lowest target the tool can pack with exact widths is the best lossless result. Its `method` tells you how far to trust a miss: `infeasible` is a proof, `ffdBest` (more than 12 fields) is not.
@@ -66,7 +66,7 @@ Solidity packs struct members in declaration order, so the packed struct declare
 Reach for it only when exact widths miss the target slot count and the developer wants that last slot. A field leaves `d` low bits out and stores the rest, so values are kept in steps of `2^d`.
 
 ```sh
-python3 scripts/storage_plan.py width <maximum> <d>
+storage_plan.py width <maximum> <d>
 ```
 
 `d` is a multiple of 8. The output gives the encoded width, the step, the largest value the scheme holds and the `create` call. For the second gate, state for each quantized field:
@@ -92,20 +92,22 @@ After the trial, a slot usually has bits left. Give them back in whole bytes: fi
 
 ## Checking the plan
 
-Write the plan as JSON and let the tool check it before you show it. The input format is in `python3 scripts/storage_plan.py --help`.
+Write the plan as JSON and let the tool check it before you show it. The input format is in `storage_plan.py --help`. Pass the plan on standard input, so no file lands in the project before approval:
 
 ```sh
-python3 scripts/storage_plan.py check plan.json
+storage_plan.py check - <<'PLAN'
+{"targetSlots": 1, "fields": [ ... ]}
+PLAN
 ```
 
-It fails a plan in which a scheme does not cover its field's maximum, an identity field discards bits, a passthrough field changed width, a width is not a whole number of bytes, or a slot holds more than 256 bits. Fix the plan, not the check.
+It fails a plan in which a category is not one of the four names, a scheme does not cover its field's maximum, an identity field discards bits, a passthrough field changed width, a width is not a whole number of bytes, or a slot holds more than 256 bits. Fix the plan, not the check.
 
 ## The code: a storage-only packed struct
 
 Read `examples/src/StakeVault.sol` before writing. What to carry over:
 
-- **Two structs.** The original stays as the type callers pass and receive. A `Packed<Name>` struct exists only in storage. `_read` and `_write` convert between them, and nothing else touches the packed fields.
-- **A public mapping becomes private with a hand-written getter** that returns the original type, so return types and their order do not change.
+- **Two structs.** The original stays as the type callers pass and receive. A `Packed<Name>` struct exists only in storage. `_read` and `_write` convert between them, and nothing else reads or assigns a packed field; removing a record deletes it whole.
+- **A public mapping becomes private with a hand-written getter** of the same name that returns the same members as separate named values, in declaration order. The generated getter leaves out members that are mappings or arrays; so does yours. Returning the struct as one value instead keeps the bytes but changes the interface description from several outputs to one tuple, which typed clients read differently: that is a change for the fourth gate.
 - **One statement of each width.** The stored field's type is that statement. The example creates its scheme from the type's range, so the type and the scheme cannot drift apart.
 - **A bound check directly above every narrowing cast.** A cast in Solidity truncates silently; `encode` is the check for a quantized field, and an explicit comparison for an exact one.
 - **Checked `decode`** on reads.
@@ -125,5 +127,7 @@ Do not test for "corrupted" stored values in a field that is exactly as wide as 
 Confirm the layout with the compiler, not by adding up widths:
 
 ```sh
-forge inspect <Contract> storageLayout
+forge inspect <Contract> storageLayout --json
 ```
+
+Read the packed struct under `types`: its `numberOfBytes` divided by 32 is the slots per record, and `members` gives each field's slot and offset. The table form without `--json` shows a mapping as 32 bytes whatever it holds.

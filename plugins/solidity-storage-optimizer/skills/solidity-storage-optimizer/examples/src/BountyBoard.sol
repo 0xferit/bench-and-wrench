@@ -3,6 +3,7 @@ pragma solidity ^0.8.25;
 
 import {Quant, UintQuantizationLib} from "uint-quantization-lib/src/UintQuantizationLib.sol";
 import {RecycleConfig, SlotRecyclingLib} from "slot-recycling-lib/src/SlotRecyclingLib.sol";
+import {BountyTerms} from "./BountyTerms.sol";
 
 /// @title BountyBoard
 /// @notice Bounties of native currency that are posted, then awarded before their deadline or
@@ -36,17 +37,13 @@ contract BountyBoard {
     uint256 internal constant RETIRED_GENERATION = (1 << GENERATION_BITS) - 1;
     uint256 internal constant RETIRED_WORD = (RETIRED_GENERATION << GENERATION_OFFSET) | (1 << AMOUNT_OFFSET);
 
-    error ZeroAmount();
     error DeadlineTooFar(uint256 deadline);
     error DeadlineNotLater(uint256 deadline, uint256 current);
     error HintOutOfRange(uint256 hint);
     error NoVacantSlotFromHint(uint256 hint);
     error UnknownBounty(uint256 bountyId);
-    error NotFunder();
-    error BountyExpired(uint256 deadline);
     error SlotVacant(uint256 slot);
     error WouldVacate(uint256 slot);
-    error TransferFailed();
 
     event BountyPosted(uint256 indexed bountyId, address indexed funder, uint256 amount, uint256 deadline);
     event BountyExtended(uint256 indexed bountyId, uint256 deadline);
@@ -63,7 +60,7 @@ contract BountyBoard {
     ///        off-chain; a stale hint costs gas for every occupied slot it has to pass, never correctness.
     /// @dev `msg.value` must be a positive multiple of `bountyStep()` up to `maxBounty()`.
     function post(uint256 hint, uint256 deadline) external payable returns (uint256 bountyId) {
-        if (msg.value == 0) revert ZeroAmount();
+        BountyTerms.requireFunded(msg.value);
         if (deadline > MAX_DEADLINE) revert DeadlineTooFar(deadline);
         if (hint > MAX_INDEX) revert HintOutOfRange(hint);
         uint256 slot = SlotRecyclingLib.findVacant(_bounties, VACANCY, hint);
@@ -90,12 +87,10 @@ contract BountyBoard {
     /// @notice Pays the bounty to `winner` and removes it. Only its funder may, and only until the deadline.
     function award(uint256 bountyId, address winner) external {
         (uint256 slot, uint256 word) = _bountyOfCaller(bountyId);
-        uint256 deadline = _deadlineOf(word);
-        // forge-lint: disable-next-line(block-timestamp)
-        if (block.timestamp > deadline) revert BountyExpired(deadline);
+        BountyTerms.requireOpen(_deadlineOf(word));
         uint256 amount = _remove(slot, word);
         emit BountyAwarded(bountyId, winner, amount);
-        _send(winner, amount);
+        BountyTerms.pay(winner, amount);
     }
 
     /// @notice Returns the bounty to its funder and removes it. Only its funder may, at any time.
@@ -103,7 +98,7 @@ contract BountyBoard {
         (uint256 slot, uint256 word) = _bountyOfCaller(bountyId);
         uint256 amount = _remove(slot, word);
         emit BountyWithdrawn(bountyId, amount);
-        _send(msg.sender, amount);
+        BountyTerms.pay(msg.sender, amount);
     }
 
     /// @notice Reads a live bounty. Reverts for an identifier that was never issued or was removed.
@@ -177,7 +172,7 @@ contract BountyBoard {
 
     function _bountyOfCaller(uint256 bountyId) private view returns (uint256 slot, uint256 word) {
         (slot, word) = _liveBounty(bountyId);
-        if (_funderOf(word) != msg.sender) revert NotFunder();
+        BountyTerms.requireFunder(_funderOf(word));
     }
 
     function _remove(uint256 slot, uint256 word) private returns (uint256 amount) {
@@ -188,12 +183,6 @@ contract BountyBoard {
         } else {
             SlotRecyclingLib.freeWithSentinel(_bounties, VACANCY, slot, nextGeneration << GENERATION_OFFSET);
         }
-    }
-
-    function _send(address to, uint256 amount) private {
-        // forge-lint: disable-next-line(arbitrary-send-eth)
-        (bool sent,) = to.call{value: amount}("");
-        if (!sent) revert TransferFailed();
     }
 
     function _field(uint256 word, uint256 offset, uint256 bits) private pure returns (uint256) {

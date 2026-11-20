@@ -5,6 +5,7 @@ import {Test} from "forge-std/src/Test.sol";
 import {NotAligned, Overflow} from "uint-quantization-lib/src/UintQuantizationLib.sol";
 import {SlotRecyclingLib} from "slot-recycling-lib/src/SlotRecyclingLib.sol";
 import {BountyBoard} from "../src/BountyBoard.sol";
+import {BountyTerms} from "../src/BountyTerms.sol";
 
 contract BountyBoardHarness is BountyBoard {
     function exposedUpdate(uint256 slot, uint256 word) external {
@@ -161,11 +162,11 @@ contract BountyBoardTest is Test {
     function test_actions_byNonFunder_revert() public {
         uint256 id = post(0, step);
         vm.startPrank(stranger);
-        vm.expectRevert(BountyBoard.NotFunder.selector);
+        vm.expectRevert(BountyTerms.NotFunder.selector);
         board.award(id, stranger);
-        vm.expectRevert(BountyBoard.NotFunder.selector);
+        vm.expectRevert(BountyTerms.NotFunder.selector);
         board.withdraw(id);
-        vm.expectRevert(BountyBoard.NotFunder.selector);
+        vm.expectRevert(BountyTerms.NotFunder.selector);
         board.extend(id, deadline + 1);
         vm.stopPrank();
     }
@@ -182,7 +183,7 @@ contract BountyBoardTest is Test {
         uint256 id = post(0, step);
         vm.warp(deadline + 1);
         vm.prank(funder);
-        vm.expectRevert(abi.encodeWithSelector(BountyBoard.BountyExpired.selector, deadline));
+        vm.expectRevert(abi.encodeWithSelector(BountyTerms.BountyExpired.selector, deadline));
         board.award(id, winner);
     }
 
@@ -216,13 +217,13 @@ contract BountyBoardTest is Test {
         uint256 id = post(0, step);
         address rejecting = address(new RejectingReceiver());
         vm.prank(funder);
-        vm.expectRevert(BountyBoard.TransferFailed.selector);
+        vm.expectRevert(BountyTerms.TransferFailed.selector);
         board.award(id, rejecting);
     }
 
     function test_post_zeroValue_reverts() public {
         vm.prank(funder);
-        vm.expectRevert(BountyBoard.ZeroAmount.selector);
+        vm.expectRevert(BountyTerms.ZeroAmount.selector);
         board.post(0, deadline);
     }
 

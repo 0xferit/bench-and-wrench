@@ -26,9 +26,9 @@ Write one record per field before choosing any width. It is the table you show a
 | source | the line or rule that enforces that maximum |
 | width | bits for the maximum, rounded up to a whole byte |
 
-- `PASSTHROUGH`: anything that is not `uint256`. It keeps its width: `address` 160, `bool` 8, `bytesN` 8N, `uintN` N.
+- `PASSTHROUGH`: `address`, `bool` and `bytesN`. It keeps its width: 160, 8 and 8N bits.
 - `IDENTITY`: a `uint256` whose exact bits something else depends on: a mapping key, a hash input, an identifier handed to another contract. Exact width only; it is never quantized. An amount of money is not an identity field: exact encoding keeps every unit of it and only restricts it to multiples of the step.
-- `NATIVE_PACKABLE`: a `uint256` whose maximum fits a smaller `uintN`.
+- `NATIVE_PACKABLE`: an unsigned integer of any declared width whose maximum fits a smaller `uintN`. A `uint64` timestamp is one: it fits 40 bits. Narrowing a field declared smaller than `uint256` makes values its old type accepted revert, so it goes through the fourth gate.
 - `FULL_RANGE_QUANTIZABLE`: a `uint256` whose maximum fits no smaller type. Only quantization can narrow it.
 
 The tool computes a width from a maximum: `python3 scripts/storage_plan.py width <maximum> 0`.

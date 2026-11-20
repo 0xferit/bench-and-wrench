@@ -85,7 +85,7 @@ import {RecycleConfig, SlotRecyclingLib} from "slot-recycling-lib/src/SlotRecycl
 
 When one is missing, print the command for the project's dependency manager and stop. Print only what the plan needs.
 
-A project with a `[dependencies]` table or a `soldeer.lock` uses Soldeer. The imports above need `remappings_version = false` under `[soldeer]`.
+A project with a `[dependencies]` table or a `soldeer.lock` uses Soldeer. The imports above need `remappings_version = false` under `[soldeer]`. In Soldeer's syntax `~` separates the name from one exact version; it is not a range.
 
 ```sh
 forge soldeer install 'uint-quantization-lib~8.0.0'

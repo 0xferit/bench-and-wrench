@@ -27,9 +27,9 @@ Write one record per field before choosing any width. It is the table you show a
 | width | bits for the maximum, rounded up to a whole byte |
 
 - `PASSTHROUGH`: `address`, `bool` and `bytesN`. It keeps its width: 160, 8 and 8N bits.
-- `IDENTITY`: a `uint256` whose exact bits something else depends on: a mapping key, a hash input, an identifier handed to another contract. Exact width only; it is never quantized. An amount of money is not an identity field: exact encoding keeps every unit of it and only restricts it to multiples of the step.
-- `NATIVE_PACKABLE`: an unsigned integer of any declared width whose maximum needs fewer than 256 bits. It is stored at the width its maximum needs, which can be less than it was declared with: a `uint64` timestamp fits 40 bits. Narrowing a field declared smaller than `uint256` makes values its old type accepted revert, so it goes through the fourth gate. It may also be quantized when exact widths miss the target.
-- `FULL_RANGE_QUANTIZABLE`: a `uint256` whose maximum needs all 256 bits. Only quantization can narrow it.
+- `IDENTITY`: an unsigned integer of any width whose exact bits something else depends on: a mapping key, a hash input, an identifier handed to another contract. Exact width only; it is never quantized. An amount of money is not an identity field: exact encoding keeps every unit of it and only restricts it to multiples of the step.
+- `NATIVE_PACKABLE`: any other unsigned integer, of any declared width, whose maximum needs fewer than 256 bits. It is stored at the width its maximum needs, which can be less than it was declared with: a `uint64` timestamp fits 40 bits. Narrowing a field declared smaller than `uint256` makes values its old type accepted revert, so it goes through the fourth gate. It may also be quantized when exact widths miss the target.
+- `FULL_RANGE_QUANTIZABLE`: any other `uint256` whose maximum needs all 256 bits. Only quantization can narrow it.
 
 The tool computes a width from a maximum: `storage_plan.py width <maximum> 0`. SKILL.md gives the tool's full path.
 

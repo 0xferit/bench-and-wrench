@@ -35,11 +35,11 @@ All of these must hold. If one fails, say which and stop at fitting.
 
 ## What it costs and what it saves
 
-It saves on an insert only when that insert lands on a tombstone. An insert into a slot never used before costs what it always did.
+It saves the creation of a slot on every insert that lands on a tombstone. An insert into a slot never used before still creates one. Where identifiers made of generation and slot replace a counter that numbered the records, every insert also saves that counter's write.
 
 It costs three things. Removal stops clearing the slot, so it gives up the refund a clear earns. Every occupied slot the scan passes is a storage read. A stored hint, if you keep one, is one more write on every insert and removal.
 
-So the result depends on one number: the share of inserts that find a tombstone. A queue that stays the same size reuses almost always; a ledger that keeps growing almost never. State that share in the plan and say where you took it from. Then measure, as the last section shows.
+So the result depends mostly on one number: the share of inserts that find a tombstone. A queue that stays the same size reuses almost always; a ledger that keeps growing almost never. State that share in the plan and say where you took it from. Then measure, as the last section shows.
 
 Judge recycling against the fitted record, not against the record as it was. Fitting the record into one word usually takes most of the saving, and recycling is only worth its costs for what it adds on top.
 
@@ -148,7 +148,7 @@ A test harness that inherits the contract can reach the internal helpers; the ex
 Run the same workload on three versions, with two controls kept beside the tests. `examples/test/BountyBoardWorkload.t.sol` does this.
 
 - **As it was**: the contract before any change (`examples/test/RawBountyBoard.sol`).
-- **Fitted**: the record in one word, a new identifier for every insert, the slot cleared on removal (`examples/test/FittedBountyBoard.sol`).
+- **Fitted**: the record in one word, a new identifier for every insert, the slot cleared on removal (`examples/test/FittedBountyBoard.sol`). In a project this is the packed struct that fitting produces, built with the library; the example's control divides by hand only to stay independent of the board's layout.
 - **Fitted and recycled**: the contract you generated.
 
 The first against the second is what fitting saves. The second against the third is what recycling adds, and it is the only comparison that says whether recycling pays. Measuring only the first against the third credits recycling with fitting's saving.
@@ -158,7 +158,7 @@ A control makes the same checks, emits the same events and pays the same way as 
 Report two numbers for each version:
 
 - **Storage slots created**, counted from the state diff by `examples/test/SlotCreation.sol`. Assert it. It is what a gas schedule charges as new state, and it does not change when prices do.
-- **Gas paid**, summed per call from `vm.lastFrameGas()` as total minus refund. Log it. Leaving the refund out flatters recycling, because the control earns refunds for the slots it clears. When the project's forge-std does not declare `lastFrameGas` yet, `lastCallGas` returns the same reading; a current Foundry warns that it is deprecated.
+- **Gas paid**, summed per call from `vm.lastFrameGas()` as `gasTotalUsed + gasStateUsed - gasRefunded`, in signed arithmetic. Log it. Leaving the refund out flatters recycling, because the control earns refunds for the slots it clears. Leaving the state gas out hides the creation of slots on a schedule that prices new state separately; before such a schedule it is zero. When the project's forge-std does not declare `lastFrameGas` yet, `lastCallGas` gives total and refund but no state gas: on a schedule that prices new state separately, report created slots only. A current Foundry warns that `lastCallGas` is deprecated.
 
 ```sh
 forge test --isolate -vv
@@ -166,6 +166,6 @@ forge test --isolate -vv
 
 `--isolate` makes every call its own transaction, so the figures include the base cost and cold access. Measure on the hardfork the project is configured for. Do not project a draft schedule from these readings: a call's own gas reading can miss charges a later schedule applies to the whole transaction.
 
-Choose a workload that matches the reuse share you stated in the plan. Give every account that receives a payment a balance before the workload starts, or the first version to run pays to create it. If recycling adds little or costs more than the fitted version, report that and recommend keeping the fitted shape without recycling.
+Choose a workload that matches the reuse share you stated in the plan. Start every version from the same state: give every account that receives a payment a balance beforehand, in ether or in the token paid, or the first version to run pays to create it. If recycling adds little or costs more than the fitted version, report that and recommend keeping the fitted shape without recycling.
 
 The example files import forge-std as `forge-std/src/...`. In a project whose remapping already ends in `src/`, the same files are imported as `forge-std/...`.

@@ -14,7 +14,7 @@ Paths in this skill are relative to the directory that holds this file. Run the 
 
 ## Stop and report
 
-Check the first, third and fourth before anything else, and the second as soon as the plan says which library it needs. If one holds, change no file. Report what you found and what you need.
+Check the first and fourth before anything else, and note the compiler version. Check the second and third as soon as the plan says which library it needs. If one holds, change no file. Report what you found and what you need.
 
 1. **The contract is deployed, or upgradeable.** Look for deployment records, addresses in the README or configuration, a proxy, `initialize`, an upgrade function, a storage gap. If you cannot tell, ask. An upgradeable contract that has never been deployed is free to change, but get that confirmed; do not assume it.
 2. **A library the plan needs is not installed.** Print the install command from [Libraries](#libraries) and stop. Do not install it, copy its source into the project, or write your own version of what it does.
@@ -33,7 +33,7 @@ So on a deployed contract, and on an upgradeable one nobody has confirmed as nev
 
 You may name the safe directions as questions: a migration the team writes and rehearses against the live state, or new storage for new records only. You do not build either.
 
-If the answer is that an approved plan exists, the layout change belongs to that plan. Work to it, through the gates below, and still write no migration unless you are asked for one.
+If the answer is that an approved plan exists, read it. Change only what it covers, through the gates below. The migration stays with whoever owns the plan: you do not write it.
 
 | What you will tell yourself | What is true |
 |---|---|

@@ -32,7 +32,7 @@ The skill makes the agent:
 
 ## What it will not do
 
-- Change the storage layout of a contract that is deployed or upgradeable. It stops and reports what would break.
+- Change the storage layout of a deployed or upgradeable contract on its own. It stops and reports what would break, and goes on only under a migration plan you approved or once you confirm the contract was never deployed. It does not write the migration.
 - Install a library. It prints the command and stops.
 - Round a value, or change what callers see, without your approval.
 - Promise a saving. It reports what it measured, including when that is nothing.

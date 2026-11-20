@@ -27,7 +27,7 @@ Write one record per field before choosing any width. It is the table you show a
 | width | bits for the maximum, rounded up to a whole byte |
 
 - `PASSTHROUGH`: anything that is not `uint256`. It keeps its width: `address` 160, `bool` 8, `bytesN` 8N, `uintN` N.
-- `IDENTITY`: a `uint256` used as a mapping key, hashed, compared with a value from outside, or passed to another contract. Exact width only; it is never quantized.
+- `IDENTITY`: a `uint256` whose exact bits something else depends on: a mapping key, a hash input, an identifier handed to another contract. Exact width only; it is never quantized. An amount of money is not an identity field: exact encoding keeps every unit of it and only restricts it to multiples of the step.
 - `NATIVE_PACKABLE`: a `uint256` whose maximum fits a smaller `uintN`.
 - `FULL_RANGE_QUANTIZABLE`: a `uint256` whose maximum fits no smaller type. Only quantization can narrow it.
 

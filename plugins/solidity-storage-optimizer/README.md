@@ -54,4 +54,4 @@ A Foundry project on Solidity 0.8.25 or later. Neither library has a published i
 - [references](skills/solidity-storage-optimizer/references): fitting and recycling in detail.
 - [examples](skills/solidity-storage-optimizer/examples): two tested contracts the references point at.
 
-Released under the [MIT License](LICENSE). Source and issues: [0xferit/bench-and-wrench](https://github.com/0xferit/bench-and-wrench). To report a vulnerability, follow the [security policy of slot-recycling-lib](https://github.com/0xferit/slot-recycling-lib/blob/main/SECURITY.md), which the same maintainer answers.
+Released under the [MIT License](LICENSE). Source and issues: [0xferit/bench-and-wrench](https://github.com/0xferit/bench-and-wrench). To report a vulnerability, use [private vulnerability reporting](https://github.com/0xferit/bench-and-wrench/security/advisories/new) on this repository.

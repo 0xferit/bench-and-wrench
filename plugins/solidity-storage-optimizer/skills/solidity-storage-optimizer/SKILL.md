@@ -94,11 +94,11 @@ forge soldeer install 'uint-quantization-lib~8.0.0'
 forge soldeer install 'slot-recycling-lib~1.1.1'
 ```
 
-A project with `.gitmodules` or a `lib/` directory uses git submodules. Pin the commit each release tag names, because a tag can be moved. The imports then need the remappings `uint-quantization-lib/=lib/uint-quantization-lib/` and `slot-recycling-lib/=lib/slot-recycling-lib/`.
+A project with `.gitmodules` or a `lib/` directory uses git submodules. Pin the commit each release tag names, because a tag can be moved: the commands below carry the commits tagged `v8.0.0` in `uint-quantization-lib` and `v1.1.1` in `slot-recycling-lib`. The imports then need the remappings `uint-quantization-lib/=lib/uint-quantization-lib/` and `slot-recycling-lib/=lib/slot-recycling-lib/`.
 
 ```sh
-forge install 0xferit/uint-quantization-lib@e400de4ff88658f1c1822b608c74d422e7e3e06e  # v8.0.0
-forge install 0xferit/slot-recycling-lib@a04873a48b5ddceb421a64eb695ed26c51d85fd4  # v1.1.1
+forge install 0xferit/uint-quantization-lib@e400de4ff88658f1c1822b608c74d422e7e3e06e
+forge install 0xferit/slot-recycling-lib@a04873a48b5ddceb421a64eb695ed26c51d85fd4
 ```
 
 If the project shows signs of both managers, ask which one new dependencies go through. If a library's source is present and only its import fails, the remapping is missing: say that, not that the library is.

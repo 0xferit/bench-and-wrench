@@ -11,6 +11,7 @@ SKILL_FILE = SKILL / "SKILL.md"
 BUNDLED_PATH = re.compile(r"(?<![\w/.-])(?:scripts|references|examples)/[\w./-]*")
 RELATIVE_LINK = re.compile(r"\]\((?!https?://|#)([^)]+)\)")
 PINNED_DEPENDENCY = re.compile(r'^([a-z0-9-]+) = "([0-9.]+)"$', re.MULTILINE)
+SHELL_BLOCK = re.compile(r"^```sh\n(.*?)^```$", re.DOTALL | re.MULTILINE)
 HOST_SPECIFIC = {
     "a Claude Code path variable": re.compile(r"\$\{CLAUDE_"),
     "a Claude Code tool name": re.compile(r"AskUserQuestion"),
@@ -67,11 +68,22 @@ class SkillPackageTests(unittest.TestCase):
         skill = SKILL_FILE.read_text()
         for library in LIBRARIES:
             version = re.escape(pinned[library])
-            by_registry = rf"forge soldeer install '{library}~{version}'"
-            by_commit = rf"forge install 0xferit/{library}@[0-9a-f]{{40}}\s+# v{version}\n"
-            for how, command in (("registry", by_registry), ("commit", by_commit)):
-                with self.subTest(library=library, how=how):
-                    self.assertTrue(re.search(command, skill), f"no install command for {library} {pinned[library]}")
+            expected = {
+                "registry command": rf"^forge soldeer install '{library}~{version}'$",
+                "commit command": rf"^forge install 0xferit/{library}@[0-9a-f]{{40}}$",
+                "tag the commit belongs to": rf"`v{version}` in `{library}`",
+            }
+            for what, pattern in expected.items():
+                with self.subTest(library=library, what=what):
+                    found = re.search(pattern, skill, re.MULTILINE)
+                    self.assertTrue(found, f"no {what} for {library} {pinned[library]}")
+
+    def test_install_commands_can_be_pasted_at_any_prompt(self):
+        commands = [line for block in SHELL_BLOCK.findall(SKILL_FILE.read_text()) for line in block.splitlines()]
+        self.assertTrue(commands)
+        for command in commands:
+            with self.subTest(command=command):
+                self.assertNotIn("#", command, "zsh passes a trailing comment to the command as arguments")
 
     def test_skill_frontmatter_matches_the_package(self):
         declared = frontmatter(SKILL_FILE.read_text())

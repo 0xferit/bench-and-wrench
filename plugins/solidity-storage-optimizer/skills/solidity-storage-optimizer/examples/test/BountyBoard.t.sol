@@ -102,6 +102,20 @@ contract BountyBoardTest is Test {
         return bountyId & board.maxIndex();
     }
 
+    function assertUnknownOnEveryEntryPoint(uint256 bountyId) internal {
+        bytes memory unknown = abi.encodeWithSelector(BountyBoard.UnknownBounty.selector, bountyId);
+        vm.expectRevert(unknown);
+        board.bounty(bountyId);
+        vm.startPrank(funder);
+        vm.expectRevert(unknown);
+        board.award(bountyId, winner);
+        vm.expectRevert(unknown);
+        board.withdraw(bountyId);
+        vm.expectRevert(unknown);
+        board.extend(bountyId, deadline + 1);
+        vm.stopPrank();
+    }
+
     function test_post_afterAward_reusesSlotWithNewId() public {
         uint256 first = post(0, step);
         vm.prank(funder);
@@ -127,17 +141,7 @@ contract BountyBoardTest is Test {
         board.award(stale, winner);
         post(0, step);
 
-        bytes memory unknown = abi.encodeWithSelector(BountyBoard.UnknownBounty.selector, stale);
-        vm.expectRevert(unknown);
-        board.bounty(stale);
-        vm.startPrank(funder);
-        vm.expectRevert(unknown);
-        board.award(stale, winner);
-        vm.expectRevert(unknown);
-        board.withdraw(stale);
-        vm.expectRevert(unknown);
-        board.extend(stale, deadline + 1);
-        vm.stopPrank();
+        assertUnknownOnEveryEntryPoint(stale);
     }
 
     function test_award_twice_reverts() public {
@@ -156,7 +160,6 @@ contract BountyBoardTest is Test {
 
     function test_actions_byNonFunder_revert() public {
         uint256 id = post(0, step);
-        vm.warp(deadline + 1);
         vm.startPrank(stranger);
         vm.expectRevert(BountyBoard.NotFunder.selector);
         board.award(id, stranger);
@@ -167,12 +170,28 @@ contract BountyBoardTest is Test {
         vm.stopPrank();
     }
 
-    function test_withdraw_beforeDeadlinePasses_reverts() public {
+    function test_award_atDeadline_pays() public {
         uint256 id = post(0, step);
         vm.warp(deadline);
         vm.prank(funder);
-        vm.expectRevert(abi.encodeWithSelector(BountyBoard.StillOpen.selector, deadline));
+        board.award(id, winner);
+        assertEq(winner.balance, step);
+    }
+
+    function test_award_afterDeadline_reverts() public {
+        uint256 id = post(0, step);
+        vm.warp(deadline + 1);
+        vm.prank(funder);
+        vm.expectRevert(abi.encodeWithSelector(BountyBoard.BountyExpired.selector, deadline));
+        board.award(id, winner);
+    }
+
+    function test_withdraw_beforeDeadline_returnsExactDeposit() public {
+        uint256 balanceBefore = funder.balance;
+        uint256 id = post(0, 5 * step);
+        vm.prank(funder);
         board.withdraw(id);
+        assertEq(funder.balance, balanceBefore);
     }
 
     function test_withdraw_afterDeadline_returnsExactDeposit() public {
@@ -253,7 +272,7 @@ contract BountyBoardTest is Test {
         uint256 last = board.maxIndex();
         post(last, step);
         vm.prank(funder);
-        vm.expectRevert(BountyBoard.BoardFull.selector);
+        vm.expectRevert(abi.encodeWithSelector(BountyBoard.NoVacantSlotFromHint.selector, last));
         board.post{value: step}(last, deadline);
     }
 
@@ -307,11 +326,8 @@ contract BountyBoardTest is Test {
 
         uint256 next = post(0, step);
         assertEq(slotOf(next), 1);
-        vm.expectRevert(abi.encodeWithSelector(BountyBoard.UnknownBounty.selector, last));
-        board.bounty(last);
-        uint256 forged = board.idOf(retired, 0);
-        vm.expectRevert(abi.encodeWithSelector(BountyBoard.UnknownBounty.selector, forged));
-        board.bounty(forged);
+        assertUnknownOnEveryEntryPoint(last);
+        assertUnknownOnEveryEntryPoint(board.idOf(retired, 0));
     }
 
     function testFuzz_packUnpack_roundTrip(address anyFunder, uint32 anyDeadline, uint40 amountUnits, uint24 generation)

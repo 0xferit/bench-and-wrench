@@ -42,7 +42,7 @@ contract StakeVault {
     /// @notice Stakes `msg.value`, which must be a positive multiple of `stakeStep()` up to `maxStake()`.
     function stake(address delegate, uint256 unlockAt) external payable {
         if (msg.value == 0) revert ZeroStake();
-        if (_stakes[msg.sender].amountUnits != 0) revert AlreadyStaked();
+        if (_read(msg.sender).amount != 0) revert AlreadyStaked();
         _write(msg.sender, Stake({amount: msg.value, delegate: delegate, unlockAt: unlockAt}));
     }
 

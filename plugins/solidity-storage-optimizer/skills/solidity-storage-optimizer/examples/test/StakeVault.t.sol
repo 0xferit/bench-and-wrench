@@ -6,6 +6,16 @@ import {NotAligned, Overflow} from "uint-quantization-lib/src/UintQuantizationLi
 import {StakeVault} from "../src/StakeVault.sol";
 import {SlotCreation} from "./SlotCreation.sol";
 
+contract StakerThatRejectsPayment {
+    function stake(StakeVault vault, uint256 unlockAt) external payable {
+        vault.stake{value: msg.value}(address(0), unlockAt);
+    }
+
+    function unstake(StakeVault vault) external {
+        vault.unstake();
+    }
+}
+
 contract StakeVaultTest is Test {
     StakeVault vault;
     address staker = makeAddr("staker");
@@ -93,6 +103,14 @@ contract StakeVaultTest is Test {
         assertEq(staker.balance, balanceBefore);
         assertEq(address(vault).balance, 0);
         assertEq(vault.stakeOf(staker).amount, 0);
+    }
+
+    function test_unstake_toStakerThatRejectsPayment_reverts() public {
+        StakerThatRejectsPayment rejecting = new StakerThatRejectsPayment();
+        vm.deal(address(this), step);
+        rejecting.stake{value: step}(vault, block.timestamp);
+        vm.expectRevert(StakeVault.TransferFailed.selector);
+        rejecting.unstake(vault);
     }
 
     function testFuzz_stake_roundTrip(uint56 units, address anyDelegate, uint40 unlockAt) public {

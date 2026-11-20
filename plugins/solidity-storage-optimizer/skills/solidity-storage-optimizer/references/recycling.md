@@ -142,7 +142,7 @@ Keep the contract as it was before the change beside the tests, as a control, an
 Report two numbers for each:
 
 - **Storage slots created**, counted from the state diff by `examples/test/SlotCreation.sol`. Assert it. It is what a gas schedule charges as new state, and it does not change when prices do.
-- **Gas paid**, summed per call from `vm.lastCallGas()` as total minus refund. Log it. Leaving the refund out flatters recycling, because the control earns refunds for the slots it clears.
+- **Gas paid**, summed per call from `vm.lastFrameGas()` as total minus refund. Log it. Leaving the refund out flatters recycling, because the control earns refunds for the slots it clears. A Foundry that predates `lastFrameGas` has the same reading under `lastCallGas`.
 
 ```sh
 forge test --isolate -vv

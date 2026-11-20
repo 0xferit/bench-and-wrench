@@ -12,6 +12,6 @@ optimizer_runs = 200
 remappings_version = false
 
 [dependencies]
-forge-std = "1.14.0"
+forge-std = "1.17.0"
 uint-quantization-lib = "8.0.0"
 slot-recycling-lib = "1.1.1"

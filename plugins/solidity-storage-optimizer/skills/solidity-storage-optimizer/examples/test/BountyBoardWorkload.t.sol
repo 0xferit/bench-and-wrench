@@ -52,8 +52,8 @@ contract BountyBoardWorkloadTest is Test {
         emit log_named_uint("recycled board: gas", recycledGas);
     }
 
-    function paidForLastCall() internal returns (uint256) {
-        Vm.Gas memory gas = vm.lastCallGas();
+    function paidForLastCall() internal view returns (uint256) {
+        Vm.Gas memory gas = vm.lastFrameGas();
         return uint256(int256(uint256(gas.gasTotalUsed)) - gas.gasRefunded);
     }
 

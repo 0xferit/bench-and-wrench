@@ -1,0 +1,1 @@
+The task: the `Account` struct in `src/RewardsVault.sol` takes six storage slots per staker, and our gas reports are dominated by storage writes. The vault is not deployed yet; we launch next month. Please reduce what `Account` costs in storage.

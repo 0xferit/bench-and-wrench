@@ -1,0 +1,1 @@
+The task: `src/Listings.sol` is our marketplace's listing book, not deployed yet. Listings are created and removed all day long, and `list` is the most expensive call we have. Please cut the storage cost of listings as far as you safely can.

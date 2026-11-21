@@ -66,13 +66,15 @@ claude plugin validate plugins/solidity-storage-optimizer --strict
 
 The first validation covers the catalog and each package's manifest. A package's skills are checked only when its own directory is validated.
 
-Solidity Storage Optimizer carries a small Foundry project of example contracts that its instructions point at. After changing them or the library versions they pin, run them, since the site workflow has no Solidity toolchain. A new library version also means new commit pins in the skill's install section.
+Solidity Storage Optimizer carries a small Foundry project of example contracts that its instructions point at. After changing them or the library versions they pin, run them, since the site workflow has no Solidity toolchain. A new library version also means new commit pins in the skill's install section and new pins in the scenario projects.
 
 ```sh
 cd plugins/solidity-storage-optimizer/skills/solidity-storage-optimizer/examples
 forge soldeer install
 forge test --isolate
 ```
+
+The scenarios in [evals/solidity-storage-optimizer](evals/solidity-storage-optimizer) show what an agent does with the skill and without it. Run them by hand, as their README describes, before and after changing the skill's text.
 
 Commit the source and generated catalog together. [.agents/plugins/marketplace.json](.agents/plugins/marketplace.json) is generated; do not edit it directly. Users receive catalog updates with `/plugin marketplace update bench-and-wrench` in Claude Code or `codex plugin marketplace upgrade bench-and-wrench` in Codex. Update installed plugins through the host's plugin controls.
 

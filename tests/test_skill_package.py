@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins/solidity-storage-optimizer"
 SKILL = PLUGIN / "skills/solidity-storage-optimizer"
 SKILL_FILE = SKILL / "SKILL.md"
+SCENARIOS = ROOT / "evals/solidity-storage-optimizer"
 BUNDLED_PATH = re.compile(r"(?<![\w/.-])(?:scripts|references|examples)/[\w./-]*")
 RELATIVE_LINK = re.compile(r"\]\((?!https?://|#)([^)]+)\)")
 PINNED_DEPENDENCY = re.compile(r'^([a-z0-9-]+) = "([0-9.]+)"$', re.MULTILINE)
@@ -77,6 +78,16 @@ class SkillPackageTests(unittest.TestCase):
                 with self.subTest(library=library, what=what):
                     found = re.search(pattern, skill, re.MULTILINE)
                     self.assertTrue(found, f"no {what} for {library} {pinned[library]}")
+
+    def test_scenario_projects_pin_the_versions_the_examples_verify(self):
+        verified = dict(PINNED_DEPENDENCY.findall((SKILL / "examples/foundry.toml").read_text()))
+        projects = sorted(SCENARIOS.glob("*/project/foundry.toml"))
+        self.assertTrue(projects)
+        for project in projects:
+            pinned = dict(PINNED_DEPENDENCY.findall(project.read_text()))
+            with self.subTest(scenario=project.parent.parent.name):
+                self.assertTrue(pinned)
+                self.assertEqual(pinned, {dependency: verified.get(dependency) for dependency in pinned})
 
     def test_install_commands_can_be_pasted_at_any_prompt(self):
         commands = [line for block in SHELL_BLOCK.findall(SKILL_FILE.read_text()) for line in block.splitlines()]

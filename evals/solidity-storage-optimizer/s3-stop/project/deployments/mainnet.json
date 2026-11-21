@@ -1,0 +1,10 @@
+{
+  "chainId": 1,
+  "Treasury": {
+    "proxy": "0x4c7A19F2bC0E5e3F1a6D8B2e9C0d7A3b5E6F8a12",
+    "implementation": "0x9B1dE0a4C2f37A8e5D6c1B0f3E2a4D7c8F5b6A90",
+    "implementationVersion": 3,
+    "deployedAtBlock": 21480313,
+    "lastUpgradeAtBlock": 23911207
+  }
+}

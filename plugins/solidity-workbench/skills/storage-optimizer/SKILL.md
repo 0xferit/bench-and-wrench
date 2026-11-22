@@ -1,5 +1,5 @@
 ---
-name: solidity-storage-optimizer
+name: storage-optimizer
 description: Reduces the storage a Solidity contract pays for by packing struct fields into fewer 256-bit slots, quantizing uint256 values with uint-quantization-lib where exact packing is not enough, and reusing freed mapping slots with slot-recycling-lib. Use when a struct or mapping record spans several storage slots, when SSTORE or SLOAD cost dominates a gas report, when a collection keeps creating and deleting entries, or when asked to pack a struct, quantize values, recycle storage slots or cut storage gas in a Foundry project.
 license: MIT
 ---

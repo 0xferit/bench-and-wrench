@@ -34,7 +34,7 @@ In Claude Code, run:
 ```text
 /plugin marketplace add 0xferit/bench-and-wrench
 /plugin install live-gantt@bench-and-wrench
-/plugin install solidity-storage-optimizer@bench-and-wrench
+/plugin install solidity-workbench@bench-and-wrench
 ```
 
 In the Codex command-line interface, run:
@@ -42,18 +42,18 @@ In the Codex command-line interface, run:
 ```sh
 codex plugin marketplace add 0xferit/bench-and-wrench
 codex plugin add live-gantt@bench-and-wrench
-codex plugin add solidity-storage-optimizer@bench-and-wrench
+codex plugin add solidity-workbench@bench-and-wrench
 ```
 
-Start a new session after installation. Live Gantt's task planning and timeline read **Claude Code sessions**. Installing its skills in Codex does not add tracking of Codex tasks. See the [Live Gantt field notes](tools/live-gantt.md) for requirements and limitations. Solidity Storage Optimizer is one skill that works in both hosts; it needs a Foundry project, and its [field notes](tools/solidity-storage-optimizer.md) say where it stops.
+Start a new session after installation. Live Gantt's task planning and timeline read **Claude Code sessions**. Installing its skills in Codex does not add tracking of Codex tasks. See the [Live Gantt field notes](tools/live-gantt.md) for requirements and limitations. Solidity Workbench holds one skill, Solidity Storage Optimizer, which works in both hosts as `solidity-workbench:storage-optimizer`; it needs a Foundry project, and its [field notes](tools/solidity-storage-optimizer.md) say where it stops.
 
-Live Gantt is fetched from its upstream release at a pinned commit. Solidity Storage Optimizer is an original package whose source is in [plugins/solidity-storage-optimizer](plugins/solidity-storage-optimizer). Linear Work Tree remains a hosted website, not an installable plugin. Adding this marketplace does not install every entry automatically or submit it to either provider's official directory.
+Live Gantt is fetched from its upstream release at a pinned commit. Solidity Workbench is an original package whose source is in [plugins/solidity-workbench](plugins/solidity-workbench). Linear Work Tree remains a hosted website, not an installable plugin. Adding this marketplace does not install every entry automatically or submit it to either provider's official directory.
 
 ### Maintaining the marketplace
 
 Edit [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) to add a plugin or update its release. Keep upstream sources pinned to full commit hashes, and keep their authorship and licenses intact. Review an update before changing the pin; marketplace refreshes must not silently select a moving upstream branch.
 
-For an original skill package, commit its source, skill instructions, and manifest under `plugins/`, then add its relative source path to the catalog. Both hosts read the package's own manifest, as in [plugins/solidity-storage-optimizer/.claude-plugin/plugin.json](plugins/solidity-storage-optimizer/.claude-plugin/plugin.json). Give it a version, an explicit license, and a description of when to use it, and raise the version with every change: hosts use it to decide whether an installed copy is current. Publish only skills intended for other people; local agent settings and private workflows do not belong here. The [Claude packaging guide](https://code.claude.com/docs/en/plugins) and [Codex packaging guide](https://developers.openai.com/plugins/build/plugins) describe the supported manifests and directory layout.
+For an original skill package, commit its source, skill instructions, and manifest under `plugins/`, then add its relative source path to the catalog. Both hosts read the package's own manifest, as in [plugins/solidity-workbench/.claude-plugin/plugin.json](plugins/solidity-workbench/.claude-plugin/plugin.json). Give it a version, an explicit license, and a description of when to use it, and raise the version with every change: hosts use it to decide whether an installed copy is current. Publish only skills intended for other people; local agent settings and private workflows do not belong here. The [Claude packaging guide](https://code.claude.com/docs/en/plugins) and [Codex packaging guide](https://developers.openai.com/plugins/build/plugins) describe the supported manifests and directory layout.
 
 Regenerate the Codex catalog after changing entries or the README title:
 
@@ -61,7 +61,7 @@ Regenerate the Codex catalog after changing entries or the README title:
 python3 -B scripts/build_marketplace.py
 python3 -B scripts/build_marketplace.py --check
 claude plugin validate . --strict
-claude plugin validate plugins/solidity-storage-optimizer --strict
+claude plugin validate plugins/solidity-workbench --strict
 ```
 
 The first validation covers the catalog and each package's manifest. A package's skills are checked only when its own directory is validated.
@@ -69,7 +69,7 @@ The first validation covers the catalog and each package's manifest. A package's
 Solidity Storage Optimizer carries a small Foundry project of example contracts that its instructions point at. After changing them or the library versions they pin, run them, since the site workflow has no Solidity toolchain. A new library version also means new commit pins in the skill's install section and new pins in the scenario projects.
 
 ```sh
-cd plugins/solidity-storage-optimizer/skills/solidity-storage-optimizer/examples
+cd plugins/solidity-workbench/skills/storage-optimizer/examples
 forge soldeer install
 forge test --isolate
 ```

@@ -27,8 +27,8 @@ It needs a Foundry project on Solidity 0.8.25 or later, and it never installs th
 ## Get it
 
 - [Install it from this marketplace](https://github.com/0xferit/bench-and-wrench#install-the-marketplace)
-- [Skill source](https://github.com/0xferit/bench-and-wrench/tree/main/plugins/solidity-storage-optimizer)
+- [Skill source](https://github.com/0xferit/bench-and-wrench/tree/main/plugins/solidity-workbench)
 - [uint-quantization-lib](https://github.com/0xferit/uint-quantization-lib), which quantizes values that exact types cannot fit
 - [slot-recycling-lib](https://github.com/0xferit/slot-recycling-lib), which reuses freed slots
 
-The plugin is `solidity-storage-optimizer@bench-and-wrench` in Claude Code and in Codex. The skill and both libraries are released under the MIT License.
+It installs with the plugin `solidity-workbench@bench-and-wrench` in Claude Code and in Codex, as the skill `storage-optimizer`. The skill and both libraries are released under the MIT License.

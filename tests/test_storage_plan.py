@@ -6,7 +6,7 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-TOOL = ROOT / "plugins/solidity-storage-optimizer/skills/solidity-storage-optimizer/scripts/storage_plan.py"
+TOOL = ROOT / "plugins/solidity-workbench/skills/storage-optimizer/scripts/storage_plan.py"
 UINT256_MAX = (1 << 256) - 1
 
 BOUNTY = {

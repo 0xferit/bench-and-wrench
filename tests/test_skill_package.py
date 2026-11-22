@@ -5,8 +5,8 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PLUGIN = ROOT / "plugins/solidity-storage-optimizer"
-SKILL = PLUGIN / "skills/solidity-storage-optimizer"
+PLUGIN = ROOT / "plugins/solidity-workbench"
+SKILL = PLUGIN / "skills/storage-optimizer"
 SKILL_FILE = SKILL / "SKILL.md"
 SCENARIOS = ROOT / "evals/solidity-storage-optimizer"
 BUNDLED_PATH = re.compile(r"(?<![\w/.-])(?:scripts|references|examples)/[\w./-]*")
@@ -96,11 +96,19 @@ class SkillPackageTests(unittest.TestCase):
             with self.subTest(command=command):
                 self.assertNotIn("#", command, "zsh passes a trailing comment to the command as arguments")
 
-    def test_skill_frontmatter_matches_the_package(self):
+    def test_the_skill_and_the_package_are_named_after_their_directories(self):
         declared = frontmatter(SKILL_FILE.read_text())
         manifest = json.loads((PLUGIN / ".claude-plugin/plugin.json").read_text())
         self.assertEqual(declared["name"], SKILL.name)
-        self.assertEqual(manifest["name"], SKILL.name)
+        self.assertEqual(manifest["name"], PLUGIN.name)
+
+    def test_the_catalog_installs_the_package_under_its_manifest_name(self):
+        catalog = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text())
+        sources = {plugin["name"]: plugin["source"] for plugin in catalog["plugins"]}
+        self.assertEqual(sources.get(PLUGIN.name), f"./{PLUGIN.relative_to(ROOT).as_posix()}")
+
+    def test_the_skill_description_fits_what_hosts_accept(self):
+        declared = frontmatter(SKILL_FILE.read_text())
         self.assertLessEqual(len(declared["description"]), DESCRIPTION_LIMIT)
 
     def test_the_stops_and_gates_come_before_the_detail(self):

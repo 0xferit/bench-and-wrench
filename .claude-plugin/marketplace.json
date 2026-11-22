@@ -17,8 +17,8 @@
       }
     },
     {
-      "name": "solidity-storage-optimizer",
-      "source": "./plugins/solidity-storage-optimizer",
+      "name": "solidity-workbench",
+      "source": "./plugins/solidity-workbench",
       "category": "Developer Tools"
     }
   ]

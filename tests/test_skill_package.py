@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins/solidity-workbench"
 SKILL = PLUGIN / "skills/storage-optimizer"
 SKILL_FILE = SKILL / "SKILL.md"
-SCENARIOS = ROOT / "evals/solidity-storage-optimizer"
+SCENARIOS = ROOT / "evals" / PLUGIN.name / SKILL.name
 BUNDLED_PATH = re.compile(r"(?<![\w/.-])(?:scripts|references|examples)/[\w./-]*")
 RELATIVE_LINK = re.compile(r"\]\((?!https?://|#)([^)]+)\)")
 PINNED_DEPENDENCY = re.compile(r'^([a-z0-9-]+) = "([0-9.]+)"$', re.MULTILINE)

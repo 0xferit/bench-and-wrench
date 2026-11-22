@@ -74,7 +74,7 @@ forge soldeer install
 forge test --isolate
 ```
 
-The scenarios in [evals/solidity-storage-optimizer](evals/solidity-storage-optimizer) show what an agent does with the skill and without it. Run them by hand, as their README describes, before and after changing the skill's text.
+The scenarios in [evals/solidity-workbench/storage-optimizer](evals/solidity-workbench/storage-optimizer) show what an agent does with the skill and without it. Run them by hand, as their README describes, before and after changing the skill's text.
 
 Commit the source and generated catalog together. [.agents/plugins/marketplace.json](.agents/plugins/marketplace.json) is generated; do not edit it directly. Users receive catalog updates with `/plugin marketplace update bench-and-wrench` in Claude Code or `codex plugin marketplace upgrade bench-and-wrench` in Codex. Update installed plugins through the host's plugin controls.
 
